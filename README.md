@@ -1,5 +1,7 @@
 # Presentation Camera
 
+**Demo en vivo**: https://manufosela.dev/presentation-camera/
+
 Web app estática que superpone tu **webcam** sobre una **presentación embebida**. Pensada para grabar o impartir clases mostrando las diapositivas y tu cara al mismo tiempo, estilo *talking head*.
 
 La webcam puede dibujarse con marco rectangular o **recortada sin fondo** usando segmentación de persona en el navegador (TensorFlow.js + BodyPix).
