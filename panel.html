@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>CAM Control · presentation·camera</title>
+    <link rel="preload" href="vendor/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="precam.css" />
+    <link rel="stylesheet" href="panel.css" />
+  </head>
+  <body class="panel-body">
+    <header class="panel-bar">
+      <div class="panel-bar-left">
+        <span class="panel-bar-mark" aria-hidden="true">
+          <svg viewBox="0 0 18 18" width="14" height="14">
+            <path d="M9 1.5a7.5 7.5 0 100 15 7.5 7.5 0 000-15zm0 2a5.5 5.5 0 010 11V3.5z" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="panel-bar-title">cam · control</span>
+      </div>
+      <div class="panel-bar-right">
+        <span class="panel-link-status" id="linkStatus" data-state="waiting">
+          <span class="panel-link-dot" aria-hidden="true"></span>
+          <span class="panel-link-label">linking…</span>
+        </span>
+      </div>
+    </header>
+
+    <main class="panel-main">
+      <section class="panel-section">
+        <h2 class="panel-section-title">Sources</h2>
+        <p class="panel-section-hint" id="sourcesHint">
+          Aún no hay presentaciones. Añade una desde la ventana principal o pega su URL aquí abajo.
+        </p>
+
+        <div class="panel-add">
+          <input
+            id="panelAddInput"
+            type="url"
+            class="panel-add-input"
+            placeholder="https://…"
+            autocomplete="off"
+            spellcheck="false"
+            inputmode="url"
+          />
+          <button id="panelAddBtn" type="button" class="panel-add-btn">
+            <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
+              <path d="M7 1.5v11M1.5 7h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            <span>Add</span>
+          </button>
+        </div>
+
+        <ol class="panel-sources" id="panelSources" aria-label="Lista de presentaciones"></ol>
+      </section>
+
+      <footer class="panel-foot">
+        <p class="panel-foot-note">
+          Esta ventana se mantiene en segundo plano para conservar el estado interno de cada presentación.
+          Comparte solo la ventana principal en Zoom/Meet/Teams.
+        </p>
+      </footer>
+    </main>
+
+    <script type="module" src="panel.js"></script>
+  </body>
+</html>

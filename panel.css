@@ -1,0 +1,246 @@
+/* ============================================================
+ *  Control Panel (panel.html)
+ *  Hereda tokens y fuentes de precam.css, añade layout propio.
+ *  ============================================================ */
+
+.panel-body {
+  min-height: 100vh;
+  padding: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+/* ─── Top bar ────────────────────────────────────────────────── */
+
+.panel-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.2rem;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--bg-base);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.panel-bar-left,
+.panel-bar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.panel-bar-mark {
+  display: inline-flex;
+  width: 22px; height: 22px;
+  align-items: center; justify-content: center;
+  color: var(--accent);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg-raised);
+}
+.panel-bar-title {
+  color: var(--ink-strong);
+  letter-spacing: 0.05em;
+}
+
+.panel-link-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-soft);
+  background: var(--bg-raised);
+  font-size: 0.7rem;
+}
+.panel-link-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+  box-shadow: 0 0 0 3px oklch(0.42 0.014 60 / .25);
+  transition: background .25s, box-shadow .25s;
+}
+.panel-link-status[data-state="waiting"] .panel-link-dot { background: var(--ink-muted); }
+.panel-link-status[data-state="linked"] {
+  border-color: oklch(0.78 0.155 70 / .35);
+  color: var(--accent);
+}
+.panel-link-status[data-state="linked"] .panel-link-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  animation: panel-link-pulse 2.4s var(--ease-soft) infinite;
+}
+.panel-link-status[data-state="lost"] {
+  border-color: oklch(0.65 0.235 25 / .45);
+  color: oklch(0.85 0.10 25);
+}
+.panel-link-status[data-state="lost"] .panel-link-dot {
+  background: var(--live);
+  box-shadow: 0 0 0 3px var(--live-soft);
+}
+@keyframes panel-link-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--accent-soft); }
+  50%      { box-shadow: 0 0 0 6px oklch(0.78 0.155 70 / .04); }
+}
+
+/* ─── Main column ────────────────────────────────────────────── */
+
+.panel-main {
+  padding: clamp(1rem, 3vw, 1.8rem);
+  display: grid;
+  gap: 1.4rem;
+  grid-template-rows: 1fr auto;
+}
+
+.panel-section { display: grid; gap: 1rem; }
+.panel-section-title {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  color: var(--ink-strong);
+  font-variation-settings: "opsz" 40;
+}
+.panel-section-hint {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+.panel-section-hint[hidden] { display: none; }
+
+/* ─── Add input ──────────────────────────────────────────────── */
+
+.panel-add {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: stretch;
+  padding: 0.45rem 0.55rem 0.45rem 0.85rem;
+  background: var(--bg-input);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.panel-add:focus-within {
+  border-color: var(--accent-line);
+  background: oklch(0.13 0.014 60);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.panel-add-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.45rem 0;
+  color: var(--ink-strong);
+  font-size: 0.92rem;
+}
+.panel-add-input::placeholder {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+.panel-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  color: oklch(0.18 0.030 60);
+  background: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: background .15s, transform .15s var(--ease-out);
+}
+.panel-add-btn:hover { background: oklch(0.82 0.16 72); transform: translateY(-1px); }
+.panel-add-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+.panel-add-btn:active { transform: translateY(0); }
+
+/* ─── Source list (placeholder for next task) ────────────────── */
+
+.panel-sources {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.panel-sources:empty { display: none; }
+
+.panel-source {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-raised);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  transition: border-color .15s, background .15s;
+}
+.panel-source[data-active="true"] {
+  border-color: var(--accent-line);
+  background: oklch(0.20 0.02 60);
+  box-shadow: 0 0 0 1px var(--accent-line);
+}
+.panel-source-num {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  width: 18px;
+  text-align: center;
+}
+.panel-source[data-active="true"] .panel-source-num { color: var(--accent); }
+.panel-source-title {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+.panel-source-name {
+  color: var(--ink-strong);
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.panel-source-url {
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.panel-source-actions { display: inline-flex; gap: 0.3rem; }
+.panel-source-btn {
+  width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 4px;
+  color: var(--ink-muted);
+  transition: color .15s, background .15s;
+}
+.panel-source-btn:hover {
+  color: var(--accent);
+  background: oklch(0.78 0.155 70 / .12);
+}
+.panel-source-btn--danger:hover {
+  color: oklch(0.85 0.10 25);
+  background: oklch(0.65 0.235 25 / .15);
+}
+.panel-source-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* ─── Footer ─────────────────────────────────────────────────── */
+
+.panel-foot {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 1rem;
+}
+.panel-foot-note {
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  line-height: 1.5;
+  max-width: 56ch;
+}
