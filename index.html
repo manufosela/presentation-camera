@@ -32,21 +32,37 @@
       <span class="live-time" id="liveTime" aria-live="off">00:00</span>
     </div>
 
-    <!-- Home / end-of-broadcast button -->
-    <button
-      id="homeButton"
-      class="end-button"
-      type="button"
-      title="Volver al setup (Esc)"
-      hidden
-    >
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-        <path d="M5 12L1 8l4-4M1 8h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <rect x="12" y="3" width="2" height="10" fill="currentColor"/>
-      </svg>
-      <span>End broadcast</span>
-      <kbd class="kbd-hint">esc</kbd>
-    </button>
+    <!-- Top-right action cluster: visible only during presentation -->
+    <div class="top-actions" id="topActions" hidden>
+      <button
+        id="fullscreenBtn"
+        class="end-button end-button-ghost"
+        type="button"
+        title="Pantalla completa (F)"
+      >
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" class="fs-icon-enter">
+          <path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" class="fs-icon-exit">
+          <path d="M6 2v4H2M10 2v4h4M6 14v-4H2M10 14v-4h4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="end-button-label">Fullscreen</span>
+        <kbd class="kbd-hint">f</kbd>
+      </button>
+      <button
+        id="homeButton"
+        class="end-button"
+        type="button"
+        title="Volver al setup (Esc)"
+      >
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+          <path d="M5 12L1 8l4-4M1 8h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="12" y="3" width="2" height="10" fill="currentColor"/>
+        </svg>
+        <span class="end-button-label">End</span>
+        <kbd class="kbd-hint">esc</kbd>
+      </button>
+    </div>
 
     <!-- Webcam stage: floats in a corner during presentation -->
     <section
@@ -293,6 +309,7 @@
         <span class="legend-title">Shortcuts</span>
         <span class="legend-item"><kbd>←</kbd><kbd>→</kbd> corner</span>
         <span class="legend-item"><kbd>B</kbd> treatment</span>
+        <span class="legend-item"><kbd>F</kbd> fullscreen</span>
         <span class="legend-item"><kbd>Esc</kbd> end</span>
       </aside>
     </main>

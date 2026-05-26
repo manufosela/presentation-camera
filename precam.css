@@ -1010,12 +1010,21 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
   50%      { box-shadow: 0 0 0 6px oklch(0.65 0.235 25 / .05); }
 }
 
-/* ─── In-presentation: end button ───────────────────────────── */
+/* ─── In-presentation: top action cluster ───────────────────── */
 
-.end-button {
+.top-actions {
   position: fixed;
   top: 1rem;
   right: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 10;
+}
+.top-actions[hidden] { display: none; }
+
+.end-button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
@@ -1028,15 +1037,18 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   color: var(--ink-body);
-  z-index: 10;
   box-shadow: 0 8px 24px -10px oklch(0 0 0 / .5);
   transition: color .15s, border-color .15s, background .15s, transform .15s var(--ease-out);
   opacity: 0;
   transform: translateY(-6px);
+  animation: topAppear .35s var(--ease-out) forwards;
 }
-.end-button:not([hidden]) {
-  opacity: 1;
-  transform: translateY(0);
+.end-button-ghost {
+  background: oklch(0.16 0.014 60 / .55);
+}
+.end-button-label { white-space: nowrap; }
+@keyframes topAppear {
+  to { opacity: 1; transform: translateY(0); }
 }
 .end-button:hover {
   color: oklch(0.92 0.04 25);
@@ -1052,6 +1064,17 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
   font-size: 0.6rem;
   padding: 0.1em 0.4em;
   margin-left: 0.25rem;
+}
+
+/* Fullscreen icon swap */
+#fullscreenBtn .fs-icon-exit { display: none; }
+#fullscreenBtn.is-fullscreen .fs-icon-enter { display: none; }
+#fullscreenBtn.is-fullscreen .fs-icon-exit  { display: block; }
+
+/* On narrow screens hide the labels, keep icons */
+@media (max-width: 640px) {
+  .end-button-label { display: none; }
+  .end-button .kbd-hint { display: none; }
 }
 
 /* ─── Webcam stage (during presentation) ────────────────────── */

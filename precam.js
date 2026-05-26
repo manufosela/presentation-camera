@@ -17,6 +17,8 @@ const cameraFieldset = document.getElementById('cameraFieldset');
 const toggleStyleBtn = document.getElementById('toggleStyleBtn');
 const liveBadge = document.getElementById('liveBadge');
 const liveTime = document.getElementById('liveTime');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const topActions = document.getElementById('topActions');
 
 const positions = ['bottom-right', 'bottom-left', 'top-left', 'top-right'];
 const styles = ['frame', 'cutout'];
@@ -88,6 +90,8 @@ cameraSelect?.addEventListener('change', async event => {
   }
 });
 homeButton.addEventListener('click', returnToSetup);
+fullscreenBtn?.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('keydown', handleKeyboardShortcut);
 
 function isPresentationActive() {
@@ -111,9 +115,18 @@ function handleKeyboardShortcut(event) {
       event.preventDefault();
       toggleStyle();
       break;
+    case 'f':
+    case 'F':
+      event.preventDefault();
+      toggleFullscreen();
+      break;
     case 'Escape':
       event.preventDefault();
-      returnToSetup();
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      } else {
+        returnToSetup();
+      }
       break;
     default:
       break;
@@ -177,10 +190,30 @@ function sanitizePresentationUrl(rawUrl) {
   try {
     const parsed = new URL(rawUrl, window.location.href);
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
-    return parsed.toString();
+    return normalizeEmbeddableUrl(parsed).toString();
   } catch {
     return null;
   }
+}
+
+// Algunos servicios tienen URLs distintas para "editar" vs "embeber".
+// Cuando detectamos una URL de editor, la sustituimos por la versión apta
+// para iframe — así el usuario puede pegar la URL que tenga abierta.
+function normalizeEmbeddableUrl(url) {
+  // Google Slides: /edit, /edit?usp=sharing → /preview
+  // La URL /present rechaza ser embebida (X-Frame-Options SAMEORIGIN),
+  // por eso al pulsar "Presentar" desde /edit la app queda en blanco.
+  if (url.hostname === 'docs.google.com' && url.pathname.includes('/presentation/d/')) {
+    const slidesId = url.pathname.match(/\/presentation\/d\/([^/]+)/)?.[1];
+    if (slidesId) {
+      const next = new URL(url);
+      next.pathname = `/presentation/d/${slidesId}/preview`;
+      next.search = ''; // limpiamos params de edit (usp, ouid…)
+      next.hash = '';
+      return next;
+    }
+  }
+  return url;
 }
 
 async function startPresentation(presetUrl) {
@@ -201,7 +234,7 @@ async function startPresentation(presetUrl) {
   showStatus('Cargando presentación...');
   presentationIframe.src = url;
   presentationSection.hidden = false;
-  homeButton.hidden = false;
+  if (topActions) topActions.hidden = false;
   startLiveBadge();
   updatePositionClass(selectedPosition);
   updateStyleClass(selectedStyle);
@@ -373,7 +406,10 @@ function returnToSetup() {
   presentationIframe.src = '';
   presentationSection.hidden = true;
   webcamSection.hidden = true;
-  homeButton.hidden = true;
+  if (topActions) topActions.hidden = true;
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  }
   showStatus('');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -393,6 +429,24 @@ function stopLiveBadge() {
     window.clearInterval(liveTimerId);
     liveTimerId = null;
   }
+}
+
+async function toggleFullscreen() {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else if (document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (error) {
+    console.warn('Fullscreen no disponible.', error);
+    showStatus('Fullscreen no disponible en este navegador.', true);
+  }
+}
+
+function syncFullscreenButton() {
+  if (!fullscreenBtn) return;
+  fullscreenBtn.classList.toggle('is-fullscreen', !!document.fullscreenElement);
 }
 
 function tickLiveBadge() {
