@@ -1,0 +1,20 @@
+{
+  "name": "presentation-camera",
+  "version": "1.0.0",
+  "description": "Superpone tu webcam (con o sin fondo) sobre una presentación embebida en un iframe. Pensada para grabar/dar clases mostrando slides y tu cara al mismo tiempo.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "./start.sh",
+    "check": "node --check precam.js"
+  },
+  "author": "@manufosela",
+  "license": "MIT",
+  "keywords": [
+    "webcam",
+    "presentation",
+    "bodypix",
+    "tensorflow",
+    "teaching"
+  ]
+}

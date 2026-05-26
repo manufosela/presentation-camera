@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presentación y Webcam</title>
+    <link rel="stylesheet" href="vendor/pico.min.css" />
+    <link rel="stylesheet" href="precam.css" />
+    <script src="vendor/tf.min.js"></script>
+    <script src="vendor/body-pix.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Presentación con Webcam</h1>
+    </header>
+    <main>
+      <fieldset id="mainform">
+        <fieldset>
+          <legend>Presentation</legend>
+          <label for="url">Url:</label>
+          <input
+            type="text"
+            id="url"
+            placeholder="Url de la Presentación"
+            value=""
+          />
+        </fieldset>
+        <fieldset>
+          <legend>Webcam position:</legend>
+          <label
+            ><input type="radio" name="position" value="bottom-right" checked />
+            Bottom Right</label
+          >
+          <label
+            ><input type="radio" name="position" value="bottom-left" /> Bottom
+            Left</label
+          >
+          <label
+            ><input type="radio" name="position" value="top-right" /> Top
+            Right</label
+          >
+          <label
+            ><input type="radio" name="position" value="top-left" /> Top
+            Left</label
+          >
+        </fieldset>
+        <fieldset>
+          <legend>Webcam style:</legend>
+          <label
+            ><input type="radio" name="webcam-style" value="frame" checked />
+            Con fondo y borde</label
+          >
+          <label
+            ><input type="radio" name="webcam-style" value="cutout" /> Solo
+            cuerpo (sin fondo)</label
+          >
+        </fieldset>
+        <fieldset>
+          <legend>Webcam size:</legend>
+          <label><input type="radio" name="webcam-size" value="s" /> Pequeña</label>
+          <label><input type="radio" name="webcam-size" value="m" checked /> Mediana</label>
+          <label><input type="radio" name="webcam-size" value="l" /> Grande</label>
+        </fieldset>
+        <fieldset id="cameraFieldset" hidden>
+          <legend>Cámara:</legend>
+          <select id="cameraSelect"></select>
+        </fieldset>
+      </fieldset>
+      <fieldset id="buttonsForm">
+        <button type="button" id="startButton">Iniciar Presentación</button>
+        <button type="button" id="exampleButton" class="ejemploBtn">
+          Presentación de ejemplo
+        </button>
+      </fieldset>
+    </main>
+    <button
+      id="homeButton"
+      class="back-button"
+      type="button"
+      title="Volver a la configuración inicial"
+      hidden
+    >
+      ⌂
+    </button>
+    <p class="hint">
+      Recuerda abrir esta página desde https:// o al menos http://localhost para
+      poder usar la webcam.
+    </p>
+    <p id="statusMessage" hidden></p>
+    <section id="presentationSection" hidden>
+      <iframe id="presentationIframe" title="Presentación"></iframe>
+    </section>
+    <section
+      id="webcamSection"
+      class="video-container bottom-right frame"
+      hidden
+    >
+      <canvas id="outputCanvas" width="640" height="480"></canvas>
+      <video id="webcamVideo" playsinline muted></video>
+      <button
+        type="button"
+        id="moveWebcamBtn"
+        title="Cambiar posición de la webcam"
+        aria-label="Cambiar posición de la webcam"
+      >
+        ↔
+      </button>
+    </section>
+    <script type="module" src="precam.js"></script>
+  </body>
+</html>
