@@ -14,6 +14,9 @@ const positionInputs = document.querySelectorAll('input[name="position"]');
 const homeButton = document.getElementById('homeButton');
 const cameraSelect = document.getElementById('cameraSelect');
 const cameraFieldset = document.getElementById('cameraFieldset');
+const toggleStyleBtn = document.getElementById('toggleStyleBtn');
+const liveBadge = document.getElementById('liveBadge');
+const liveTime = document.getElementById('liveTime');
 
 const positions = ['bottom-right', 'bottom-left', 'top-left', 'top-right'];
 const styles = ['frame', 'cutout'];
@@ -31,6 +34,8 @@ let lastSegmentationAt = 0;
 let segmentationInFlight = false;
 let currentDeviceId = null;
 let currentSize = 'm';
+let liveTimerId = null;
+let liveStartedAt = 0;
 
 startButton.addEventListener('click', () => {
   startPresentation().catch(error => {
@@ -46,9 +51,12 @@ exampleButton.addEventListener('click', () => {
 });
 moveButton.addEventListener('click', event => {
   event.stopPropagation();
-  cyclePosition();
+  cyclePosition(1);
 });
-webcamSection.addEventListener('click', cyclePosition);
+toggleStyleBtn?.addEventListener('click', event => {
+  event.stopPropagation();
+  toggleStyle();
+});
 styleInputs.forEach(input => {
   input.addEventListener('change', event => {
     const requestedStyle = event.target.value;
@@ -194,6 +202,7 @@ async function startPresentation(presetUrl) {
   presentationIframe.src = url;
   presentationSection.hidden = false;
   homeButton.hidden = false;
+  startLiveBadge();
   updatePositionClass(selectedPosition);
   updateStyleClass(selectedStyle);
   persistState(url, selectedPosition, selectedStyle);
@@ -360,12 +369,41 @@ async function renderLoop(model) {
 window.addEventListener('beforeunload', stopWebcam);
 function returnToSetup() {
   stopWebcam();
+  stopLiveBadge();
   presentationIframe.src = '';
   presentationSection.hidden = true;
   webcamSection.hidden = true;
   homeButton.hidden = true;
-  showStatus('Configuración lista para iniciar una nueva presentación.');
+  showStatus('');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startLiveBadge() {
+  if (!liveBadge) return;
+  liveBadge.hidden = false;
+  liveStartedAt = Date.now();
+  if (liveTime) liveTime.textContent = '00:00';
+  liveTimerId = window.setInterval(tickLiveBadge, 1000);
+}
+
+function stopLiveBadge() {
+  if (!liveBadge) return;
+  liveBadge.hidden = true;
+  if (liveTimerId) {
+    window.clearInterval(liveTimerId);
+    liveTimerId = null;
+  }
+}
+
+function tickLiveBadge() {
+  if (!liveTime) return;
+  const elapsed = Math.floor((Date.now() - liveStartedAt) / 1000);
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+  const s = elapsed % 60;
+  liveTime.textContent = h > 0
+    ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
 function updateStyleClass(style) {
