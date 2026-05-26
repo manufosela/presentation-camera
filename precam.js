@@ -1,12 +1,13 @@
-import { createSourcesStore } from './sources.js';
+import { createSourcesStore, bindSourcesToChannel } from './sources.js';
 
 const sources = createSourcesStore();
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
 
 // ─── BroadcastChannel hacia el panel de control ──────────────
-// La sincronización completa de activeIndex/sources viene en una task
-// posterior. De momento solo hello/ack/heartbeat para confirmar conexión.
+// Canal compartido para sync de sources (sources:* messages) y para
+// presencia (main:* / panel:*).
 const syncChannel = new BroadcastChannel('cam.sync');
+bindSourcesToChannel(sources, syncChannel);
 let panelLinked = false;
 syncChannel.addEventListener('message', event => {
   const { type } = event.data || {};
@@ -135,6 +136,24 @@ document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('keydown', handleKeyboardShortcut);
 document.addEventListener('keydown', handleGlobalShortcut);
 
+// La principal escucha cambios del store global de sources: si hay
+// presentación activa, recarga el iframe cuando la URL activa cambia.
+// Si está en setup, refleja la activa en el input.
+let lastActiveUrl = null;
+sources.subscribe(({ list, activeIndex }) => {
+  const active = list[activeIndex] ?? null;
+  const url = active?.url ?? null;
+  if (url === lastActiveUrl) return;
+  lastActiveUrl = url;
+  if (isPresentationActive()) {
+    if (url) {
+      presentationIframe.src = sanitizePresentationUrl(url) ?? url;
+    }
+  } else if (urlInput && url) {
+    urlInput.value = url;
+  }
+});
+
 function isPresentationActive() {
   return !presentationSection.hidden;
 }
@@ -152,10 +171,25 @@ function openControlPanel() {
 }
 
 function handleGlobalShortcut(event) {
-  // Ctrl/⌘ + Shift + P → abrir panel (activo siempre, también en setup).
-  if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.key === 'P' || event.key === 'p')) {
+  // Saltar si estamos escribiendo en un input/textarea.
+  if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+  // \ → abrir panel
+  if (event.key === '\\') {
     event.preventDefault();
     openControlPanel();
+    return;
+  }
+
+  // 1..9 → cambiar source activa
+  if (/^[1-9]$/.test(event.key)) {
+    const index = Number(event.key) - 1;
+    const list = sources.list();
+    if (index < list.length) {
+      event.preventDefault();
+      sources.setActive(index);
+    }
   }
 }
 

@@ -11,7 +11,7 @@
  * bidireccional de activeIndex.
  */
 
-import { createSourcesStore } from './sources.js';
+import { createSourcesStore, bindSourcesToChannel } from './sources.js';
 
 const sources = createSourcesStore();
 const linkStatus = document.getElementById('linkStatus');
@@ -22,6 +22,7 @@ const addInput = document.getElementById('panelAddInput');
 const addBtn = document.getElementById('panelAddBtn');
 
 const channel = new BroadcastChannel('cam.sync');
+bindSourcesToChannel(sources, channel);
 let linked = false;
 let linkLostTimer = null;
 
@@ -103,17 +104,35 @@ sources.subscribe(state => {
   renderList(state);
 });
 
+// Cache de elementos iframe ya montados para conservar su estado interno
+// entre re-renders (mover el iframe en el DOM lo recarga, así que lo
+// movemos solo cuando hay reordenación real).
+const iframeCache = new Map();
+
 function renderList({ list: items, activeIndex }) {
   if (!list || !hint) return;
   hint.hidden = items.length > 0;
+
+  // Quitar del cache los que ya no están
+  const currentIds = new Set(items.map(s => s.id));
+  for (const id of [...iframeCache.keys()]) {
+    if (!currentIds.has(id)) iframeCache.delete(id);
+  }
+
   list.replaceChildren(...items.map((item, index) => renderSource(item, index, activeIndex)));
 }
 
 function renderSource(item, index, activeIndex) {
+  const isActive = index === activeIndex;
+
   const li = document.createElement('li');
   li.className = 'panel-source';
-  li.dataset.active = String(index === activeIndex);
+  li.dataset.active = String(isActive);
   li.dataset.id = item.id;
+
+  // Header con número, título y botones
+  const header = document.createElement('div');
+  header.className = 'panel-source-header';
 
   const num = document.createElement('span');
   num.className = 'panel-source-num';
@@ -132,22 +151,75 @@ function renderSource(item, index, activeIndex) {
   const actions = document.createElement('div');
   actions.className = 'panel-source-actions';
 
+  const activateBtn = document.createElement('button');
+  activateBtn.type = 'button';
+  activateBtn.className = 'panel-source-btn panel-source-btn--primary';
+  activateBtn.title = isActive ? 'Activa' : 'Activar';
+  activateBtn.setAttribute('aria-label', isActive ? 'Activa' : 'Activar');
+  activateBtn.innerHTML = isActive
+    ? '<svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true"><circle cx="7" cy="7" r="3" fill="currentColor"/></svg>'
+    : '<svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true"><circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>';
+  activateBtn.addEventListener('click', event => {
+    event.stopPropagation();
+    sources.setActiveById(item.id);
+  });
+
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.className = 'panel-source-btn panel-source-btn--danger';
   removeBtn.title = 'Quitar';
   removeBtn.setAttribute('aria-label', 'Quitar');
   removeBtn.innerHTML = '<svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
-  removeBtn.addEventListener('click', () => sources.remove(item.id));
+  removeBtn.addEventListener('click', event => {
+    event.stopPropagation();
+    sources.remove(item.id);
+  });
 
-  actions.append(removeBtn);
-  li.append(num, titleBlock, actions);
+  actions.append(activateBtn, removeBtn);
+  header.append(num, titleBlock, actions);
+
+  // Viewport con el iframe vivo (cacheado para mantener estado interno)
+  const viewport = document.createElement('div');
+  viewport.className = 'panel-source-viewport';
+
+  let frame = iframeCache.get(item.id);
+  if (!frame || frame.dataset.url !== item.url) {
+    frame = document.createElement('iframe');
+    frame.src = item.url;
+    frame.title = item.title || hostnameOf(item.url);
+    frame.loading = 'eager';
+    frame.dataset.url = item.url;
+    iframeCache.set(item.id, frame);
+  }
+
+  // El iframe queda interactivo (puedes avanzar slides dentro del panel
+  // sin afectar a la principal — el estado se conserva aquí).
+  // El cambio de "activa" se hace por el botón del header o pulsando la
+  // tecla numérica correspondiente.
+  viewport.append(frame);
+
+  // Card structure: header on top, viewport below
+  li.append(header, viewport);
+
   return li;
 }
 
 function hostnameOf(url) {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
 }
+
+// Atajos numéricos 1-9 en el panel
+document.addEventListener('keydown', event => {
+  if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (!/^[1-9]$/.test(event.key)) return;
+  const index = Number(event.key) - 1;
+  const list = sources.list();
+  if (index < list.length) {
+    event.preventDefault();
+    sources.setActive(index);
+  }
+});
 
 // Heartbeat hacia la principal para que detecte cierre del panel si ocurre.
 window.setInterval(() => channel.postMessage({ type: 'panel:heartbeat' }), 4000);
