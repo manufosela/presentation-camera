@@ -149,3 +149,54 @@ export function createSourcesStore() {
 }
 
 export const SOURCES_STORAGE_KEY = STORAGE_KEY;
+
+/**
+ * Conecta un store a un BroadcastChannel para sincronizar el estado entre
+ * ventanas del mismo origin. Maneja el anti-loop: cuando llega un snapshot
+ * remoto se hidrata el store sin re-broadcastear el cambio.
+ *
+ * Tipos de mensaje gestionados:
+ *   - 'sources:state'   → snapshot completo {list, activeIndex}
+ *   - 'sources:request' → la otra ventana pide el snapshot actual
+ *
+ * Devuelve una función para desuscribir todo.
+ */
+export function bindSourcesToChannel(store, channel) {
+  let suppressBroadcast = false;
+  let firstEmission = true;
+
+  const unsubscribe = store.subscribe(snapshot => {
+    if (firstEmission) { firstEmission = false; return; }
+    if (suppressBroadcast) return;
+    try {
+      channel.postMessage({ type: 'sources:state', payload: snapshot });
+    } catch (error) {
+      console.warn('[sources] broadcast failed', error);
+    }
+  });
+
+  const onMessage = event => {
+    const data = event.data;
+    if (!data || typeof data !== 'object') return;
+    if (data.type === 'sources:state' && data.payload) {
+      suppressBroadcast = true;
+      store.hydrate(data.payload);
+      suppressBroadcast = false;
+    } else if (data.type === 'sources:request') {
+      try {
+        channel.postMessage({ type: 'sources:state', payload: store.snapshot() });
+      } catch (error) { /* noop */ }
+    }
+  };
+  channel.addEventListener('message', onMessage);
+
+  // Pedimos snapshot a quien ya esté conectado (si está la otra ventana, nos lo manda).
+  try {
+    channel.postMessage({ type: 'sources:request' });
+  } catch (error) { /* noop */ }
+
+  return () => {
+    unsubscribe();
+    channel.removeEventListener('message', onMessage);
+  };
+}
