@@ -1,3 +1,39 @@
+import { createSourcesStore } from './sources.js';
+
+const sources = createSourcesStore();
+let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
+
+// ─── BroadcastChannel hacia el panel de control ──────────────
+// La sincronización completa de activeIndex/sources viene en una task
+// posterior. De momento solo hello/ack/heartbeat para confirmar conexión.
+const syncChannel = new BroadcastChannel('cam.sync');
+let panelLinked = false;
+syncChannel.addEventListener('message', event => {
+  const { type } = event.data || {};
+  switch (type) {
+    case 'panel:hello':
+    case 'panel:heartbeat':
+      panelLinked = true;
+      syncChannel.postMessage({ type: 'main:heartbeat' });
+      break;
+    case 'panel:hello-ack':
+      panelLinked = true;
+      break;
+    case 'panel:bye':
+      panelLinked = false;
+      break;
+    default:
+      break;
+  }
+});
+syncChannel.postMessage({ type: 'main:hello' });
+window.setInterval(() => {
+  if (panelLinked) syncChannel.postMessage({ type: 'main:heartbeat' });
+}, 4000);
+window.addEventListener('beforeunload', () => {
+  try { syncChannel.postMessage({ type: 'main:bye' }); } catch { /* noop */ }
+});
+
 const presentationSection = document.getElementById('presentationSection');
 const presentationIframe = document.getElementById('presentationIframe');
 const webcamSection = document.getElementById('webcamSection');
@@ -19,6 +55,9 @@ const liveBadge = document.getElementById('liveBadge');
 const liveTime = document.getElementById('liveTime');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const topActions = document.getElementById('topActions');
+const openPanelBtn = document.getElementById('openPanelBtn');
+
+let panelWindow = null;
 
 const positions = ['bottom-right', 'bottom-left', 'top-left', 'top-right'];
 const styles = ['frame', 'cutout'];
@@ -91,11 +130,33 @@ cameraSelect?.addEventListener('change', async event => {
 });
 homeButton.addEventListener('click', returnToSetup);
 fullscreenBtn?.addEventListener('click', toggleFullscreen);
+openPanelBtn?.addEventListener('click', openControlPanel);
 document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('keydown', handleKeyboardShortcut);
+document.addEventListener('keydown', handleGlobalShortcut);
 
 function isPresentationActive() {
   return !presentationSection.hidden;
+}
+
+function openControlPanel() {
+  if (panelWindow && !panelWindow.closed) {
+    panelWindow.focus();
+    return;
+  }
+  const features = 'popup=yes,width=540,height=760,resizable=yes,scrollbars=yes';
+  panelWindow = window.open('panel.html', 'cam-panel', features);
+  if (!panelWindow) {
+    showStatus('Tu navegador bloqueó el popup. Permite popups para este sitio y vuelve a intentarlo.', true);
+  }
+}
+
+function handleGlobalShortcut(event) {
+  // Ctrl/⌘ + Shift + P → abrir panel (activo siempre, también en setup).
+  if ((event.ctrlKey || event.metaKey) && event.shiftKey && (event.key === 'P' || event.key === 'p')) {
+    event.preventDefault();
+    openControlPanel();
+  }
 }
 
 function handleKeyboardShortcut(event) {
@@ -185,6 +246,18 @@ function getSelectedStyle() {
   return document.querySelector('input[name="webcam-style"]:checked').value;
 }
 
+function deriveSourceTitle(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'docs.google.com') return 'Google Slides';
+    if (parsed.hostname.endsWith('genially.com') || parsed.hostname.endsWith('genial.ly')) return 'Genially';
+    if (parsed.hostname.includes('canva.com')) return 'Canva';
+    return parsed.hostname.replace(/^www\./, '');
+  } catch {
+    return null;
+  }
+}
+
 function sanitizePresentationUrl(rawUrl) {
   if (!rawUrl) return null;
   try {
@@ -231,6 +304,9 @@ async function startPresentation(presetUrl) {
     urlInput.focus();
     return;
   }
+  // Registrar la URL en el store multi-source (si no estaba ya).
+  sources.add(url, deriveSourceTitle(url));
+
   showStatus('Cargando presentación...');
   presentationIframe.src = url;
   presentationSection.hidden = false;
@@ -511,6 +587,11 @@ async function initializeFromQueryParams() {
 
   if (presentationUrl) {
     urlInput.value = presentationUrl;
+  } else {
+    // Sin URL en query: si hay sources guardadas, pre-rellenar con la activa
+    // para que el usuario pueda darle a "Go live" directamente.
+    const active = sources.getActive();
+    if (active?.url) urlInput.value = active.url;
   }
   if (position && positions.includes(position)) {
     const positionInput = document.querySelector(`input[name="position"][value="${position}"]`);

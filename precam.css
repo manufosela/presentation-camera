@@ -421,6 +421,24 @@ kbd {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
+.ghost-button-wide {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0.6rem 0.9rem;
+}
+.ghost-button-wide kbd { margin-left: auto; }
+
+.panel-cta {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+.panel-cta-help {
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  line-height: 1.5;
+  max-width: 56ch;
+}
 
 @media (max-width: 640px) {
   .url-field {
