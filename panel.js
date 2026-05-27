@@ -113,14 +113,15 @@ function normalizeRawUrl(raw) {
   }
 }
 
+// Cache de iframes vivos indexada por source.id. Debe declararse ANTES del
+// primer subscribe: la suscripción dispara una emisión inmediata que entra
+// en renderList y consulta iframeCache; si la const está en TDZ aborta el
+// script y el panel se queda en blanco silenciosamente.
+const iframeCache = new Map();
+
 sources.subscribe(state => {
   renderList(state);
 });
-
-// Cache de elementos iframe ya montados para conservar su estado interno
-// entre re-renders (mover el iframe en el DOM lo recarga, así que lo
-// movemos solo cuando hay reordenación real).
-const iframeCache = new Map();
 
 function renderList({ list: items, activeIndex }) {
   if (!list || !hint) return;
