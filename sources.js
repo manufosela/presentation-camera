@@ -14,9 +14,9 @@ const MAX_SOURCES = 12;
 function loadFromStorage() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { list: [], activeIndex: 0 };
+    if (!raw) return { list: [], activeIndex: 0, revision: 0 };
     const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.list)) return { list: [], activeIndex: 0 };
+    if (!parsed || !Array.isArray(parsed.list)) return { list: [], activeIndex: 0, revision: 0 };
     const list = parsed.list
       .filter(item => item && typeof item.url === 'string')
       .slice(0, MAX_SOURCES)
@@ -26,10 +26,11 @@ function loadFromStorage() {
         title: typeof item.title === 'string' ? item.title : null,
       }));
     const activeIndex = clampIndex(parsed.activeIndex, list.length);
-    return { list, activeIndex };
+    const revision = Number.isInteger(parsed.revision) ? parsed.revision : 0;
+    return { list, activeIndex, revision };
   } catch (error) {
     console.warn('[sources] localStorage corrupted, starting empty.', error);
-    return { list: [], activeIndex: 0 };
+    return { list: [], activeIndex: 0, revision: 0 };
   }
 }
 
@@ -56,14 +57,28 @@ export function createSourcesStore() {
   const listeners = new Set();
 
   function emit() {
-    const snapshot = { list: [...state.list], activeIndex: state.activeIndex };
+    const snapshot = {
+      list: [...state.list],
+      activeIndex: state.activeIndex,
+      revision: state.revision,
+    };
     for (const listener of listeners) {
       try { listener(snapshot); } catch (error) { console.warn('[sources] listener threw', error); }
     }
   }
 
-  function commit(next) {
-    state = next;
+  function commit(next, options = {}) {
+    // Cada commit local bumpea la revisión (monotónica) salvo que el
+    // caller indique preserveRevision (caso típico: aceptar un snapshot
+    // remoto que ya viene con su propia revisión más alta).
+    const nextRevision = options.preserveRevision
+      ? (Number.isInteger(next.revision) ? next.revision : state.revision)
+      : state.revision + 1;
+    state = {
+      list: next.list,
+      activeIndex: next.activeIndex,
+      revision: nextRevision,
+    };
     saveToStorage(state);
     emit();
   }
@@ -79,7 +94,10 @@ export function createSourcesStore() {
       return state.activeIndex;
     },
     snapshot() {
-      return { list: [...state.list], activeIndex: state.activeIndex };
+      return { list: [...state.list], activeIndex: state.activeIndex, revision: state.revision };
+    },
+    revision() {
+      return state.revision;
     },
     add(url, title) {
       if (typeof url !== 'string' || !url) return null;
@@ -129,16 +147,22 @@ export function createSourcesStore() {
       commit({ list: [], activeIndex: 0 });
     },
     /**
-     * Reemplaza el estado completo. Útil para sincronización entre ventanas
-     * cuando otra instancia ya tiene la lista actualizada.
+     * Reemplaza el estado completo si el snapshot remoto trae una revisión
+     * estrictamente más alta que la local. Esto evita que una ventana con
+     * datos viejos (p.ej. arrancada antes con localStorage vacío) pise a
+     * otra que ya tiene info. Si la revisión es igual o menor, ignoramos.
+     * Devuelve true si se aplicó, false si se descartó.
      */
     hydrate(next) {
-      if (!next || !Array.isArray(next.list)) return;
+      if (!next || !Array.isArray(next.list)) return false;
+      const incomingRevision = Number.isInteger(next.revision) ? next.revision : 0;
+      if (incomingRevision <= state.revision) return false;
       const list = next.list
         .filter(item => item && typeof item.url === 'string')
         .slice(0, MAX_SOURCES);
       const activeIndex = clampIndex(next.activeIndex, list.length);
-      commit({ list, activeIndex });
+      commit({ list, activeIndex, revision: incomingRevision }, { preserveRevision: true });
+      return true;
     },
     subscribe(listener) {
       listeners.add(listener);
