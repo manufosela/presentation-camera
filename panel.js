@@ -22,9 +22,12 @@ const addInput = document.getElementById('panelAddInput');
 const addBtn = document.getElementById('panelAddBtn');
 
 const channel = new BroadcastChannel('cam.sync');
-bindSourcesToChannel(sources, channel);
+const binding = bindSourcesToChannel(sources, channel);
 let linked = false;
 let linkLostTimer = null;
+
+// Debug helper accesible desde la consola del navegador.
+window.__cam = { sources, channel, binding, role: 'panel' };
 
 channel.addEventListener('message', event => {
   const { type } = event.data || {};
@@ -67,6 +70,16 @@ function markLinked() {
     setStatus('lost', 'main window not detected');
   }, 12000);
 }
+
+// Mientras no haya sincronizado con la principal (o vencido el timeout),
+// deshabilitamos el input add para no pisar la lista de la otra ventana.
+if (addInput) addInput.disabled = true;
+if (addBtn) addBtn.disabled = true;
+binding.initialSync.then(({ synced }) => {
+  if (addInput) addInput.disabled = false;
+  if (addBtn) addBtn.disabled = false;
+  console.debug('[cam] panel initial sync:', synced ? 'received from main' : 'timeout, using localStorage', sources.snapshot());
+});
 
 addBtn?.addEventListener('click', () => addCurrent());
 addInput?.addEventListener('keydown', event => {

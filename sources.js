@@ -159,11 +159,20 @@ export const SOURCES_STORAGE_KEY = STORAGE_KEY;
  *   - 'sources:state'   → snapshot completo {list, activeIndex}
  *   - 'sources:request' → la otra ventana pide el snapshot actual
  *
- * Devuelve una función para desuscribir todo.
+ * Devuelve un objeto con:
+ *   - dispose():          desuscribe todo.
+ *   - initialSync:        promesa que resuelve cuando llega el primer
+ *                         'sources:state' remoto, o cuando vence el
+ *                         timeout (por defecto 500ms). Útil para que
+ *                         el panel no acepte input antes de saber qué
+ *                         tiene la principal.
  */
-export function bindSourcesToChannel(store, channel) {
+export function bindSourcesToChannel(store, channel, options = {}) {
+  const { initialSyncTimeoutMs = 500 } = options;
   let suppressBroadcast = false;
   let firstEmission = true;
+  let initialSyncResolve;
+  const initialSync = new Promise(resolve => { initialSyncResolve = resolve; });
 
   const unsubscribe = store.subscribe(snapshot => {
     if (firstEmission) { firstEmission = false; return; }
@@ -182,6 +191,8 @@ export function bindSourcesToChannel(store, channel) {
       suppressBroadcast = true;
       store.hydrate(data.payload);
       suppressBroadcast = false;
+      initialSyncResolve?.({ synced: true, payload: data.payload });
+      initialSyncResolve = null;
     } else if (data.type === 'sources:request') {
       try {
         channel.postMessage({ type: 'sources:state', payload: store.snapshot() });
@@ -195,8 +206,21 @@ export function bindSourcesToChannel(store, channel) {
     channel.postMessage({ type: 'sources:request' });
   } catch (error) { /* noop */ }
 
-  return () => {
-    unsubscribe();
-    channel.removeEventListener('message', onMessage);
+  // Timeout: si nadie responde, asumimos que no hay par y seguimos con
+  // lo que tengamos del localStorage.
+  const timer = window.setTimeout(() => {
+    if (initialSyncResolve) {
+      initialSyncResolve({ synced: false });
+      initialSyncResolve = null;
+    }
+  }, initialSyncTimeoutMs);
+
+  return {
+    dispose() {
+      unsubscribe();
+      channel.removeEventListener('message', onMessage);
+      window.clearTimeout(timer);
+    },
+    initialSync,
   };
 }

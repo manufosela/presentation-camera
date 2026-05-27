@@ -7,7 +7,10 @@ let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
 // Canal compartido para sync de sources (sources:* messages) y para
 // presencia (main:* / panel:*).
 const syncChannel = new BroadcastChannel('cam.sync');
-bindSourcesToChannel(sources, syncChannel);
+const sourcesBinding = bindSourcesToChannel(sources, syncChannel);
+
+// Debug helper accesible desde la consola del navegador.
+window.__cam = { sources, channel: syncChannel, binding: sourcesBinding, role: 'main' };
 let panelLinked = false;
 syncChannel.addEventListener('message', event => {
   const { type } = event.data || {};
