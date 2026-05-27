@@ -166,7 +166,11 @@ export function createSourcesStore() {
     },
     subscribe(listener) {
       listeners.add(listener);
-      listener(this.snapshot());
+      try {
+        listener(this.snapshot());
+      } catch (error) {
+        console.warn('[sources] initial listener threw', error);
+      }
       return () => listeners.delete(listener);
     },
   };
