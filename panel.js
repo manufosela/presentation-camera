@@ -113,12 +113,6 @@ function normalizeRawUrl(raw) {
   }
 }
 
-// Cache de iframes vivos indexada por source.id. Debe declararse ANTES del
-// primer subscribe: la suscripción dispara una emisión inmediata que entra
-// en renderList y consulta iframeCache; si la const está en TDZ aborta el
-// script y el panel se queda en blanco silenciosamente.
-const iframeCache = new Map();
-
 sources.subscribe(state => {
   renderList(state);
 });
@@ -126,13 +120,6 @@ sources.subscribe(state => {
 function renderList({ list: items, activeIndex }) {
   if (!list || !hint) return;
   hint.hidden = items.length > 0;
-
-  // Quitar del cache los que ya no están
-  const currentIds = new Set(items.map(s => s.id));
-  for (const id of [...iframeCache.keys()]) {
-    if (!currentIds.has(id)) iframeCache.delete(id);
-  }
-
   list.replaceChildren(...items.map((item, index) => renderSource(item, index, activeIndex)));
 }
 
@@ -144,24 +131,31 @@ function renderSource(item, index, activeIndex) {
   li.dataset.active = String(isActive);
   li.dataset.id = item.id;
 
-  // Header con número, título y botones
-  const header = document.createElement('div');
-  header.className = 'panel-source-header';
-
   const num = document.createElement('span');
   num.className = 'panel-source-num';
   num.textContent = String(index + 1);
 
+  // Bloque central: nombre editable + URL
   const titleBlock = document.createElement('div');
   titleBlock.className = 'panel-source-title';
+
   const name = document.createElement('span');
   name.className = 'panel-source-name';
+  name.title = 'Doble click para editar';
   name.textContent = item.title || hostnameOf(item.url);
-  const urlEl = document.createElement('span');
+  setupInlineEdit(name, item);
+
+  const urlEl = document.createElement('a');
   urlEl.className = 'panel-source-url';
+  urlEl.href = item.url;
+  urlEl.target = '_blank';
+  urlEl.rel = 'noopener noreferrer';
   urlEl.textContent = item.url;
+  urlEl.title = 'Abrir en pestaña nueva';
+
   titleBlock.append(name, urlEl);
 
+  // Acciones
   const actions = document.createElement('div');
   actions.className = 'panel-source-actions';
 
@@ -173,10 +167,7 @@ function renderSource(item, index, activeIndex) {
   activateBtn.innerHTML = isActive
     ? '<svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true"><circle cx="7" cy="7" r="3" fill="currentColor"/></svg>'
     : '<svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true"><circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>';
-  activateBtn.addEventListener('click', event => {
-    event.stopPropagation();
-    sources.setActiveById(item.id);
-  });
+  activateBtn.addEventListener('click', () => sources.setActiveById(item.id));
 
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
@@ -184,38 +175,47 @@ function renderSource(item, index, activeIndex) {
   removeBtn.title = 'Quitar';
   removeBtn.setAttribute('aria-label', 'Quitar');
   removeBtn.innerHTML = '<svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
-  removeBtn.addEventListener('click', event => {
-    event.stopPropagation();
-    sources.remove(item.id);
-  });
+  removeBtn.addEventListener('click', () => sources.remove(item.id));
 
   actions.append(activateBtn, removeBtn);
-  header.append(num, titleBlock, actions);
-
-  // Viewport con el iframe vivo (cacheado para mantener estado interno)
-  const viewport = document.createElement('div');
-  viewport.className = 'panel-source-viewport';
-
-  let frame = iframeCache.get(item.id);
-  if (!frame || frame.dataset.url !== item.url) {
-    frame = document.createElement('iframe');
-    frame.src = item.url;
-    frame.title = item.title || hostnameOf(item.url);
-    frame.loading = 'eager';
-    frame.dataset.url = item.url;
-    iframeCache.set(item.id, frame);
-  }
-
-  // El iframe queda interactivo (puedes avanzar slides dentro del panel
-  // sin afectar a la principal — el estado se conserva aquí).
-  // El cambio de "activa" se hace por el botón del header o pulsando la
-  // tecla numérica correspondiente.
-  viewport.append(frame);
-
-  // Card structure: header on top, viewport below
-  li.append(header, viewport);
+  li.append(num, titleBlock, actions);
 
   return li;
+}
+
+function setupInlineEdit(node, item) {
+  let originalText = '';
+  node.addEventListener('dblclick', () => {
+    if (node.isContentEditable) return;
+    originalText = node.textContent;
+    node.contentEditable = 'true';
+    node.spellcheck = false;
+    node.focus();
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  });
+  node.addEventListener('keydown', event => {
+    if (!node.isContentEditable) return;
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      node.blur();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      node.textContent = originalText;
+      node.blur();
+    }
+  });
+  node.addEventListener('blur', () => {
+    if (!node.isContentEditable) return;
+    node.contentEditable = 'false';
+    const raw = node.textContent.replace(/\s+/g, ' ').trim().slice(0, 80);
+    const next = raw || null;
+    node.textContent = next || hostnameOf(item.url);
+    if (next !== item.title) sources.updateTitle(item.id, next);
+  });
 }
 
 function hostnameOf(url) {
