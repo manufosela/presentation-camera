@@ -20,9 +20,11 @@
     </script>
   </head>
   <body>
-    <!-- IN-PRESENTATION underlay -->
+    <!-- IN-PRESENTATION underlay: stack de iframes superpuestos, solo el
+         activo es visible. Cada source vive en su propio iframe para
+         conservar estado entre alternancias. -->
     <section id="presentationSection" hidden>
-      <iframe id="presentationIframe" title="Presentación"></iframe>
+      <div class="iframe-stack" id="iframeStack"></div>
     </section>
 
     <!-- Live status pill: visible only during presentation -->

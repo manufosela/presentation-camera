@@ -39,7 +39,7 @@ window.addEventListener('beforeunload', () => {
 });
 
 const presentationSection = document.getElementById('presentationSection');
-const presentationIframe = document.getElementById('presentationIframe');
+const iframeStack = document.getElementById('iframeStack');
 const webcamSection = document.getElementById('webcamSection');
 const canvas = document.getElementById('outputCanvas');
 const video = document.getElementById('webcamVideo');
@@ -139,23 +139,56 @@ document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('keydown', handleKeyboardShortcut);
 document.addEventListener('keydown', handleGlobalShortcut);
 
-// La principal escucha cambios del store global de sources: si hay
-// presentación activa, recarga el iframe cuando la URL activa cambia.
-// Si está en setup, refleja la activa en el input.
-let lastActiveUrl = null;
+// La principal mantiene un stack con un iframe por cada source. Solo
+// el activo es visible; los demás siguen cargados (visibility:hidden)
+// para conservar su estado interno (slide actual, zoom...).
+let presentationActive = false;
+
 sources.subscribe(({ list, activeIndex }) => {
-  const active = list[activeIndex] ?? null;
-  const url = active?.url ?? null;
-  if (url === lastActiveUrl) return;
-  lastActiveUrl = url;
-  if (isPresentationActive()) {
-    if (url) {
-      presentationIframe.src = sanitizePresentationUrl(url) ?? url;
-    }
-  } else if (urlInput && url) {
-    urlInput.value = url;
+  // En setup, reflejamos la URL activa en el input para que el botón
+  // "Go live" tenga algo que arrancar.
+  if (!isPresentationActive() && urlInput) {
+    const active = list[activeIndex] ?? null;
+    if (active?.url) urlInput.value = active.url;
   }
+  // Mientras haya presentación activa, sincronizamos el stack.
+  if (presentationActive) renderIframeStack(list, activeIndex);
 });
+
+function renderIframeStack(list, activeIndex) {
+  if (!iframeStack) return;
+  const existing = new Map();
+  for (const node of iframeStack.querySelectorAll('iframe[data-source-id]')) {
+    existing.set(node.dataset.sourceId, node);
+  }
+
+  const targetIds = new Set(list.map(s => s.id));
+
+  // Quitar iframes de sources eliminadas
+  for (const [id, node] of existing) {
+    if (!targetIds.has(id)) node.remove();
+  }
+
+  // Crear iframes nuevos y marcar el activo
+  list.forEach((source, index) => {
+    let frame = existing.get(source.id);
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.dataset.sourceId = source.id;
+      frame.title = source.title || hostnameOf(source.url);
+      frame.src = sanitizePresentationUrl(source.url) ?? source.url;
+      iframeStack.appendChild(frame);
+    } else {
+      // Mantener el src original. Si la URL cambia (no soportado en
+      // v1) habría que recrear, lo cual perdería estado.
+    }
+    frame.classList.toggle('is-active', index === activeIndex);
+  });
+}
+
+function hostnameOf(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+}
 
 function isPresentationActive() {
   return !presentationSection.hidden;
@@ -345,7 +378,8 @@ async function startPresentation(presetUrl) {
   sources.add(url, deriveSourceTitle(url));
 
   showStatus('Cargando presentación...');
-  presentationIframe.src = url;
+  presentationActive = true;
+  renderIframeStack(sources.list(), sources.getActiveIndex());
   presentationSection.hidden = false;
   if (topActions) topActions.hidden = false;
   startLiveBadge();
@@ -516,7 +550,8 @@ window.addEventListener('beforeunload', stopWebcam);
 function returnToSetup() {
   stopWebcam();
   stopLiveBadge();
-  presentationIframe.src = '';
+  presentationActive = false;
+  if (iframeStack) iframeStack.replaceChildren();
   presentationSection.hidden = true;
   webcamSection.hidden = true;
   if (topActions) topActions.hidden = true;
