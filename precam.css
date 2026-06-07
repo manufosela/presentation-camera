@@ -1223,6 +1223,44 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
   bottom: -1.6rem;
 }
 
+/* Grabación: punto REC en el botón y toggle de auto-grabación */
+.rec-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .5;
+  flex: none;
+}
+#recordBtn.is-recording {
+  color: #ff3b30;
+}
+#recordBtn.is-recording .rec-dot {
+  background: #ff3b30;
+  opacity: 1;
+  animation: rec-pulse 1.2s ease-in-out infinite;
+}
+@keyframes rec-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .25; }
+}
+.record-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .82rem;
+  color: #9a9da4;
+  cursor: pointer;
+  user-select: none;
+}
+.record-toggle input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #ff3b30;
+  cursor: pointer;
+}
+
 /* Reduced motion: kill the bigger animations */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
