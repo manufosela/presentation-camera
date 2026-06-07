@@ -1,4 +1,5 @@
 import { createSourcesStore, bindSourcesToChannel } from './sources.js';
+import { saveHtml, getHtmlBlobUrl } from './localStore.js';
 
 const sources = createSourcesStore();
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
@@ -60,8 +61,13 @@ const liveTime = document.getElementById('liveTime');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const topActions = document.getElementById('topActions');
 const openPanelBtn = document.getElementById('openPanelBtn');
+const loadLocalHtmlBtn = document.getElementById('loadLocalHtmlBtn');
+const localHtmlInput = document.getElementById('localHtmlInput');
 
 let panelWindow = null;
+// blob URLs de sources HTML locales, cacheadas por id de source para no
+// recrearlas en cada render. Se revocan al volver al setup.
+const localBlobUrls = new Map();
 
 const positions = ['bottom-right', 'bottom-left', 'top-left', 'top-right'];
 const styles = ['frame', 'cutout'];
@@ -135,6 +141,8 @@ cameraSelect?.addEventListener('change', async event => {
 homeButton.addEventListener('click', returnToSetup);
 fullscreenBtn?.addEventListener('click', toggleFullscreen);
 openPanelBtn?.addEventListener('click', openControlPanel);
+loadLocalHtmlBtn?.addEventListener('click', () => localHtmlInput?.click());
+localHtmlInput?.addEventListener('change', handleLocalHtmlPick);
 document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('keydown', handleKeyboardShortcut);
 document.addEventListener('keydown', handleGlobalShortcut);
@@ -175,9 +183,17 @@ function renderIframeStack(list, activeIndex) {
     if (!frame) {
       frame = document.createElement('iframe');
       frame.dataset.sourceId = source.id;
-      frame.title = source.title || hostnameOf(source.url);
-      frame.src = sanitizePresentationUrl(source.url) ?? source.url;
-      iframeStack.appendChild(frame);
+      if (source.type === 'html') {
+        // Source HTML local: el contenido vive en OPFS; resolvemos su blob
+        // URL de forma asíncrona y la asignamos cuando esté lista.
+        frame.title = source.title || 'HTML local';
+        iframeStack.appendChild(frame);
+        resolveLocalFrameSrc(frame, source);
+      } else {
+        frame.title = source.title || hostnameOf(source.url);
+        frame.src = sanitizePresentationUrl(source.url) ?? source.url;
+        iframeStack.appendChild(frame);
+      }
     } else {
       // Mantener el src original. Si la URL cambia (no soportado en
       // v1) habría que recrear, lo cual perdería estado.
@@ -359,23 +375,69 @@ function normalizeEmbeddableUrl(url) {
   return url;
 }
 
+async function handleLocalHtmlPick(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!/\.html?$/i.test(file.name)) {
+    showStatus('Selecciona un fichero .html', true);
+    event.target.value = '';
+    return;
+  }
+  try {
+    const id = await saveHtml(file);
+    const title = file.name.replace(/\.html?$/i, '');
+    sources.addLocal({ type: 'html', title, localRef: id });
+    showStatus('HTML local añadido. Pulsa «Go live» para presentarlo.');
+  } catch (error) {
+    console.error(error);
+    showStatus(error.message || 'No se pudo cargar el HTML local.', true);
+  } finally {
+    event.target.value = '';
+  }
+}
+
+async function resolveLocalFrameSrc(frame, source) {
+  try {
+    let url = localBlobUrls.get(source.id);
+    if (!url) {
+      url = await getHtmlBlobUrl(source.localRef);
+      if (!url) {
+        showStatus('No se encontró el HTML local guardado. Vuelve a cargarlo.', true);
+        return;
+      }
+      localBlobUrls.set(source.id, url);
+    }
+    frame.src = url;
+  } catch (error) {
+    console.error(error);
+    showStatus(error.message || 'No se pudo abrir el HTML local.', true);
+  }
+}
+
 async function startPresentation(presetUrl) {
   const selectedPosition = getSelectedPosition();
   const selectedStyle = getSelectedStyle();
   const rawUrl = (presetUrl ?? urlInput.value).trim();
-  if (!rawUrl) {
-    showStatus('Introduce la URL de la presentación o usa el ejemplo.', true);
+  const active = sources.getActive();
+  const startingLocal = !rawUrl && active?.type === 'html';
+
+  if (!rawUrl && !startingLocal) {
+    showStatus('Introduce la URL de la presentación, carga un HTML local o usa el ejemplo.', true);
     urlInput.focus();
     return;
   }
-  const url = sanitizePresentationUrl(rawUrl);
-  if (!url) {
-    showStatus('URL no válida. Solo se aceptan enlaces http:// o https://', true);
-    urlInput.focus();
-    return;
+
+  let url = null;
+  if (rawUrl) {
+    url = sanitizePresentationUrl(rawUrl);
+    if (!url) {
+      showStatus('URL no válida. Solo se aceptan enlaces http:// o https://', true);
+      urlInput.focus();
+      return;
+    }
+    // Registrar la URL en el store multi-source (si no estaba ya).
+    sources.add(url, deriveSourceTitle(url));
   }
-  // Registrar la URL en el store multi-source (si no estaba ya).
-  sources.add(url, deriveSourceTitle(url));
 
   showStatus('Cargando presentación...');
   presentationActive = true;
@@ -385,7 +447,7 @@ async function startPresentation(presetUrl) {
   startLiveBadge();
   updatePositionClass(selectedPosition);
   updateStyleClass(selectedStyle);
-  persistState(url, selectedPosition, selectedStyle);
+  if (url) persistState(url, selectedPosition, selectedStyle);
   await startWebcam().catch(error => {
     console.error(error);
     showStatus(error.message || 'No se pudo iniciar la webcam.', true);
@@ -552,6 +614,11 @@ function returnToSetup() {
   stopLiveBadge();
   presentationActive = false;
   if (iframeStack) iframeStack.replaceChildren();
+  // Revocar blob URLs de sources HTML locales para no fugar memoria.
+  for (const url of localBlobUrls.values()) {
+    try { URL.revokeObjectURL(url); } catch { /* noop */ }
+  }
+  localBlobUrls.clear();
   presentationSection.hidden = true;
   webcamSection.hidden = true;
   if (topActions) topActions.hidden = true;
