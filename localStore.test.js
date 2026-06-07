@@ -83,3 +83,72 @@ describe('localStore (OPFS)', () => {
     await expect(saveHtml(null)).rejects.toThrow();
   });
 });
+
+// Mock OPFS jerárquico (con subdirectorios) para saveBundle
+function fileNode(name, content = '') {
+  let data = content;
+  return {
+    kind: 'file',
+    async getFile() { return new File([data], name); },
+    async createWritable() { return { async write(d) { data = d; }, async close() {} }; },
+  };
+}
+function dirNode() {
+  const files = new Map();
+  const dirs = new Map();
+  return {
+    kind: 'directory',
+    files, dirs,
+    async *entries() {
+      for (const e of files) yield e;
+      for (const e of dirs) yield e;
+    },
+    async getDirectoryHandle(name, opts) {
+      if (!dirs.has(name)) {
+        if (!opts?.create) throw new Error('NotFound');
+        dirs.set(name, dirNode());
+      }
+      return dirs.get(name);
+    },
+    async getFileHandle(name, opts) {
+      if (!files.has(name)) {
+        if (!opts?.create) throw new Error('NotFound');
+        files.set(name, fileNode(name));
+      }
+      return files.get(name);
+    },
+    async removeEntry(name) { dirs.delete(name); files.delete(name); },
+  };
+}
+
+describe('saveBundle', () => {
+  let root;
+  beforeEach(() => {
+    root = dirNode();
+    vi.stubGlobal('navigator', { storage: { getDirectory: async () => root } });
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('copia un bundle con index.html a OPFS y devuelve un id', async () => {
+    const src = dirNode();
+    src.files.set('index.html', fileNode('index.html', '<h1>deck</h1>'));
+    const sub = dirNode();
+    sub.files.set('app.css', fileNode('app.css', 'body{}'));
+    src.dirs.set('css', sub);
+
+    const { saveBundle } = await import('./localStore.js');
+    const id = await saveBundle(src);
+    expect(typeof id).toBe('string');
+    const bundles = root.dirs.get('local-bundles');
+    expect(bundles.dirs.has(id)).toBe(true);
+    expect(bundles.dirs.get(id).files.has('index.html')).toBe(true);
+    expect(bundles.dirs.get(id).dirs.get('css').files.has('app.css')).toBe(true);
+  });
+
+  it('rechaza una carpeta sin index.html', async () => {
+    const src = dirNode();
+    src.files.set('readme.txt', fileNode('readme.txt', 'x'));
+    const { saveBundle } = await import('./localStore.js');
+    await expect(saveBundle(src)).rejects.toThrow(/index\.html/);
+  });
+});

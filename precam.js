@@ -1,5 +1,5 @@
 import { createSourcesStore, bindSourcesToChannel } from './sources.js';
-import { saveHtml, getHtmlBlobUrl } from './localStore.js';
+import { saveHtml, getHtmlBlobUrl, saveBundle } from './localStore.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 
 const sources = createSourcesStore();
@@ -64,6 +64,7 @@ const topActions = document.getElementById('topActions');
 const openPanelBtn = document.getElementById('openPanelBtn');
 const loadLocalHtmlBtn = document.getElementById('loadLocalHtmlBtn');
 const localHtmlInput = document.getElementById('localHtmlInput');
+const loadLocalBundleBtn = document.getElementById('loadLocalBundleBtn');
 const autoRecordInput = document.getElementById('autoRecordInput');
 const recordBtn = document.getElementById('recordBtn');
 const recordLabel = document.getElementById('recordLabel');
@@ -166,6 +167,7 @@ fullscreenBtn?.addEventListener('click', toggleFullscreen);
 openPanelBtn?.addEventListener('click', openControlPanel);
 loadLocalHtmlBtn?.addEventListener('click', () => localHtmlInput?.click());
 localHtmlInput?.addEventListener('change', handleLocalHtmlPick);
+loadLocalBundleBtn?.addEventListener('click', handleLocalBundlePick);
 helpBtn?.addEventListener('click', openOnboarding);
 onboardingClose?.addEventListener('click', () => closeOnboarding());
 onboardingDone?.addEventListener('click', () => closeOnboarding());
@@ -224,11 +226,16 @@ function renderIframeStack(list, activeIndex) {
       frame = document.createElement('iframe');
       frame.dataset.sourceId = source.id;
       if (source.type === 'html') {
-        // Source HTML local: el contenido vive en OPFS; resolvemos su blob
-        // URL de forma asíncrona y la asignamos cuando esté lista.
+        // Source HTML local: el contenido vive en OPFS.
         frame.title = source.title || 'HTML local';
         iframeStack.appendChild(frame);
-        resolveLocalFrameSrc(frame, source);
+        if (source.bundle) {
+          // Bundle con assets: lo sirve el Service Worker desde OPFS (same-origin).
+          frame.src = `_local/${source.localRef}/index.html`;
+        } else {
+          // Un único .html autocontenido: blob URL.
+          resolveLocalFrameSrc(frame, source);
+        }
       } else {
         frame.title = source.title || hostnameOf(source.url);
         frame.src = sanitizePresentationUrl(source.url) ?? source.url;
@@ -536,6 +543,27 @@ async function handleLocalHtmlPick(event) {
     showStatus(error.message || 'No se pudo cargar el HTML local.', true);
   } finally {
     event.target.value = '';
+  }
+}
+
+async function handleLocalBundlePick() {
+  if (typeof window.showDirectoryPicker !== 'function') {
+    showStatus('Tu navegador no permite elegir carpetas. Usa Chrome o Edge, o carga un .html autocontenido.', true);
+    return;
+  }
+  let dirHandle;
+  try {
+    dirHandle = await window.showDirectoryPicker();
+  } catch {
+    return; // el usuario canceló el selector
+  }
+  try {
+    const id = await saveBundle(dirHandle);
+    sources.addLocal({ type: 'html', bundle: true, title: dirHandle.name || 'Presentación HTML', localRef: id });
+    showStatus('Carpeta HTML añadida. Pulsa «Go live» para presentarla.');
+  } catch (error) {
+    console.error(error);
+    showStatus(error.message || 'No se pudo cargar la carpeta.', true);
   }
 }
 

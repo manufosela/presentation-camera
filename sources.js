@@ -66,7 +66,7 @@ function normalizeItem(item) {
   const type = item.type === 'html' ? 'html' : 'url';
   if (type === 'html') {
     if (typeof item.localRef !== 'string' || !item.localRef) return null;
-    return { id, type: 'html', title, localRef: item.localRef };
+    return { id, type: 'html', title, localRef: item.localRef, bundle: item.bundle === true };
   }
   if (typeof item.url !== 'string' || !item.url) return null;
   return { id, type: 'url', title, url: item.url };
@@ -137,11 +137,11 @@ export function createSourcesStore() {
      * registra la referencia (`localRef`). Sin localRef no hay recurso que
      * mostrar, así que se rechaza (no se persiste un item roto).
      */
-    addLocal({ type = 'html', title = null, localRef } = {}) {
+    addLocal({ type = 'html', title = null, localRef, bundle = false } = {}) {
       if (type !== 'html') return null;
       if (typeof localRef !== 'string' || !localRef) return null;
       if (state.list.length >= MAX_SOURCES) return null;
-      const item = { id: generateId(), type: 'html', title: title ?? null, localRef };
+      const item = { id: generateId(), type: 'html', title: title ?? null, localRef, bundle: bundle === true };
       const list = [...state.list, item];
       commit({ list, activeIndex: list.length - 1 });
       return item;
