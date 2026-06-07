@@ -1,0 +1,21 @@
+{
+  "name": "Presentation Camera",
+  "short_name": "PresCamera",
+  "description": "Superpone tu webcam sobre una presentación y graba la sesión, todo en el navegador.",
+  "lang": "es",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0f1012",
+  "theme_color": "#1b1411",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
