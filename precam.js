@@ -73,7 +73,9 @@ const onboarding = document.getElementById('onboarding');
 const onboardingClose = document.getElementById('onboardingClose');
 const onboardingDone = document.getElementById('onboardingDone');
 const helpBtn = document.getElementById('helpBtn');
+const showChromeBtn = document.getElementById('showChromeBtn');
 const ONBOARDED_KEY = 'cam.onboarded.v1';
+let chromeHidden = false; // controles de la app ocultos (para que no salgan en la grabación)
 
 let panelWindow = null;
 // blob URLs de sources HTML locales, cacheadas por id de source para no
@@ -182,6 +184,7 @@ if (autoRecordInput) {
   });
 }
 recordBtn?.addEventListener('click', toggleRecording);
+showChromeBtn?.addEventListener('click', () => setChromeHidden(false));
 document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('keydown', handleKeyboardShortcut);
 document.addEventListener('keydown', handleGlobalShortcut);
@@ -337,6 +340,11 @@ function handleKeyboardShortcut(event) {
       event.preventDefault();
       toggleRecording();
       break;
+    case 'h':
+    case 'H':
+      event.preventDefault();
+      toggleChrome();
+      break;
     case 'f':
     case 'F':
       event.preventDefault();
@@ -464,6 +472,20 @@ function isRecording() {
   return !!recordingCtrl;
 }
 
+// Oculta/muestra los controles de la app (topActions, LIVE, herramientas de
+// cámara) para que no aparezcan en la grabación. La presentación y la cámara
+// siguen visibles. Un botón discreto permite volver a mostrarlos.
+function setChromeHidden(hidden) {
+  chromeHidden = hidden;
+  document.body.classList.toggle('chrome-hidden', hidden);
+  if (showChromeBtn) showChromeBtn.hidden = !hidden;
+}
+
+function toggleChrome() {
+  if (!isPresentationActive()) return;
+  setChromeHidden(!chromeHidden);
+}
+
 async function updateRecordEstimate() {
   if (!recordEstimate) return;
   try {
@@ -498,6 +520,7 @@ async function startRecordingFlow() {
         downloadBlob(blob, buildRecordingFilename(new Date(), extFromMime(type)));
         recordingCtrl = null;
         updateRecordButton();
+        setChromeHidden(false); // al terminar, volver a mostrar los controles
       },
       onError: error => {
         console.error(error);
@@ -505,7 +528,8 @@ async function startRecordingFlow() {
       },
     });
     updateRecordButton();
-    showStatus('Grabando la sesión…');
+    setChromeHidden(true); // ocultar controles para que no salgan en la grabación
+    showStatus('Grabando la sesión… (pulsa H para mostrar/ocultar los controles)');
   } catch (error) {
     // El usuario canceló el selector de captura u otro fallo: seguimos sin grabar.
     console.warn('Grabación no iniciada', error);
@@ -788,6 +812,7 @@ window.addEventListener('beforeunload', stopWebcam);
 function returnToSetup() {
   stopRecording(); // si había grabación en curso, se detiene y se descarga
   updateRecordButton();
+  setChromeHidden(false); // restaurar controles al salir
   stopWebcam();
   stopLiveBadge();
   presentationActive = false;

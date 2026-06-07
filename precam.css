@@ -1332,6 +1332,33 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
   justify-content: center;
 }
 
+/* ─── Ocultar controles durante la grabación ─────────────────── */
+/* Con body.chrome-hidden se ocultan los controles de la app para que no salgan
+   en la grabación; la presentación y la cámara siguen visibles. */
+body.chrome-hidden #topActions,
+body.chrome-hidden #liveBadge,
+body.chrome-hidden #webcamSection .webcam-tools {
+  display: none !important;
+}
+.show-chrome-btn {
+  position: fixed;
+  top: 0.9rem;
+  left: 0.9rem;
+  z-index: 60;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ink-body);
+  background: oklch(0 0 0 / .35);
+  border: 1px solid oklch(1 0 0 / .15);
+  opacity: .35;
+  transition: opacity .15s ease;
+}
+.show-chrome-btn:hover { opacity: 1; }
+.show-chrome-btn[hidden] { display: none; }
+
 /* Reduced motion: kill the bigger animations */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
