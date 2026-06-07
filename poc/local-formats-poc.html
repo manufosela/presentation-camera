@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PoC · CAM-TSK-0005 — Carga local multiformato</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0; padding: 2rem; max-width: 980px; margin-inline: auto;
+        font: 15px/1.5 ui-sans-serif, system-ui, sans-serif;
+        background: #0f1012; color: #e7e7ea;
+      }
+      h1 { font-size: 1.25rem; }
+      h2 { font-size: 1rem; margin-top: 2rem; border-bottom: 1px solid #2a2c31; padding-bottom: .4rem; }
+      button, input[type=file] { font: inherit; }
+      button {
+        cursor: pointer; border: 1px solid #3a3d44; background: #1b1d21; color: inherit;
+        padding: .5rem .9rem; border-radius: 8px; margin: .2rem .3rem .2rem 0;
+      }
+      button:hover { background: #24272c; }
+      button[disabled] { opacity: .5; cursor: not-allowed; }
+      .stage {
+        width: 100%; aspect-ratio: 16/9; background: #000; border: 1px solid #2a2c31;
+        border-radius: 10px; overflow: hidden; display: grid; place-items: center; margin-top: .6rem;
+      }
+      .stage iframe, .stage img { width: 100%; height: 100%; border: 0; object-fit: contain; background: #000; }
+      .note { color: #9a9da4; font-size: 13px; }
+      .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+      pre { background:#16181c; border:1px solid #2a2c31; border-radius:8px; padding:.8rem; white-space:pre-wrap; font-size:13px; }
+      .pill { display:inline-block; padding:.1rem .5rem; border:1px solid #3a3d44; border-radius:99px; font-size:12px; }
+    </style>
+  </head>
+  <body>
+    <h1>PoC · Carga local multiformato (CAM-TSK-0005)</h1>
+    <p class="note">Sirve sobre <code>http://localhost</code> y abre <code>/poc/local-formats-poc.html</code>.
+      Evalúa las vías de render local. Nada se sube a ningún sitio.</p>
+
+    <h2>A · PDF local (visor nativo del navegador vía blob URL)</h2>
+    <div class="row">
+      <input type="file" id="pdfInput" accept="application/pdf" />
+      <span class="pill" id="pdfState">sin cargar</span>
+    </div>
+    <div class="stage"><iframe id="pdfFrame" title="PDF" hidden></iframe></div>
+    <p class="note">Vía simple sin dependencias: <code>iframe src=blob</code> usa el visor PDF nativo (navegable).
+      Para grabación auto-compuesta haría falta render a canvas con pdf.js (same-origin).</p>
+
+    <h2>B · Secuencia de imágenes como slides</h2>
+    <div class="row">
+      <input type="file" id="imgInput" accept="image/*" multiple />
+      <button id="imgPrev" disabled>◀</button>
+      <span class="pill" id="imgState">sin cargar</span>
+      <button id="imgNext" disabled>▶</button>
+    </div>
+    <div class="stage"><img id="imgView" alt="" hidden /></div>
+    <p class="note">Las imágenes son same-origin (blob) → <strong>componibles en canvas y grabables al 100% automático</strong>.</p>
+
+    <h2>C · Export HTML local</h2>
+    <div class="row">
+      <label class="pill">C1 · HTML self-contained: <input type="file" id="htmlInput" accept=".html,text/html" /></label>
+      <button id="btnDir" disabled title="Solo Chromium">C2 · Elegir carpeta del export…</button>
+    </div>
+    <div class="stage"><iframe id="htmlFrame" title="HTML" hidden></iframe></div>
+    <pre id="htmlOut">C1 funciona para un único .html autocontenido (assets inline/data-URI) vía blob.
+C2 (carpeta con assets relativos) requiere Service Worker + OPFS para servir same-origin — fuera del alcance de este PoC, documentado en el .md.</pre>
+
+    <h2>D · PPTX</h2>
+    <pre id="pptxOut">PPTX no tiene render nativo fiel en navegador. Evaluación en el documento del spike
+(pptxjs = aproximado y con dependencias; alternativa recomendada: exportar a PDF/HTML).
+Sin PoC porque la recomendación preliminar es no soportarlo nativo en v1.</pre>
+
+    <script type="module">
+      const $ = id => document.getElementById(id);
+
+      // A · PDF
+      $('pdfInput').addEventListener('change', e => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        const f = $('pdfFrame');
+        f.src = url; f.hidden = false;
+        $('pdfState').textContent = `${file.name} (${(file.size/1e6).toFixed(1)} MB)`;
+      });
+
+      // B · Imágenes
+      let imgs = [], idx = 0;
+      $('imgInput').addEventListener('change', e => {
+        imgs = [...e.target.files].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        idx = 0;
+        if (imgs.length) { showImg(); $('imgPrev').disabled = false; $('imgNext').disabled = false; }
+      });
+      function showImg() {
+        const v = $('imgView');
+        v.src = URL.createObjectURL(imgs[idx]); v.hidden = false;
+        $('imgState').textContent = `${idx + 1} / ${imgs.length} — ${imgs[idx].name}`;
+      }
+      $('imgPrev').addEventListener('click', () => { idx = (idx - 1 + imgs.length) % imgs.length; showImg(); });
+      $('imgNext').addEventListener('click', () => { idx = (idx + 1) % imgs.length; showImg(); });
+
+      // C1 · HTML self-contained
+      $('htmlInput').addEventListener('change', e => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        const f = $('htmlFrame');
+        f.src = url; f.hidden = false;
+        $('htmlOut').textContent = `Cargado ${file.name}. Si la presentación se ve completa, era autocontenida.\nSi faltan estilos/imágenes, usa assets relativos → necesita la vía Service Worker + OPFS (ver .md).`;
+      });
+
+      // C2 · directorio (solo demostración de disponibilidad de la API)
+      $('btnDir').disabled = typeof window.showDirectoryPicker !== 'function';
+      $('btnDir').addEventListener('click', async () => {
+        try {
+          const dir = await window.showDirectoryPicker();
+          let count = 0, hasIndex = false;
+          for await (const [name] of dir.entries()) { count++; if (name === 'index.html') hasIndex = true; }
+          $('htmlOut').textContent = `Carpeta "${dir.name}": ${count} entradas, index.html: ${hasIndex ? 'sí' : 'NO'}.\nServir esto same-origin requiere copiar a OPFS y un Service Worker que intercepte /_local/<id>/* (arquitectura documentada en el .md).`;
+        } catch (err) { $('htmlOut').textContent = `Cancelado o error: ${err.name}`; }
+      });
+    </script>
+  </body>
+</html>
