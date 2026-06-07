@@ -18,13 +18,9 @@ function loadFromStorage() {
     const parsed = JSON.parse(raw);
     if (!parsed || !Array.isArray(parsed.list)) return { list: [], activeIndex: 0, revision: 0 };
     const list = parsed.list
-      .filter(item => item && typeof item.url === 'string')
-      .slice(0, MAX_SOURCES)
-      .map(item => ({
-        id: typeof item.id === 'string' ? item.id : generateId(),
-        url: item.url,
-        title: typeof item.title === 'string' ? item.title : null,
-      }));
+      .map(normalizeItem)
+      .filter(Boolean)
+      .slice(0, MAX_SOURCES);
     const activeIndex = clampIndex(parsed.activeIndex, list.length);
     const revision = Number.isInteger(parsed.revision) ? parsed.revision : 0;
     return { list, activeIndex, revision };
@@ -50,6 +46,30 @@ function clampIndex(index, length) {
 
 function generateId() {
   return (crypto?.randomUUID?.() ?? `src-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+}
+
+/**
+ * Normaliza un item crudo (de localStorage o de un snapshot remoto) al modelo
+ * canónico { id, type, title, url?, localRef? }.
+ *
+ *   - type 'url'  → presentación remota embebible (campo `url`).
+ *   - type 'html' → presentación HTML local servida desde OPFS (campo `localRef`).
+ *
+ * Retrocompatibilidad: los items antiguos no tienen `type`; si traen `url` se
+ * interpretan como 'url'. Devuelve null si el item no es válido (sin fallback
+ * silencioso: un item sin recurso utilizable se descarta, no se inventa).
+ */
+function normalizeItem(item) {
+  if (!item || typeof item !== 'object') return null;
+  const id = typeof item.id === 'string' ? item.id : generateId();
+  const title = typeof item.title === 'string' ? item.title : null;
+  const type = item.type === 'html' ? 'html' : 'url';
+  if (type === 'html') {
+    if (typeof item.localRef !== 'string' || !item.localRef) return null;
+    return { id, type: 'html', title, localRef: item.localRef };
+  }
+  if (typeof item.url !== 'string' || !item.url) return null;
+  return { id, type: 'url', title, url: item.url };
 }
 
 export function createSourcesStore() {
@@ -107,7 +127,21 @@ export function createSourcesStore() {
         return state.list[existing];
       }
       if (state.list.length >= MAX_SOURCES) return null;
-      const item = { id: generateId(), url, title: title ?? null };
+      const item = { id: generateId(), type: 'url', url, title: title ?? null };
+      const list = [...state.list, item];
+      commit({ list, activeIndex: list.length - 1 });
+      return item;
+    },
+    /**
+     * Añade una source HTML local. El contenido vive en OPFS; aquí solo se
+     * registra la referencia (`localRef`). Sin localRef no hay recurso que
+     * mostrar, así que se rechaza (no se persiste un item roto).
+     */
+    addLocal({ type = 'html', title = null, localRef } = {}) {
+      if (type !== 'html') return null;
+      if (typeof localRef !== 'string' || !localRef) return null;
+      if (state.list.length >= MAX_SOURCES) return null;
+      const item = { id: generateId(), type: 'html', title: title ?? null, localRef };
       const list = [...state.list, item];
       commit({ list, activeIndex: list.length - 1 });
       return item;
@@ -158,7 +192,8 @@ export function createSourcesStore() {
       const incomingRevision = Number.isInteger(next.revision) ? next.revision : 0;
       if (incomingRevision <= state.revision) return false;
       const list = next.list
-        .filter(item => item && typeof item.url === 'string')
+        .map(normalizeItem)
+        .filter(Boolean)
         .slice(0, MAX_SOURCES);
       const activeIndex = clampIndex(next.activeIndex, list.length);
       commit({ list, activeIndex, revision: incomingRevision }, { preserveRevision: true });
