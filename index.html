@@ -80,6 +80,14 @@
       </button>
     </div>
 
+    <!-- Botón discreto para volver a mostrar los controles cuando están ocultos -->
+    <button id="showChromeBtn" class="show-chrome-btn" type="button" hidden title="Mostrar controles (H)" aria-label="Mostrar controles">
+      <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+        <path d="M1 8s2.6-4.5 7-4.5S15 8 15 8s-2.6 4.5-7 4.5S1 8 1 8z" fill="none" stroke="currentColor" stroke-width="1.3"/>
+        <circle cx="8" cy="8" r="2.2" fill="currentColor"/>
+      </svg>
+    </button>
+
     <!-- Webcam stage: floats in a corner during presentation -->
     <section
       id="webcamSection"
@@ -367,6 +375,8 @@
         <span class="legend-item"><kbd>←</kbd><kbd>→</kbd> corner</span>
         <span class="legend-item"><kbd>B</kbd> treatment</span>
         <span class="legend-item"><kbd>F</kbd> fullscreen</span>
+        <span class="legend-item"><kbd>R</kbd> record</span>
+        <span class="legend-item"><kbd>H</kbd> hide controls</span>
         <span class="legend-item"><kbd>\</kbd> control panel</span>
         <span class="legend-item"><kbd>1</kbd>…<kbd>9</kbd> switch source</span>
         <span class="legend-item"><kbd>Esc</kbd> end</span>
@@ -391,7 +401,7 @@
         <p class="onboarding-shortcuts">
           <strong>Atajos:</strong>
           <kbd>←</kbd><kbd>→</kbd> esquina · <kbd>B</kbd> fondo · <kbd>F</kbd> pantalla completa ·
-          <kbd>R</kbd> grabar · <kbd>\</kbd> panel · <kbd>1</kbd>–<kbd>9</kbd> fuente · <kbd>Esc</kbd> salir
+          <kbd>R</kbd> grabar · <kbd>H</kbd> ocultar controles · <kbd>\</kbd> panel · <kbd>1</kbd>–<kbd>9</kbd> fuente · <kbd>Esc</kbd> salir
         </p>
         <button id="onboardingDone" class="start-button onboarding-done" type="button">
           <span class="start-button-label">Entendido</span>
