@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PoC · CAM-TSK-0004 — Viabilidad de grabación</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0; padding: 2rem;
+        font: 15px/1.5 ui-sans-serif, system-ui, sans-serif;
+        background: #0f1012; color: #e7e7ea;
+        max-width: 880px; margin-inline: auto;
+      }
+      h1 { font-size: 1.25rem; }
+      h2 { font-size: 1rem; margin-top: 2rem; border-bottom: 1px solid #2a2c31; padding-bottom: .4rem; }
+      button {
+        font: inherit; cursor: pointer; border: 1px solid #3a3d44;
+        background: #1b1d21; color: inherit; padding: .5rem .9rem;
+        border-radius: 8px; margin: .2rem .3rem .2rem 0;
+      }
+      button:hover { background: #24272c; }
+      button[disabled] { opacity: .5; cursor: not-allowed; }
+      pre {
+        background: #16181c; border: 1px solid #2a2c31; border-radius: 8px;
+        padding: .8rem; overflow: auto; white-space: pre-wrap; font-size: 13px;
+      }
+      label { display: inline-flex; gap: .4rem; align-items: center; margin-right: 1rem; }
+      .row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+      .ok { color: #7ee081; } .no { color: #e08585; }
+      video { width: 320px; border: 1px solid #2a2c31; border-radius: 8px; background: #000; }
+      .note { color: #9a9da4; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <h1>PoC · Viabilidad de grabación compuesta (CAM-TSK-0004)</h1>
+    <p class="note">
+      Throwaway. Sirve este fichero sobre <code>http://localhost</code> (contexto seguro)
+      con <code>./start.sh</code> y abre <code>/poc/recording-poc.html</code>.
+      <code>getDisplayMedia</code> exige un gesto del usuario y el selector del navegador: por eso
+      esto no puede automatizarse. Pulsa los botones y observa los resultados en tu navegador real.
+    </p>
+
+    <h2>1 · Matriz de codecs (MediaRecorder.isTypeSupported)</h2>
+    <button id="btnCodecs">Probar codecs</button>
+    <pre id="outCodecs">—</pre>
+
+    <h2>2 · APIs disponibles</h2>
+    <button id="btnApis">Comprobar APIs</button>
+    <pre id="outApis">—</pre>
+
+    <h2>3 · Espacio y duración máxima estimada</h2>
+    <div class="row">
+      <label>Bitrate (Mbps)
+        <input id="bitrate" type="number" value="6" min="1" max="50" step="1" style="width:5rem" />
+      </label>
+      <button id="btnStorage">Estimar espacio + duración</button>
+    </div>
+    <pre id="outStorage">—</pre>
+
+    <h2>4 · Grabación real (getDisplayMedia pestaña/pantalla + micrófono)</h2>
+    <div class="row">
+      <label><input type="checkbox" id="withMic" checked /> Mezclar micrófono</label>
+      <label><input type="checkbox" id="withSysAudio" checked /> Pedir audio de sistema/pestaña</label>
+      <button id="btnStart">▶ Iniciar grabación</button>
+      <button id="btnStop" disabled>■ Detener y descargar</button>
+    </div>
+    <p class="note">Al iniciar, elige la <strong>pestaña actual</strong> en el selector para capturar slides + overlay con el encuadre más limpio.</p>
+    <pre id="outRec">—</pre>
+    <video id="preview" muted autoplay playsinline></video>
+
+    <script type="module">
+      const $ = id => document.getElementById(id);
+
+      // ── 1. Codecs ───────────────────────────────────────────────
+      const CANDIDATES = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm;codecs=h264,opus',
+        'video/webm',
+        'video/mp4;codecs=h264,aac',
+        'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+        'video/mp4',
+        'video/x-matroska;codecs=avc1,opus',
+      ];
+      $('btnCodecs').addEventListener('click', () => {
+        const supported = typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported;
+        if (!supported) { $('outCodecs').textContent = 'MediaRecorder.isTypeSupported no disponible.'; return; }
+        const lines = CANDIDATES.map(t => {
+          const ok = MediaRecorder.isTypeSupported(t);
+          return `${ok ? '[SI]' : '[NO]'}  ${t}`;
+        });
+        $('outCodecs').textContent = lines.join('\n');
+      });
+
+      // ── 2. APIs ─────────────────────────────────────────────────
+      $('btnApis').addEventListener('click', () => {
+        const checks = {
+          'getDisplayMedia (captura pantalla/pestaña)': !!navigator.mediaDevices?.getDisplayMedia,
+          'getUserMedia (cámara/micro)': !!navigator.mediaDevices?.getUserMedia,
+          'MediaRecorder': typeof MediaRecorder !== 'undefined',
+          'canvas.captureStream (grabar canvas same-origin)': !!HTMLCanvasElement.prototype.captureStream,
+          'File System Access (showSaveFilePicker)': typeof window.showSaveFilePicker === 'function',
+          'OPFS (storage.getDirectory)': !!navigator.storage?.getDirectory,
+          'storage.estimate': !!navigator.storage?.estimate,
+          'AudioContext (mezcla de audio)': typeof (window.AudioContext || window.webkitAudioContext) !== 'undefined',
+          'isSecureContext': window.isSecureContext,
+        };
+        $('outApis').textContent = Object.entries(checks)
+          .map(([k, v]) => `${v ? '[SI]' : '[NO]'}  ${k}`).join('\n');
+      });
+
+      // ── 3. Espacio + duración ───────────────────────────────────
+      $('btnStorage').addEventListener('click', async () => {
+        const mbps = Number($('bitrate').value) || 6;
+        const bytesPerHour = (mbps * 1_000_000 / 8) * 3600;
+        let out = `Bitrate asumido: ${mbps} Mbps → ~${(bytesPerHour / 1e9).toFixed(2)} GB/hora\n`;
+        if (navigator.storage?.estimate) {
+          const { quota = 0, usage = 0 } = await navigator.storage.estimate();
+          const free = Math.max(0, quota - usage);
+          const hours = free / bytesPerHour;
+          out += `\nnavigator.storage.estimate() (cuota del ORIGIN, p.ej. OPFS — NO el disco físico):\n`;
+          out += `  quota: ${(quota / 1e9).toFixed(2)} GB\n`;
+          out += `  usage: ${(usage / 1e6).toFixed(1)} MB\n`;
+          out += `  libre: ${(free / 1e9).toFixed(2)} GB\n`;
+          out += `  → duración máx estimada: ${hours.toFixed(1)} h (${(hours * 60).toFixed(0)} min)\n`;
+        } else {
+          out += 'storage.estimate no disponible.\n';
+        }
+        out += `\nNOTA: si la grabación se escribe a disco real con showSaveFilePicker,\n`;
+        out += `el navegador NO expone el espacio libre del volumen → estimación por bitrate o usar OPFS.`;
+        $('outStorage').textContent = out;
+      });
+
+      // ── 4. Grabación real ───────────────────────────────────────
+      let recorder, chunks = [], mixStream, displayStream, micStream, audioCtx;
+
+      function pickMimeType() {
+        const order = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+        return order.find(t => MediaRecorder.isTypeSupported?.(t)) ?? '';
+      }
+
+      $('btnStart').addEventListener('click', async () => {
+        try {
+          chunks = [];
+          displayStream = await navigator.mediaDevices.getDisplayMedia({
+            video: { frameRate: 30 },
+            audio: $('withSysAudio').checked,           // audio de pestaña/sistema (según navegador y elección)
+            preferCurrentTab: true,                      // sugerencia Chromium: encuadrar la pestaña actual
+          });
+
+          const tracks = [...displayStream.getVideoTracks()];
+
+          // Mezcla de audio (sistema + micro) con Web Audio API
+          const audioInputs = [];
+          if ($('withSysAudio').checked && displayStream.getAudioTracks().length) {
+            audioInputs.push(new MediaStream(displayStream.getAudioTracks()));
+          }
+          if ($('withMic').checked) {
+            try {
+              micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              audioInputs.push(micStream);
+            } catch { /* sin micro: seguimos */ }
+          }
+          if (audioInputs.length === 1) {
+            tracks.push(...audioInputs[0].getAudioTracks());
+          } else if (audioInputs.length > 1) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const dest = audioCtx.createMediaStreamDestination();
+            for (const s of audioInputs) audioCtx.createMediaStreamSource(s).connect(dest);
+            tracks.push(...dest.stream.getAudioTracks());
+          }
+
+          mixStream = new MediaStream(tracks);
+          const mimeType = pickMimeType();
+          recorder = new MediaRecorder(mixStream, mimeType ? { mimeType } : undefined);
+          recorder.addEventListener('dataavailable', e => { if (e.data.size) chunks.push(e.data); });
+          recorder.addEventListener('stop', downloadRecording);
+          // Si el usuario para de compartir desde la barra del navegador, detenemos.
+          displayStream.getVideoTracks()[0].addEventListener('ended', () => stop());
+
+          recorder.start(1000); // timeslice 1s → chunks periódicos (clave para escritura incremental)
+          $('preview').srcObject = mixStream;
+          $('btnStart').disabled = true; $('btnStop').disabled = false;
+          $('outRec').textContent = `Grabando…\nmimeType: ${mimeType || '(por defecto del navegador)'}\nvídeo+audio tracks: ${mixStream.getTracks().length}`;
+        } catch (err) {
+          $('outRec').textContent = `ERROR: ${err.name} — ${err.message}`;
+        }
+      });
+
+      function stop() {
+        if (recorder && recorder.state !== 'inactive') recorder.stop();
+        for (const s of [displayStream, micStream]) s?.getTracks().forEach(t => t.stop());
+        audioCtx?.close();
+        $('btnStart').disabled = false; $('btnStop').disabled = true;
+      }
+      $('btnStop').addEventListener('click', stop);
+
+      function downloadRecording() {
+        const type = recorder.mimeType || 'video/webm';
+        const ext = type.includes('mp4') ? 'mp4' : 'webm';
+        const blob = new Blob(chunks, { type });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `recording-poc.${ext}`;
+        a.click();
+        URL.revokeObjectURL(url);
+        $('outRec').textContent += `\n\nDescargado: ${(blob.size / 1e6).toFixed(1)} MB (${type})`;
+      }
+    </script>
+  </body>
+</html>
