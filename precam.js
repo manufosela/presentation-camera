@@ -364,6 +364,13 @@ initializeFromQueryParams().catch(error => {
 updateRecordEstimate();
 maybeShowOnboarding();
 
+// Registro del Service Worker (PWA) — solo en contexto seguro.
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  navigator.serviceWorker.register('sw.js').catch(error => {
+    console.warn('[pwa] Service Worker no registrado', error);
+  });
+}
+
 function showStatus(message, isError = false) {
   if (!message) {
     statusMessage.hidden = true;
