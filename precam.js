@@ -157,7 +157,10 @@ sources.subscribe(({ list, activeIndex }) => {
   // "Go live" tenga algo que arrancar.
   if (!isPresentationActive() && urlInput) {
     const active = list[activeIndex] ?? null;
-    if (active?.url) urlInput.value = active.url;
+    // Si la source activa es HTML local, vaciamos el input para que «Go live»
+    // arranque la presentación local (la rama URL solo actúa si hay texto).
+    if (active?.type === 'html') urlInput.value = '';
+    else if (active?.url) urlInput.value = active.url;
   }
   // Mientras haya presentación activa, sincronizamos el stack.
   if (presentationActive) renderIframeStack(list, activeIndex);
