@@ -37,6 +37,16 @@
     <!-- Top-right action cluster: visible only during presentation -->
     <div class="top-actions" id="topActions" hidden>
       <button
+        id="recordBtn"
+        class="end-button"
+        type="button"
+        title="Grabar / detener (R)"
+      >
+        <span class="rec-dot" aria-hidden="true"></span>
+        <span class="end-button-label" id="recordLabel">REC</span>
+        <kbd class="kbd-hint">r</kbd>
+      </button>
+      <button
         id="fullscreenBtn"
         class="end-button end-button-ghost"
         type="button"
@@ -323,6 +333,10 @@
           Camera access requires <code>https://</code> or <code>http://localhost</code>.
           Video never leaves your browser.
         </p>
+        <label class="record-toggle">
+          <input type="checkbox" id="autoRecordInput" checked />
+          <span>Grabar automáticamente al empezar</span>
+        </label>
         <button id="startButton" type="button" class="start-button">
           <span class="start-button-tape" aria-hidden="true"></span>
           <span class="start-button-label">Go live</span>

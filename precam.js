@@ -1,5 +1,6 @@
 import { createSourcesStore, bindSourcesToChannel } from './sources.js';
 import { saveHtml, getHtmlBlobUrl } from './localStore.js';
+import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime } from './recorder.js';
 
 const sources = createSourcesStore();
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
@@ -63,11 +64,27 @@ const topActions = document.getElementById('topActions');
 const openPanelBtn = document.getElementById('openPanelBtn');
 const loadLocalHtmlBtn = document.getElementById('loadLocalHtmlBtn');
 const localHtmlInput = document.getElementById('localHtmlInput');
+const autoRecordInput = document.getElementById('autoRecordInput');
+const recordBtn = document.getElementById('recordBtn');
+const recordLabel = document.getElementById('recordLabel');
 
 let panelWindow = null;
 // blob URLs de sources HTML locales, cacheadas por id de source para no
 // recrearlas en cada render. Se revocan al volver al setup.
 const localBlobUrls = new Map();
+
+// Grabación: controlador activo (null si no se está grabando) y preferencia de
+// auto-grabación al pulsar Go live (por defecto activada, persistida).
+const AUTO_RECORD_KEY = 'cam.autoRecord.v1';
+let recordingCtrl = null;
+let autoRecordEnabled = loadAutoRecordPref();
+
+function loadAutoRecordPref() {
+  try {
+    const raw = window.localStorage.getItem(AUTO_RECORD_KEY);
+    return raw === null ? true : raw === 'true';
+  } catch { return true; }
+}
 
 const positions = ['bottom-right', 'bottom-left', 'top-left', 'top-right'];
 const styles = ['frame', 'cutout'];
@@ -143,6 +160,14 @@ fullscreenBtn?.addEventListener('click', toggleFullscreen);
 openPanelBtn?.addEventListener('click', openControlPanel);
 loadLocalHtmlBtn?.addEventListener('click', () => localHtmlInput?.click());
 localHtmlInput?.addEventListener('change', handleLocalHtmlPick);
+if (autoRecordInput) {
+  autoRecordInput.checked = autoRecordEnabled;
+  autoRecordInput.addEventListener('change', () => {
+    autoRecordEnabled = autoRecordInput.checked;
+    try { window.localStorage.setItem(AUTO_RECORD_KEY, String(autoRecordEnabled)); } catch { /* noop */ }
+  });
+}
+recordBtn?.addEventListener('click', toggleRecording);
 document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('keydown', handleKeyboardShortcut);
 document.addEventListener('keydown', handleGlobalShortcut);
@@ -265,6 +290,11 @@ function handleKeyboardShortcut(event) {
       event.preventDefault();
       toggleStyle();
       break;
+    case 'r':
+    case 'R':
+      event.preventDefault();
+      toggleRecording();
+      break;
     case 'f':
     case 'F':
       event.preventDefault();
@@ -378,6 +408,53 @@ function normalizeEmbeddableUrl(url) {
   return url;
 }
 
+function isRecording() {
+  return !!recordingCtrl;
+}
+
+function updateRecordButton() {
+  if (!recordBtn) return;
+  recordBtn.classList.toggle('is-recording', isRecording());
+  if (recordLabel) recordLabel.textContent = isRecording() ? 'Stop' : 'REC';
+}
+
+async function startRecordingFlow() {
+  if (isRecording()) return;
+  try {
+    recordingCtrl = await startScreenRecording({
+      withMic: true,
+      withSystemAudio: true,
+      onStop: (blob, type) => {
+        downloadBlob(blob, buildRecordingFilename(new Date(), extFromMime(type)));
+        recordingCtrl = null;
+        updateRecordButton();
+      },
+      onError: error => {
+        console.error(error);
+        showStatus(error.message || 'Error de grabación.', true);
+      },
+    });
+    updateRecordButton();
+    showStatus('Grabando la sesión…');
+  } catch (error) {
+    // El usuario canceló el selector de captura u otro fallo: seguimos sin grabar.
+    console.warn('Grabación no iniciada', error);
+    recordingCtrl = null;
+    updateRecordButton();
+    showStatus('Grabación no iniciada. Puedes activarla con el botón REC.', false);
+  }
+}
+
+function stopRecording() {
+  if (recordingCtrl) recordingCtrl.stop(); // dispara onStop → descarga
+}
+
+function toggleRecording() {
+  if (!isPresentationActive()) return;
+  if (isRecording()) stopRecording();
+  else startRecordingFlow();
+}
+
 async function handleLocalHtmlPick(event) {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -451,6 +528,11 @@ async function startPresentation(presetUrl) {
   updatePositionClass(selectedPosition);
   updateStyleClass(selectedStyle);
   if (url) persistState(url, selectedPosition, selectedStyle);
+  updateRecordButton();
+  // Auto-grabación (si está activada): se lanza dentro del gesto «Go live»
+  // para que el navegador permita getDisplayMedia. Si el usuario cancela el
+  // selector, startRecordingFlow lo gestiona y la presentación continúa.
+  if (autoRecordEnabled) await startRecordingFlow();
   await startWebcam().catch(error => {
     console.error(error);
     showStatus(error.message || 'No se pudo iniciar la webcam.', true);
@@ -613,6 +695,8 @@ async function renderLoop(model) {
 
 window.addEventListener('beforeunload', stopWebcam);
 function returnToSetup() {
+  stopRecording(); // si había grabación en curso, se detiene y se descarga
+  updateRecordButton();
   stopWebcam();
   stopLiveBadge();
   presentationActive = false;
