@@ -1269,6 +1269,69 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
   display: none;
 }
 
+/* ─── Onboarding overlay ─────────────────────────────────────── */
+.onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: oklch(0 0 0 / .6);
+  backdrop-filter: blur(2px);
+}
+.onboarding[hidden] { display: none; }
+.onboarding-card {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: clamp(1.5rem, 4vw, 2.2rem);
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-high);
+  color: var(--ink-body);
+}
+.onboarding-title {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  color: var(--ink-strong);
+  margin-bottom: 1rem;
+}
+.onboarding-steps {
+  display: grid;
+  gap: .75rem;
+  padding-left: 1.2rem;
+  margin-bottom: 1.1rem;
+}
+.onboarding-steps li { line-height: 1.5; }
+.onboarding-steps strong { color: var(--ink-strong); }
+.onboarding-shortcuts {
+  font-size: .82rem;
+  color: var(--ink-muted);
+  line-height: 2;
+  margin-bottom: 1.4rem;
+}
+.onboarding-close {
+  position: absolute;
+  top: .7rem;
+  right: .8rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  color: var(--ink-muted);
+}
+.onboarding-close:hover {
+  background: oklch(1 0 0 / .08);
+  color: var(--ink-strong);
+}
+.onboarding-done {
+  width: 100%;
+  justify-content: center;
+}
+
 /* Reduced motion: kill the bigger animations */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -68,6 +68,11 @@ const autoRecordInput = document.getElementById('autoRecordInput');
 const recordBtn = document.getElementById('recordBtn');
 const recordLabel = document.getElementById('recordLabel');
 const recordEstimate = document.getElementById('recordEstimate');
+const onboarding = document.getElementById('onboarding');
+const onboardingClose = document.getElementById('onboardingClose');
+const onboardingDone = document.getElementById('onboardingDone');
+const helpBtn = document.getElementById('helpBtn');
+const ONBOARDED_KEY = 'cam.onboarded.v1';
 
 let panelWindow = null;
 // blob URLs de sources HTML locales, cacheadas por id de source para no
@@ -161,6 +166,12 @@ fullscreenBtn?.addEventListener('click', toggleFullscreen);
 openPanelBtn?.addEventListener('click', openControlPanel);
 loadLocalHtmlBtn?.addEventListener('click', () => localHtmlInput?.click());
 localHtmlInput?.addEventListener('change', handleLocalHtmlPick);
+helpBtn?.addEventListener('click', openOnboarding);
+onboardingClose?.addEventListener('click', () => closeOnboarding());
+onboardingDone?.addEventListener('click', () => closeOnboarding());
+onboarding?.addEventListener('click', event => {
+  if (event.target === onboarding) closeOnboarding(); // click en el fondo
+});
 if (autoRecordInput) {
   autoRecordInput.checked = autoRecordEnabled;
   autoRecordInput.addEventListener('change', () => {
@@ -251,7 +262,30 @@ function openControlPanel() {
   }
 }
 
+function openOnboarding() {
+  if (onboarding) onboarding.hidden = false;
+}
+
+function closeOnboarding(persist = true) {
+  if (onboarding) onboarding.hidden = true;
+  if (persist) {
+    try { window.localStorage.setItem(ONBOARDED_KEY, 'true'); } catch { /* noop */ }
+  }
+}
+
+function maybeShowOnboarding() {
+  let seen = false;
+  try { seen = window.localStorage.getItem(ONBOARDED_KEY) === 'true'; } catch { /* noop */ }
+  if (!seen) openOnboarding();
+}
+
 function handleGlobalShortcut(event) {
+  // Esc cierra el onboarding si está abierto (prioritario).
+  if (event.key === 'Escape' && onboarding && !onboarding.hidden) {
+    event.preventDefault();
+    closeOnboarding();
+    return;
+  }
   // Saltar si estamos escribiendo en un input/textarea.
   if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
   if (event.ctrlKey || event.metaKey || event.altKey) return;
@@ -328,6 +362,7 @@ initializeFromQueryParams().catch(error => {
 });
 
 updateRecordEstimate();
+maybeShowOnboarding();
 
 function showStatus(message, isError = false) {
   if (!message) {

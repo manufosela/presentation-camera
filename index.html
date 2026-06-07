@@ -132,6 +132,9 @@
             <span class="status-pill-dot" aria-hidden="true"></span>
             off air
           </span>
+          <button id="helpBtn" class="topbar-link" type="button" title="Ayuda / primeros pasos">
+            ayuda ?
+          </button>
           <a class="topbar-link" href="https://github.com/manufosela/presentation-camera" target="_blank" rel="noopener">
             source ↗
           </a>
@@ -359,6 +362,32 @@
         <span class="legend-item"><kbd>Esc</kbd> end</span>
       </aside>
     </main>
+
+    <!-- Onboarding / primeros pasos (overlay propio, no modal nativo) -->
+    <div id="onboarding" class="onboarding" hidden>
+      <div class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+        <button id="onboardingClose" class="onboarding-close" type="button" aria-label="Cerrar">✕</button>
+        <h2 id="onboardingTitle" class="onboarding-title">Primeros pasos</h2>
+        <ol class="onboarding-steps">
+          <li>
+            <strong>Añade tu presentación.</strong> Pega una URL (Genially, Google Slides, Canva…)
+            o usa «Cargar HTML local». <em>¿Tienes un PPTX?</em> Súbelo a Office Online o Google Slides
+            y pega su URL — los PPTX no se cargan en local.
+          </li>
+          <li><strong>Coloca tu cámara.</strong> Elige esquina, tamaño y, si quieres, recorta el fondo.</li>
+          <li><strong>Pulsa «Go live».</strong> Tu cara aparece sobre los slides. Comparte solo esta ventana en Zoom/Meet/Teams.</li>
+          <li><strong>Grabación automática.</strong> Por defecto se graba al empezar (puedes desactivarlo en el setup); controla con <kbd>R</kbd> y, al detener, se descarga el vídeo.</li>
+        </ol>
+        <p class="onboarding-shortcuts">
+          <strong>Atajos:</strong>
+          <kbd>←</kbd><kbd>→</kbd> esquina · <kbd>B</kbd> fondo · <kbd>F</kbd> pantalla completa ·
+          <kbd>R</kbd> grabar · <kbd>\</kbd> panel · <kbd>1</kbd>–<kbd>9</kbd> fuente · <kbd>Esc</kbd> salir
+        </p>
+        <button id="onboardingDone" class="start-button onboarding-done" type="button">
+          <span class="start-button-label">Entendido</span>
+        </button>
+      </div>
+    </div>
 
     <script type="module" src="precam.js"></script>
   </body>
