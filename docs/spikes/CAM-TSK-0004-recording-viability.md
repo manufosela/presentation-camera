@@ -48,6 +48,22 @@ Estrategia: detectar por orden de preferencia y caer al primero soportado
 (`vp9/opus → vp8/opus → webm → mp4`). Por defecto **WebM (VP9/Opus)** por compresión; **MP4/H264**
 donde WebM no exista (Safari).
 
+**Resultado real (Chromium del usuario, 2026-06-07):**
+```
+[SI]  video/webm;codecs=vp9,opus
+[SI]  video/webm;codecs=vp8,opus
+[SI]  video/webm;codecs=h264,opus
+[SI]  video/webm
+[NO]  video/mp4;codecs=h264,aac
+[NO]  video/mp4;codecs=avc1.42E01E,mp4a.40.2
+[SI]  video/mp4
+[SI]  video/x-matroska;codecs=avc1,opus
+```
+Nota: el contenedor `video/mp4` genérico da SÍ, pero las cadenas de codecs MP4 explícitas
+(`h264,aac`) dan NO en este Chromium. Irrelevante para la decisión: el default `video/webm;codecs=vp9,opus`
+está soportado, así que la detección por orden lo elige sin tocar MP4. Para Safari (sin WebM) seguirá
+aplicando el fallback a MP4.
+
 ### 5. Audio
 - `getDisplayMedia({ audio: true })`: audio de pestaña/sistema (según navegador y elección del picker).
 - Micrófono: `getUserMedia({ audio: true })`.
@@ -62,6 +78,9 @@ donde WebM no exista (Safari).
 - Por tanto la "duración máxima" fiable solo se calcula si grabamos a **OPFS** (cuota conocida) y
   luego exportamos; si grabamos a disco real, solo cabe una **estimación por bitrate** con aviso.
 - Referencia de tamaño: 1080p a 4–8 Mbps ≈ **1.8–3.6 GB/hora**.
+- **Medición real (Chromium del usuario, 2026-06-07):** `storage.estimate()` → cuota ~**10.74 GB**,
+  usage 0 → libre 10.74 GB. A 6 Mbps (~2.70 GB/h) → **~4.0 h** de grabación en OPFS. Confirma que la
+  cuota del origin (no el disco físico) es el límite real de la ruta OPFS.
 
 ### 7. Persistencia para sesiones largas (entronca con CAM-TSK-0010)
 `MediaRecorder.start(timeslice)` emite chunks periódicos. Con File System Access API se vuelcan al
