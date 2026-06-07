@@ -35,10 +35,54 @@ export function buildRecordingFilename(date = new Date(), ext = 'webm') {
 }
 
 /**
+ * Estima el espacio disponible y la duración máxima de grabación.
+ * navigator.storage.estimate() devuelve la cuota del ORIGIN (OPFS), no el disco
+ * físico; por eso es una estimación (a disco real el límite sería el volumen).
+ */
+export async function estimateStorage(bitrateMbps = 6) {
+  const bytesPerHour = (bitrateMbps * 1_000_000 / 8) * 3600;
+  let quota = 0;
+  let usage = 0;
+  if (navigator.storage?.estimate) {
+    const est = await navigator.storage.estimate();
+    quota = est.quota ?? 0;
+    usage = est.usage ?? 0;
+  }
+  const free = Math.max(0, quota - usage);
+  return {
+    quotaBytes: quota,
+    freeBytes: free,
+    gbPerHour: bytesPerHour / 1e9,
+    maxHours: bytesPerHour > 0 ? free / bytesPerHour : 0,
+  };
+}
+
+const RECORDINGS_DIR = 'recordings';
+
+async function getRecordingsDir() {
+  const root = await navigator.storage.getDirectory();
+  return root.getDirectoryHandle(RECORDINGS_DIR, { create: true });
+}
+
+// Borra grabaciones temporales previas para no acumular cuota OPFS. Se llama al
+// iniciar una nueva grabación (la última queda disponible para recuperación).
+async function cleanupOldRecordings(dir) {
+  const names = [];
+  for await (const [name] of dir.entries()) names.push(name);
+  for (const name of names) {
+    try { await dir.removeEntry(name); } catch { /* en uso o ya borrado */ }
+  }
+}
+
+/**
  * Inicia una grabación de pantalla/pestaña con audio mezclado (micrófono +
  * sistema). Devuelve un controlador { stop, state, mimeType }. onStop recibe el
- * Blob final; onError, los fallos. Lanza si el usuario cancela el selector o no
- * hay soporte (el caller lo traduce a un aviso).
+ * fichero/Blob final; onError, los fallos. Lanza si el usuario cancela el
+ * selector o no hay soporte (el caller lo traduce a un aviso).
+ *
+ * Si OPFS está disponible, los chunks se escriben a disco (OPFS) de forma
+ * incremental para no acumular la grabación en RAM y poder recuperar parciales;
+ * si no, se acumulan en memoria como fallback.
  */
 export async function startScreenRecording({
   withMic = true,
@@ -85,18 +129,53 @@ export async function startScreenRecording({
   const mixStream = new MediaStream(tracks);
   const mimeType = pickSupportedMimeType();
   const recorder = new MediaRecorder(mixStream, mimeType ? { mimeType } : undefined);
+  const ext = extFromMime(mimeType);
+
+  // Intentar escritura incremental a OPFS; si no, fallback en memoria.
   const chunks = [];
+  let opfsHandle = null;
+  let opfsDir = null;
+  let writable = null;
+  let writeChain = Promise.resolve();
+  if (navigator.storage?.getDirectory) {
+    try {
+      opfsDir = await getRecordingsDir();
+      await cleanupOldRecordings(opfsDir);
+      opfsHandle = await opfsDir.getFileHandle(`rec-${Date.now()}.${ext}`, { create: true });
+      writable = await opfsHandle.createWritable();
+    } catch {
+      writable = null; // sin OPFS utilizable: fallback en memoria
+    }
+  }
 
   recorder.addEventListener('dataavailable', event => {
-    if (event.data && event.data.size) chunks.push(event.data);
+    if (!event.data || !event.data.size) return;
+    if (writable) {
+      writeChain = writeChain
+        .then(() => writable.write(event.data))
+        .catch(error => onError?.(error));
+    } else {
+      chunks.push(event.data);
+    }
   });
-  recorder.addEventListener('stop', () => {
+  recorder.addEventListener('stop', async () => {
     for (const s of [displayStream, micStream]) {
       s?.getTracks().forEach(track => track.stop());
     }
     audioCtx?.close?.();
     const type = recorder.mimeType || mimeType || 'video/webm';
-    onStop?.(new Blob(chunks, { type }), type);
+    if (writable) {
+      try {
+        await writeChain;
+        await writable.close();
+        const file = await opfsHandle.getFile(); // referencia el contenido sin copiarlo al heap
+        onStop?.(file, type);
+      } catch (error) {
+        onError?.(error);
+      }
+    } else {
+      onStop?.(new Blob(chunks, { type }), type);
+    }
   });
   recorder.addEventListener('error', event => {
     onError?.(event.error || new Error('Error de grabación.'));

@@ -1,6 +1,6 @@
 import { createSourcesStore, bindSourcesToChannel } from './sources.js';
 import { saveHtml, getHtmlBlobUrl } from './localStore.js';
-import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime } from './recorder.js';
+import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 
 const sources = createSourcesStore();
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
@@ -67,6 +67,7 @@ const localHtmlInput = document.getElementById('localHtmlInput');
 const autoRecordInput = document.getElementById('autoRecordInput');
 const recordBtn = document.getElementById('recordBtn');
 const recordLabel = document.getElementById('recordLabel');
+const recordEstimate = document.getElementById('recordEstimate');
 
 let panelWindow = null;
 // blob URLs de sources HTML locales, cacheadas por id de source para no
@@ -326,6 +327,8 @@ initializeFromQueryParams().catch(error => {
   showStatus(error.message || 'No se pudo preparar la página.', true);
 });
 
+updateRecordEstimate();
+
 function showStatus(message, isError = false) {
   if (!message) {
     statusMessage.hidden = true;
@@ -410,6 +413,24 @@ function normalizeEmbeddableUrl(url) {
 
 function isRecording() {
   return !!recordingCtrl;
+}
+
+async function updateRecordEstimate() {
+  if (!recordEstimate) return;
+  try {
+    const est = await estimateStorage(6);
+    if (est.maxHours > 0) {
+      const h = Math.floor(est.maxHours);
+      const m = Math.round((est.maxHours - h) * 60);
+      const dur = h > 0 ? `${h} h ${m} min` : `${m} min`;
+      recordEstimate.textContent =
+        `Espacio para ~${dur} de grabación (calidad media, ~${est.gbPerHour.toFixed(1)} GB/h). A disco el límite es tu disco real.`;
+    } else {
+      recordEstimate.textContent = 'Estimación de espacio no disponible en este navegador.';
+    }
+  } catch {
+    recordEstimate.textContent = '';
+  }
 }
 
 function updateRecordButton() {
