@@ -6,7 +6,9 @@
   "private": true,
   "scripts": {
     "start": "./start.sh",
-    "check": "node --check precam.js"
+    "check": "node --check precam.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "author": "@manufosela",
   "license": "MIT",
@@ -16,5 +18,9 @@
     "bodypix",
     "tensorflow",
     "teaching"
-  ]
+  ],
+  "devDependencies": {
+    "happy-dom": "^20.10.2",
+    "vitest": "^4.1.8"
+  }
 }
