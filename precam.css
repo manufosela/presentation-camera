@@ -1260,6 +1260,14 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
   accent-color: #ff3b30;
   cursor: pointer;
 }
+.record-estimate {
+  margin-top: .35rem;
+  font-size: .75rem;
+  color: #7f8289;
+}
+.record-estimate:empty {
+  display: none;
+}
 
 /* Reduced motion: kill the bigger animations */
 @media (prefers-reduced-motion: reduce) {

@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildRecordingFilename,
+  estimateStorage,
   extFromMime,
   pickSupportedMimeType,
   startScreenRecording,
@@ -96,5 +97,74 @@ describe('startScreenRecording', () => {
   it('lanza si getDisplayMedia no está disponible', async () => {
     vi.stubGlobal('navigator', { mediaDevices: {} });
     await expect(startScreenRecording()).rejects.toThrow();
+  });
+});
+
+describe('estimateStorage', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('calcula GB/hora y duración máxima por la cuota libre', async () => {
+    vi.stubGlobal('navigator', { storage: { estimate: async () => ({ quota: 10e9, usage: 1e9 }) } });
+    const r = await estimateStorage(8); // 8 Mbps = 3.6 GB/h; libre 9 GB → 2.5 h
+    expect(r.freeBytes).toBe(9e9);
+    expect(r.gbPerHour).toBeCloseTo(3.6, 1);
+    expect(r.maxHours).toBeCloseTo(2.5, 1);
+  });
+
+  it('devuelve ceros si storage.estimate no existe', async () => {
+    vi.stubGlobal('navigator', {});
+    const r = await estimateStorage(6);
+    expect(r.freeBytes).toBe(0);
+    expect(r.maxHours).toBe(0);
+  });
+});
+
+// Mock OPFS para la ruta de escritura incremental
+function makeRecordingOPFS() {
+  const files = new Map();
+  const fileHandle = name => ({
+    async createWritable() {
+      const parts = [];
+      return { async write(d) { parts.push(d); }, async close() { files.set(name, parts); } };
+    },
+    async getFile() { return { __opfs: true, name, type: '' }; },
+  });
+  const dir = {
+    async *entries() { for (const k of files.keys()) yield [k, fileHandle(k)]; },
+    async getFileHandle(name, opts) {
+      if (!files.has(name) && !opts?.create) throw new Error('NotFound');
+      if (opts?.create && !files.has(name)) files.set(name, []);
+      return fileHandle(name);
+    },
+    async removeEntry(name) { files.delete(name); },
+  };
+  return { files, getDirectory: async () => ({ getDirectoryHandle: async () => dir }) };
+}
+
+describe('startScreenRecording con OPFS', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('escribe a OPFS y entrega el File al detener', async () => {
+    const opfs = makeRecordingOPFS();
+    vi.stubGlobal('MediaRecorder', FakeRecorder);
+    vi.stubGlobal('MediaStream', FakeStream);
+    vi.stubGlobal('navigator', {
+      mediaDevices: {
+        getDisplayMedia: async () => new FakeStream([track('video')]),
+        getUserMedia: async () => { throw new Error('sin micro'); },
+      },
+      storage: { getDirectory: opfs.getDirectory },
+    });
+    let out = null;
+    let resolveStop;
+    const stopped = new Promise(r => { resolveStop = r; });
+    const ctrl = await startScreenRecording({
+      withMic: false, withSystemAudio: false,
+      onStop: file => { out = file; resolveStop(); },
+    });
+    ctrl.stop();
+    await stopped;
+    expect(out).toBeTruthy();
+    expect(out.__opfs).toBe(true);
   });
 });
