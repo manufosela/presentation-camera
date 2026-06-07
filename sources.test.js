@@ -41,6 +41,16 @@ describe('createSourcesStore — sources HTML locales (nuevo)', () => {
     expect(store.list()).toHaveLength(0);
   });
 
+  it('addLocal() marca bundle:true para carpetas y false por defecto, y lo persiste', () => {
+    const store = createSourcesStore();
+    const single = store.addLocal({ type: 'html', title: 'single', localRef: 'a' });
+    const bundle = store.addLocal({ type: 'html', title: 'bundle', localRef: 'b', bundle: true });
+    expect(single.bundle).toBe(false);
+    expect(bundle.bundle).toBe(true);
+    const reloaded = createSourcesStore();
+    expect(reloaded.list().find(s => s.localRef === 'b').bundle).toBe(true);
+  });
+
   it('convive una source url y una html en la misma lista y atajos por índice', () => {
     const store = createSourcesStore();
     store.add('https://remote.test', 'Remota');

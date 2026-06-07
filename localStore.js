@@ -69,3 +69,46 @@ export async function removeHtml(id) {
     return false;
   }
 }
+
+const BUNDLES_DIR = 'local-bundles';
+
+async function copyDir(src, dst, onRootEntry) {
+  for await (const [name, handle] of src.entries()) {
+    onRootEntry?.(name);
+    if (handle.kind === 'file') {
+      const file = await handle.getFile();
+      const fh = await dst.getFileHandle(name, { create: true });
+      const writable = await fh.createWritable();
+      await writable.write(file);
+      await writable.close();
+    } else if (handle.kind === 'directory') {
+      const sub = await dst.getDirectoryHandle(name, { create: true });
+      await copyDir(handle, sub);
+    }
+  }
+}
+
+/**
+ * Copia un bundle HTML (carpeta con index.html + assets) a OPFS bajo
+ * local-bundles/<id>/, replicando la estructura. Devuelve el id (= localRef).
+ * Rechaza si no hay index.html en la raíz (sin fallback silencioso).
+ */
+export async function saveBundle(dirHandle) {
+  if (!navigator.storage?.getDirectory) {
+    throw new Error('Tu navegador no soporta almacenamiento local (OPFS).');
+  }
+  if (!dirHandle || typeof dirHandle.entries !== 'function') {
+    throw new Error('Carpeta no válida.');
+  }
+  const root = await navigator.storage.getDirectory();
+  const bundles = await root.getDirectoryHandle(BUNDLES_DIR, { create: true });
+  const id = newId();
+  const dest = await bundles.getDirectoryHandle(id, { create: true });
+  let hasIndex = false;
+  await copyDir(dirHandle, dest, name => { if (name === 'index.html') hasIndex = true; });
+  if (!hasIndex) {
+    try { await bundles.removeEntry(id, { recursive: true }); } catch { /* noop */ }
+    throw new Error('La carpeta no contiene un index.html en su raíz.');
+  }
+  return id;
+}
