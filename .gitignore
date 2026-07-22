@@ -14,6 +14,9 @@ npm-debug.log*
 # Node (por si se añade tooling)
 node_modules/
 
+# Firebase
+.firebase/
+
 # Karajan / herramientas locales
 .kj/
 .kj-ready.json
