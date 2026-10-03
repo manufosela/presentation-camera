@@ -59,7 +59,7 @@ and runs entirely in your browser — installable as an app.
 | `H` | hide / show the app controls |
 | `\` | open the control panel |
 | `1`–`9` | switch active source |
-| `Esc` | exit fullscreen, then end the session |
+| `Esc` | deck overview (reveal.js); exits fullscreen. To end the session use the exit button |
 
 ### Install as an app (PWA)
 

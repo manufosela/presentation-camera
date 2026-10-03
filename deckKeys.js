@@ -18,6 +18,8 @@ const KEY_TO_METHOD = new Map([
   ['b', 'togglePause'],
   ['B', 'togglePause'],
   ['.', 'togglePause'],
+  // Esc es la vista general en reveal.js; nunca debe terminar la sesión.
+  ['Escape', 'toggleOverview'],
 ]);
 
 /** Devuelve el comando reveal.js `{ method, args }` para la tecla, o null si no es del deck. */

@@ -15,6 +15,7 @@ describe('deckCommandForKey — teclas de navegación del deck (API postMessage 
     ['b', 'togglePause'],
     ['B', 'togglePause'],
     ['.', 'togglePause'],
+    ['Escape', 'toggleOverview'],
   ])('%j → %s', (k, method) => {
     expect(deckCommandForKey(key(k))).toEqual({ method, args: [] });
   });
@@ -35,7 +36,7 @@ describe('deckCommandForKey — teclas de navegación del deck (API postMessage 
   });
 
   it('las teclas de la app no son del deck', () => {
-    for (const k of ['c', 'm', 'r', 'f', 'h', 'Escape', '1', '\\']) {
+    for (const k of ['c', 'm', 'r', 'f', 'h', '1', '\\']) {
       expect(deckCommandForKey(key(k))).toBeNull();
     }
   });
