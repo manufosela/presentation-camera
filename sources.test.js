@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createSourcesStore, SOURCES_STORAGE_KEY } from './sources.js';
+import { createSourcesStore, MAX_SOURCES, SOURCES_STORAGE_KEY } from './sources.js';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -93,5 +93,25 @@ describe('hydrate — sync entre ventanas con tipos', () => {
     });
     expect(applied).toBe(true);
     expect(store.list()[0]).toMatchObject({ type: 'html', localRef: 'opfs-x' });
+  });
+});
+
+describe('isFull — límite de sources (MAX_SOURCES)', () => {
+  it('false con hueco, true al llegar al límite; add y addLocal devuelven null y no cambian la lista', () => {
+    const store = createSourcesStore();
+    for (let i = 0; i < MAX_SOURCES - 1; i++) store.add(`https://s${i}.test`);
+    expect(store.isFull()).toBe(false);
+    store.add('https://last.test');
+    expect(store.isFull()).toBe(true);
+    expect(store.add('https://overflow.test')).toBeNull();
+    expect(store.addLocal({ type: 'html', localRef: 'opfs-x' })).toBeNull();
+    expect(store.list()).toHaveLength(MAX_SOURCES);
+  });
+
+  it('con la lista llena, añadir una URL ya existente la activa (no es un desbordamiento)', () => {
+    const store = createSourcesStore();
+    for (let i = 0; i < MAX_SOURCES; i++) store.add(`https://s${i}.test`);
+    expect(store.add('https://s3.test')).toMatchObject({ url: 'https://s3.test' });
+    expect(store.getActiveIndex()).toBe(3);
   });
 });

@@ -12,7 +12,7 @@
  */
 
 import './frameGuard.js'; // primero: aborta si el panel está dentro de un iframe
-import { createSourcesStore, bindSourcesToChannel } from './sources.js';
+import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
 
 const sources = createSourcesStore();
 const linkStatus = document.getElementById('linkStatus');
@@ -100,7 +100,13 @@ function addCurrent() {
     setTimeout(() => addInput.classList.remove('panel-add-input--invalid'), 600);
     return;
   }
-  sources.add(url);
+  if (!sources.add(url)) {
+    // Lista llena: se avisa en el propio campo y se conserva lo escrito.
+    addInput.setCustomValidity(`Máximo ${MAX_SOURCES} presentaciones: quita alguna para añadir otra.`);
+    addInput.reportValidity();
+    addInput.addEventListener('input', () => addInput.setCustomValidity(''), { once: true });
+    return;
+  }
   addInput.value = '';
 }
 
