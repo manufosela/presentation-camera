@@ -16,6 +16,7 @@ import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources
 import { isDebugEnabled } from './appPrefs.js';
 import { hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { SYNC_CHANNEL } from './constants.js';
+import { sourceIndexForKey, startPanelLink } from './linkChannel.js';
 
 const sources = createSourcesStore();
 const linkStatus = document.getElementById('linkStatus');
@@ -27,55 +28,21 @@ const addBtn = document.getElementById('panelAddBtn');
 
 const channel = new BroadcastChannel(SYNC_CHANNEL);
 const binding = bindSourcesToChannel(sources, channel);
-let linked = false;
-let linkLostTimer = null;
 
 // Debug helper accesible desde la consola del navegador (solo con ?debug=1).
 if (isDebugEnabled(window.location.search)) {
   window.__cam = { sources, channel, binding, role: 'panel' };
 }
 
-channel.addEventListener('message', event => {
-  const { type } = event.data || {};
-  switch (type) {
-    case 'main:hello':
-      // La ventana principal acaba de saludar — confirmamos.
-      channel.postMessage({ type: 'panel:hello-ack' });
-      markLinked();
-      break;
-    case 'main:heartbeat':
-      markLinked();
-      break;
-    default:
-      break;
-  }
-});
+const LINK_LABELS = { linked: 'linked to main', lost: 'main window not detected' };
 
-// Anunciamos nuestra presencia. Si la principal no está abierta aún,
-// el ack llegará cuando ella lance su hello.
-channel.postMessage({ type: 'panel:hello' });
-
-// Si pasan más de 8s sin hello-ack, marcamos "lost" (la principal puede haberse cerrado).
-linkLostTimer = window.setTimeout(() => {
-  if (!linked) setStatus('lost', 'main window not detected');
-}, 8000);
-
-function setStatus(state, label) {
+function setStatus(state) {
   if (!linkStatus) return;
   linkStatus.dataset.state = state;
-  if (linkLabel) linkLabel.textContent = label;
+  if (linkLabel) linkLabel.textContent = LINK_LABELS[state];
 }
 
-function markLinked() {
-  linked = true;
-  if (linkLostTimer) { window.clearTimeout(linkLostTimer); linkLostTimer = null; }
-  setStatus('linked', 'linked to main');
-  // Re-armamos el watchdog. Si la principal cae más de 12s sin heartbeat → lost.
-  linkLostTimer = window.setTimeout(() => {
-    linked = false;
-    setStatus('lost', 'main window not detected');
-  }, 12000);
-}
+const mainLink = startPanelLink(channel, setStatus);
 
 // Mientras no haya sincronizado con la principal (o vencido el timeout),
 // deshabilitamos el input add para no pisar la lista de la otra ventana.
@@ -224,19 +191,13 @@ function setupInlineEdit(node, item) {
 
 // Atajos numéricos 1-9 en el panel
 document.addEventListener('keydown', event => {
-  if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
-  if (event.ctrlKey || event.metaKey || event.altKey) return;
-  if (!/^[1-9]$/.test(event.key)) return;
-  const index = Number(event.key) - 1;
-  const list = sources.list();
-  if (index < list.length) {
+  const index = sourceIndexForKey(event, sources.list().length);
+  if (index !== null) {
     event.preventDefault();
     sources.setActive(index);
   }
 });
 
-// Heartbeat hacia la principal para que detecte cierre del panel si ocurre.
-window.setInterval(() => channel.postMessage({ type: 'panel:heartbeat' }), 4000);
 window.addEventListener('beforeunload', () => {
-  try { channel.postMessage({ type: 'panel:bye' }); } catch { /* noop */ }
+  try { mainLink.bye(); } catch { /* el canal puede estar ya cerrado */ }
 });
