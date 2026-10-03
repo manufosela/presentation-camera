@@ -1,5 +1,5 @@
 import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
-import { createSourcesStore, bindSourcesToChannel } from './sources.js';
+import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
 import { saveHtml, getHtmlBlobUrl, saveBundle } from './localStore.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 import { deckCommandForKey, sendDeckCommand } from './deckKeys.js';
@@ -8,6 +8,7 @@ import { createPresenceTracker, personCoverage } from './presence.js';
 import { needsCanvasLoop } from './renderMode.js';
 
 const sources = createSourcesStore();
+const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna desde el panel (\\) para añadir otra.`;
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
 
 // ─── BroadcastChannel hacia el panel de control ──────────────
@@ -569,6 +570,8 @@ async function handleLocalHtmlPick(event) {
     return;
   }
   try {
+    // Antes de guardar en OPFS: si no cabe, no dejar un fichero huérfano.
+    if (sources.isFull()) throw new Error(SOURCES_FULL_MESSAGE);
     const id = await saveHtml(file);
     const title = file.name.replace(/\.html?$/i, '');
     sources.addLocal({ type: 'html', title, localRef: id });
@@ -593,6 +596,7 @@ async function handleLocalBundlePick() {
     return; // el usuario canceló el selector
   }
   try {
+    if (sources.isFull()) throw new Error(SOURCES_FULL_MESSAGE);
     const id = await saveBundle(dirHandle);
     sources.addLocal({ type: 'html', bundle: true, title: dirHandle.name || 'Presentación HTML', localRef: id });
     showStatus('Carpeta HTML añadida. Pulsa «Go live» para presentarla.');
@@ -642,7 +646,10 @@ async function startPresentation(presetUrl) {
       return;
     }
     // Registrar la URL en el store multi-source (si no estaba ya).
-    sources.add(url, deriveSourceTitle(url));
+    if (!sources.add(url, deriveSourceTitle(url))) {
+      showStatus(SOURCES_FULL_MESSAGE, true);
+      return;
+    }
   }
 
   showStatus('Cargando presentación...');

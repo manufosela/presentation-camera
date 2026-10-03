@@ -9,7 +9,7 @@
  */
 
 const STORAGE_KEY = 'cam.sources.v1';
-const MAX_SOURCES = 12;
+export const MAX_SOURCES = 12;
 
 function loadFromStorage() {
   try {
@@ -112,6 +112,10 @@ export function createSourcesStore() {
     },
     getActiveIndex() {
       return state.activeIndex;
+    },
+    /** true si no caben más sources (add/addLocal devolverían null). */
+    isFull() {
+      return state.list.length >= MAX_SOURCES;
     },
     snapshot() {
       return { list: [...state.list], activeIndex: state.activeIndex, revision: state.revision };
