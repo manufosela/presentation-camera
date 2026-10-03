@@ -14,6 +14,7 @@
 import './frameGuard.js'; // primero: aborta si el panel está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
 import { isDebugEnabled } from './appPrefs.js';
+import { hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 
 const sources = createSourcesStore();
 const linkStatus = document.getElementById('linkStatus');
@@ -97,7 +98,9 @@ function addCurrent() {
   if (!addInput) return;
   const raw = addInput.value.trim();
   if (!raw) return;
-  const url = normalizeRawUrl(raw);
+  // Misma normalización que la ventana principal (Slides /edit → /preview): así
+  // la misma presentación no se guarda dos veces con URLs distintas.
+  const url = sanitizePresentationUrl(raw, window.location.href);
   if (!url) {
     addInput.classList.add('panel-add-input--invalid');
     setTimeout(() => addInput.classList.remove('panel-add-input--invalid'), 600);
@@ -111,16 +114,6 @@ function addCurrent() {
     return;
   }
   addInput.value = '';
-}
-
-function normalizeRawUrl(raw) {
-  try {
-    const parsed = new URL(raw, window.location.href);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
-    return parsed.toString();
-  } catch {
-    return null;
-  }
 }
 
 sources.subscribe(state => {
@@ -226,10 +219,6 @@ function setupInlineEdit(node, item) {
     node.textContent = next || hostnameOf(item.url);
     if (next !== item.title) sources.updateTitle(item.id, next);
   });
-}
-
-function hostnameOf(url) {
-  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
 }
 
 // Atajos numéricos 1-9 en el panel
