@@ -6,7 +6,9 @@
  * - window.__cam (store y canal expuestos para depurar) solo con ?debug=1.
  */
 
-export const CAMERA_KEY = 'cam.camera.v1';
+import { STORAGE_KEYS } from './constants.js';
+
+export const CAMERA_KEY = STORAGE_KEYS.camera;
 
 /** true si la URL lleva ?debug=1. */
 export function isDebugEnabled(search) {

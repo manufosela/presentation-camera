@@ -15,6 +15,7 @@ import './frameGuard.js'; // primero: aborta si el panel está dentro de un ifra
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
 import { isDebugEnabled } from './appPrefs.js';
 import { hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
+import { SYNC_CHANNEL } from './constants.js';
 
 const sources = createSourcesStore();
 const linkStatus = document.getElementById('linkStatus');
@@ -24,7 +25,7 @@ const list = document.getElementById('panelSources');
 const addInput = document.getElementById('panelAddInput');
 const addBtn = document.getElementById('panelAddBtn');
 
-const channel = new BroadcastChannel('cam.sync');
+const channel = new BroadcastChannel(SYNC_CHANNEL);
 const binding = bindSourcesToChannel(sources, channel);
 let linked = false;
 let linkLostTimer = null;

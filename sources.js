@@ -8,7 +8,9 @@
  * Aquí solo gestionamos la lista de URLs y cuál está activa.
  */
 
-const STORAGE_KEY = 'cam.sources.v1';
+import { STORAGE_KEYS } from './constants.js';
+
+const STORAGE_KEY = STORAGE_KEYS.sources;
 export const MAX_SOURCES = 12;
 
 function loadFromStorage() {

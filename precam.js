@@ -9,6 +9,7 @@ import { needsCanvasLoop } from './renderMode.js';
 import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
 import { trapTabKey } from './focusTrap.js';
 import { deriveSourceTitle, hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
+import { STORAGE_KEYS, SYNC_CHANNEL } from './constants.js';
 
 const sources = createSourcesStore();
 const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna desde el panel (\\) para añadir otra.`;
@@ -17,7 +18,7 @@ let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
 // ─── BroadcastChannel hacia el panel de control ──────────────
 // Canal compartido para sync de sources (sources:* messages) y para
 // presencia (main:* / panel:*).
-const syncChannel = new BroadcastChannel('cam.sync');
+const syncChannel = new BroadcastChannel(SYNC_CHANNEL);
 const sourcesBinding = bindSourcesToChannel(sources, syncChannel);
 
 // Debug helper accesible desde la consola del navegador (solo con ?debug=1).
@@ -85,7 +86,7 @@ const onboardingClose = document.getElementById('onboardingClose');
 const onboardingDone = document.getElementById('onboardingDone');
 const helpBtn = document.getElementById('helpBtn');
 const showChromeBtn = document.getElementById('showChromeBtn');
-const ONBOARDED_KEY = 'cam.onboarded.v1';
+const ONBOARDED_KEY = STORAGE_KEYS.onboarded;
 let chromeHidden = false; // controles de la app ocultos (para que no salgan en la grabación)
 
 let panelWindow = null;
@@ -95,7 +96,7 @@ const localBlobUrls = new Map();
 
 // Grabación: controlador activo (null si no se está grabando) y preferencia de
 // auto-grabación al pulsar Go live (por defecto activada, persistida).
-const AUTO_RECORD_KEY = 'cam.autoRecord.v1';
+const AUTO_RECORD_KEY = STORAGE_KEYS.autoRecord;
 let recordingCtrl = null;
 let autoRecordEnabled = loadAutoRecordPref();
 
