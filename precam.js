@@ -1,8 +1,9 @@
+import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel } from './sources.js';
 import { saveHtml, getHtmlBlobUrl, saveBundle } from './localStore.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 import { deckCommandForKey, sendDeckCommand } from './deckKeys.js';
-import { sandboxForSource } from './frameSandbox.js';
+import { allowForSource, sandboxForSource } from './frameSandbox.js';
 
 const sources = createSourcesStore();
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
@@ -231,8 +232,10 @@ function renderIframeStack(list, activeIndex) {
       frame = document.createElement('iframe');
       frame.dataset.sourceId = source.id;
       // El sandbox debe fijarse antes de la primera navegación del iframe.
-      const sandbox = sandboxForSource(source);
+      const sandbox = sandboxForSource(source, window.location.origin);
       if (sandbox !== null) frame.setAttribute('sandbox', sandbox);
+      const allow = allowForSource(source);
+      if (allow !== null) frame.setAttribute('allow', allow);
       if (source.type === 'html') {
         // Source HTML local: el contenido vive en OPFS.
         frame.title = source.title || 'HTML local';

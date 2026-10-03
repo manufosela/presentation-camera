@@ -14,7 +14,7 @@
  * locales desde OPFS en rutas /_local/<id>/* (aún no implementado aquí).
  */
 
-const CACHE = 'cam-shell-v6';
+const CACHE = 'cam-shell-v7';
 
 const MIME = {
   html: 'text/html', htm: 'text/html', css: 'text/css', js: 'text/javascript',
@@ -61,6 +61,7 @@ const SHELL = [
   'recorder.js',
   'deckKeys.js',
   'frameSandbox.js',
+  'frameGuard.js',
   'manifest.webmanifest',
   'icon.svg',
   'vendor/tf.min.js',
