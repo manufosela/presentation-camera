@@ -2,6 +2,7 @@ import { createSourcesStore, bindSourcesToChannel } from './sources.js';
 import { saveHtml, getHtmlBlobUrl, saveBundle } from './localStore.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 import { deckCommandForKey, sendDeckCommand } from './deckKeys.js';
+import { sandboxForSource } from './frameSandbox.js';
 
 const sources = createSourcesStore();
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
@@ -229,6 +230,9 @@ function renderIframeStack(list, activeIndex) {
     if (!frame) {
       frame = document.createElement('iframe');
       frame.dataset.sourceId = source.id;
+      // El sandbox debe fijarse antes de la primera navegación del iframe.
+      const sandbox = sandboxForSource(source);
+      if (sandbox !== null) frame.setAttribute('sandbox', sandbox);
       if (source.type === 'html') {
         // Source HTML local: el contenido vive en OPFS.
         frame.title = source.title || 'HTML local';
