@@ -17,7 +17,7 @@
             <path d="M9 1.5a7.5 7.5 0 100 15 7.5 7.5 0 000-15zm0 2a5.5 5.5 0 010 11V3.5z" fill="currentColor"/>
           </svg>
         </span>
-        <span class="panel-bar-title">cam · control</span>
+        <span class="panel-bar-title" role="heading" aria-level="1">cam · control</span>
       </div>
       <div class="panel-bar-right">
         <span class="panel-link-status" id="linkStatus" data-state="waiting">
@@ -38,6 +38,7 @@
           <input
             id="panelAddInput"
             type="url"
+            aria-label="URL de la presentación"
             class="panel-add-input"
             placeholder="https://…"
             autocomplete="off"

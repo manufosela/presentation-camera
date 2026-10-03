@@ -94,8 +94,8 @@
       class="video-container bottom-right frame size-m"
       hidden
     >
-      <canvas id="outputCanvas" width="640" height="480"></canvas>
-      <video id="webcamVideo" playsinline muted></video>
+      <canvas id="outputCanvas" width="640" height="480" role="img" aria-label="Vídeo del presentador"></canvas>
+      <video id="webcamVideo" playsinline muted aria-label="Vídeo del presentador"></video>
       <div class="webcam-tools" role="toolbar" aria-label="Webcam controls">
         <button
           type="button"
@@ -124,7 +124,7 @@
     </section>
 
     <!-- Toast (status / errors) -->
-    <div id="statusMessage" class="toast" hidden></div>
+    <div id="statusMessage" class="toast" role="status" aria-live="polite" hidden></div>
 
     <!-- SETUP -->
     <main class="setup" id="setup">
@@ -335,7 +335,7 @@
             <fieldset class="control control-source" id="cameraFieldset" hidden>
               <legend class="control-label">Lens</legend>
               <div class="select-wrap">
-                <select id="cameraSelect" class="select"></select>
+                <select id="cameraSelect" class="select" aria-label="Seleccionar cámara"></select>
                 <svg class="select-chevron" viewBox="0 0 10 10" width="10" height="10" aria-hidden="true">
                   <path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>

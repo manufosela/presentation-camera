@@ -7,6 +7,7 @@ import { allowForSource, sandboxForSource } from './frameSandbox.js';
 import { createPresenceTracker, personCoverage } from './presence.js';
 import { needsCanvasLoop } from './renderMode.js';
 import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
+import { trapTabKey } from './focusTrap.js';
 
 const sources = createSourcesStore();
 const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna desde el panel (\\) para añadir otra.`;
@@ -200,6 +201,7 @@ onboardingDone?.addEventListener('click', () => closeOnboarding());
 onboarding?.addEventListener('click', event => {
   if (event.target === onboarding) closeOnboarding(); // click en el fondo
 });
+onboarding?.addEventListener('keydown', event => trapTabKey(onboarding, event));
 if (autoRecordInput) {
   autoRecordInput.checked = autoRecordEnabled;
   autoRecordInput.addEventListener('change', () => {
@@ -301,12 +303,23 @@ function openControlPanel() {
   }
 }
 
+// Diálogo modal accesible: al abrir, el foco entra y queda atrapado; al cerrar,
+// vuelve al elemento que lo tenía.
+let focusBeforeOnboarding = null;
+
 function openOnboarding() {
-  if (onboarding) onboarding.hidden = false;
+  if (!onboarding) return;
+  focusBeforeOnboarding = document.activeElement;
+  onboarding.hidden = false;
+  onboardingClose?.focus();
 }
 
 function closeOnboarding(persist = true) {
-  if (onboarding) onboarding.hidden = true;
+  if (onboarding && !onboarding.hidden) {
+    onboarding.hidden = true;
+    focusBeforeOnboarding?.focus?.();
+    focusBeforeOnboarding = null;
+  }
   if (persist) {
     try { window.localStorage.setItem(ONBOARDED_KEY, 'true'); } catch { /* noop */ }
   }
@@ -420,6 +433,8 @@ function showStatus(message, isError = false) {
     return;
   }
   statusMessage.hidden = false;
+  // Los errores se anuncian de inmediato (alert); los estados, educadamente.
+  statusMessage.setAttribute('role', isError ? 'alert' : 'status');
   statusMessage.textContent = message;
   statusMessage.classList.toggle('error', isError);
 }
