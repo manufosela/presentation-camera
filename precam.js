@@ -1,6 +1,7 @@
 import { createSourcesStore, bindSourcesToChannel } from './sources.js';
 import { saveHtml, getHtmlBlobUrl, saveBundle } from './localStore.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
+import { deckCommandForKey, sendDeckCommand } from './deckKeys.js';
 
 const sources = createSourcesStore();
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
@@ -321,17 +322,21 @@ function handleGlobalShortcut(event) {
 function handleKeyboardShortcut(event) {
   if (!isPresentationActive()) return;
   if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
+  // Las teclas de navegación son del deck (reveal.js), no de la app.
+  const deckCommand = deckCommandForKey(event);
+  if (deckCommand) {
+    event.preventDefault();
+    sendDeckCommand(iframeStack?.querySelector('iframe.is-active'), deckCommand);
+    return;
+  }
   switch (event.key) {
-    case 'ArrowRight':
+    case 'c':
+    case 'C':
       event.preventDefault();
-      cyclePosition(1);
+      cyclePosition(event.shiftKey ? -1 : 1);
       break;
-    case 'ArrowLeft':
-      event.preventDefault();
-      cyclePosition(-1);
-      break;
-    case 'b':
-    case 'B':
+    case 'm':
+    case 'M':
       event.preventDefault();
       toggleStyle();
       break;

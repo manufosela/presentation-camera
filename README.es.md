@@ -50,8 +50,10 @@ enteramente en el navegador — instalable como app.
 
 | Tecla | Acción |
 |-------|--------|
-| `←` / `→` | rotar la esquina de la webcam |
-| `B` | alternar marco ↔ recorte |
+| `←` `→` `↑` `↓`, `RePág`/`AvPág`, `Espacio`, `Inicio`/`Fin` | navegar el deck (reveal.js, vía su API postMessage) |
+| `B` / `.` | fundido a negro del deck (pausa de reveal.js) |
+| `C` / `Shift+C` | rotar la esquina de la webcam |
+| `M` | alternar marco ↔ recorte |
 | `F` | entrar / salir de pantalla completa |
 | `R` | iniciar / detener grabación |
 | `H` | ocultar / mostrar los controles |
