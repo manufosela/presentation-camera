@@ -4,7 +4,7 @@ import { saveHtml, getHtmlBlobUrl, saveBundle } from './localStore.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 import { deckCommandForKey, sendDeckCommand } from './deckKeys.js';
 import { allowForSource, sandboxForSource } from './frameSandbox.js';
-import { createPresenceTracker, personCoverage } from './presence.js';
+import { createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
 import { needsCanvasLoop } from './renderMode.js';
 import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
 import { trapTabKey } from './focusTrap.js';
@@ -106,17 +106,18 @@ const SEGMENTATION_INTERVAL_MS = 50; // ~20 fps para BodyPix
 let currentPositionIndex = 0;
 let currentStyle = 'frame';
 let stream;
-let animationFrameId;
 let net;
 let netPromise;
-let canvasCtx;
-let lastMask = null;
+let renderer = null; // motor del recorte; se crea al tener el modelo cargado
+// Bucle de dibujo del recorte (renderStep es una declaración de función, ya disponible).
+const cameraLoop = createFrameLoop({
+  step: renderStep,
+  requestFrame: cb => requestAnimationFrame(cb),
+  cancelFrame: id => cancelAnimationFrame(id),
+});
 const NO_PERSON_MESSAGE = 'No te detecto en modo recorte: mostrando la cámara completa. Revisa la luz o el encuadre.';
-let presence = createPresenceTracker();
 let noPersonNoticeShown = false;
 let firstFrameDrawn = false;
-let lastSegmentationAt = 0;
-let segmentationInFlight = false;
 let currentDeviceId = null;
 let currentSize = 'm';
 let liveTimerId = null;
@@ -637,7 +638,7 @@ async function startPresentation(presetUrl) {
 
 async function startWebcam() {
   stopWebcam();
-  presence = createPresenceTracker(); // nueva cámara: sin arrastrar la ausencia anterior
+  renderer?.reset(); // nueva cámara: sin arrastrar la ausencia anterior
   noPersonNoticeShown = false;
   showStatus('Solicitando acceso a la cámara...');
   const mediaStream = await requestVideoStream();
@@ -656,9 +657,16 @@ async function startWebcam() {
 
 // Arranca el bucle de canvas solo si el estilo lo necesita y no está ya en marcha.
 function ensureRenderLoop() {
-  if (!stream || !net || animationFrameId || !needsCanvasLoop(currentStyle)) return;
+  if (!stream || !net || cameraLoop.isRunning() || !needsCanvasLoop(currentStyle)) return;
+  renderer ??= createCutoutRenderer({
+    video,
+    canvas,
+    segment: segmentPerson,
+    now: () => performance.now(),
+    intervalMs: SEGMENTATION_INTERVAL_MS,
+  });
   firstFrameDrawn = false;
-  renderLoop(net);
+  cameraLoop.start();
 }
 
 async function populateCameraSelect() {
@@ -707,10 +715,7 @@ async function requestVideoStream() {
 }
 
 function stopWebcam() {
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
-  }
+  cameraLoop.stop();
   if (stream) {
     stream.getTracks().forEach(track => track.stop());
     stream = null;
@@ -731,96 +736,51 @@ async function loadBodyPix() {
   return net;
 }
 
-function getCanvasCtx() {
-  if (!canvasCtx) {
-    canvasCtx = canvas.getContext('2d'); // sin willReadFrequently: nunca se leen píxeles
-  }
-  return canvasCtx;
+// Segmentación con BodyPix: 0/1 por píxel (presencia) y la máscara para componer.
+async function segmentPerson(source) {
+  const segmentation = await net.segmentPerson(source, {
+    flipHorizontal: false,
+    internalResolution: 'medium',
+    segmentationThreshold: 0.7
+  });
+  const mask = bodyPix.toMask(
+    segmentation,
+    { r: 0, g: 0, b: 0, a: 255 }, // persona opaca
+    { r: 0, g: 0, b: 0, a: 0 }    // fondo transparente
+  );
+  return { data: segmentation.data, mask };
 }
 
-async function refreshMask(model) {
-  if (segmentationInFlight) return;
-  segmentationInFlight = true;
-  try {
-    const segmentation = await model.segmentPerson(video, {
-      flipHorizontal: false,
-      internalResolution: 'medium',
-      segmentationThreshold: 0.7
-    });
-    presence.update(personCoverage(segmentation.data), performance.now());
-    lastMask = bodyPix.toMask(
-      segmentation,
-      { r: 0, g: 0, b: 0, a: 255 }, // persona opaca
-      { r: 0, g: 0, b: 0, a: 0 }    // fondo transparente
-    );
-    lastSegmentationAt = performance.now();
-  } finally {
-    segmentationInFlight = false;
-  }
-}
-
-// Aviso persistente (estilo error, para que renderLoop no lo limpie) mientras el
-// recorte no detecte a nadie; se retira solo si sigue siendo el aviso visible.
+// Aviso persistente (estilo error, para que el primer frame no lo limpie) mientras
+// el recorte no detecte a nadie; se retira solo si sigue siendo el aviso visible.
 function syncNoPersonNotice() {
-  const absent = currentStyle === 'cutout' && !presence.isPresent();
+  const absent = currentStyle === 'cutout' && renderer !== null && !renderer.isPersonPresent();
   if (absent === noPersonNoticeShown) return;
   noPersonNoticeShown = absent;
   if (absent) showStatus(NO_PERSON_MESSAGE, true);
   else if (statusMessage.textContent === NO_PERSON_MESSAGE) showStatus('');
 }
 
-async function renderLoop(model) {
+// Un paso del bucle de cámara; devuelve false para detenerlo.
+function renderStep() {
   if (!stream) {
     showStatus('La cámara se detuvo.', true);
-    return;
+    return false;
   }
   if (!needsCanvasLoop(currentStyle)) {
     // Modo marco: el <video> se ve directamente; el bucle se detiene.
-    animationFrameId = null;
     syncNoPersonNotice();
-    return;
+    return false;
   }
-  if (!video.videoWidth || !video.videoHeight) {
-    animationFrameId = requestAnimationFrame(() => renderLoop(model));
-    return;
-  }
-
-  if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvasCtx = null; // contexto invalidado al redimensionar
-    lastMask = null;
-  }
-
-  const ctx = getCanvasCtx();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (currentStyle === 'frame') {
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  } else {
-    const elapsed = performance.now() - lastSegmentationAt;
-    if (!lastMask || elapsed >= SEGMENTATION_INTERVAL_MS) {
-      refreshMask(model).catch(error => console.warn('Segmentación fallida', error));
-    }
-    if (!presence.isPresent()) {
-      // Nadie detectado: cámara completa (con aviso) en vez de un overlay vacío.
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    } else if (lastMask) {
-      ctx.putImageData(lastMask, 0, 0);
-      ctx.globalCompositeOperation = 'source-in';
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = 'source-over';
-    }
-  }
+  if (!video.videoWidth || !video.videoHeight) return true; // aún sin frames
+  renderer.drawFrame();
   syncNoPersonNotice();
-
-  animationFrameId = requestAnimationFrame(() => renderLoop(model));
   if (!firstFrameDrawn) {
     // Solo tras el primer frame: retirar el «Procesando…» (no los errores).
     firstFrameDrawn = true;
     if (!statusMessage.classList.contains('error')) showStatus('');
   }
+  return true;
 }
 
 window.addEventListener('beforeunload', stopWebcam);
