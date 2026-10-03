@@ -8,6 +8,7 @@ import { createPresenceTracker, personCoverage } from './presence.js';
 import { needsCanvasLoop } from './renderMode.js';
 import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
 import { trapTabKey } from './focusTrap.js';
+import { deriveSourceTitle, hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 
 const sources = createSourcesStore();
 const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna desde el panel (\\) para añadir otra.`;
@@ -272,7 +273,7 @@ function renderIframeStack(list, activeIndex) {
         }
       } else {
         frame.title = source.title || hostnameOf(source.url);
-        frame.src = sanitizePresentationUrl(source.url) ?? source.url;
+        frame.src = sanitizePresentationUrl(source.url, window.location.href) ?? source.url;
         iframeStack.appendChild(frame);
       }
     } else {
@@ -281,10 +282,6 @@ function renderIframeStack(list, activeIndex) {
     }
     frame.classList.toggle('is-active', index === activeIndex);
   });
-}
-
-function hostnameOf(url) {
-  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
 }
 
 function isPresentationActive() {
@@ -466,49 +463,6 @@ function getSelectedStyle() {
   return document.querySelector('input[name="webcam-style"]:checked').value;
 }
 
-function deriveSourceTitle(url) {
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname === 'docs.google.com') return 'Google Slides';
-    if (parsed.hostname.endsWith('genially.com') || parsed.hostname.endsWith('genial.ly')) return 'Genially';
-    if (parsed.hostname.includes('canva.com')) return 'Canva';
-    return parsed.hostname.replace(/^www\./, '');
-  } catch {
-    return null;
-  }
-}
-
-function sanitizePresentationUrl(rawUrl) {
-  if (!rawUrl) return null;
-  try {
-    const parsed = new URL(rawUrl, window.location.href);
-    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
-    return normalizeEmbeddableUrl(parsed).toString();
-  } catch {
-    return null;
-  }
-}
-
-// Algunos servicios tienen URLs distintas para "editar" vs "embeber".
-// Cuando detectamos una URL de editor, la sustituimos por la versión apta
-// para iframe — así el usuario puede pegar la URL que tenga abierta.
-function normalizeEmbeddableUrl(url) {
-  // Google Slides: /edit, /edit?usp=sharing → /preview
-  // La URL /present rechaza ser embebida (X-Frame-Options SAMEORIGIN),
-  // por eso al pulsar "Presentar" desde /edit la app queda en blanco.
-  if (url.hostname === 'docs.google.com' && url.pathname.includes('/presentation/d/')) {
-    const slidesId = url.pathname.match(/\/presentation\/d\/([^/]+)/)?.[1];
-    if (slidesId) {
-      const next = new URL(url);
-      next.pathname = `/presentation/d/${slidesId}/preview`;
-      next.search = ''; // limpiamos params de edit (usp, ouid…)
-      next.hash = '';
-      return next;
-    }
-  }
-  return url;
-}
-
 function isRecording() {
   return !!recordingCtrl;
 }
@@ -668,7 +622,7 @@ async function startPresentation(presetUrl) {
 
   let url = null;
   if (rawUrl) {
-    url = sanitizePresentationUrl(rawUrl);
+    url = sanitizePresentationUrl(rawUrl, window.location.href);
     if (!url) {
       showStatus('URL no válida. Solo se aceptan enlaces http:// o https://', true);
       urlInput.focus();
@@ -1001,7 +955,7 @@ function persistState(url, position, style) {
 }
 async function initializeFromQueryParams() {
   const params = new URLSearchParams(window.location.search);
-  const presentationUrl = sanitizePresentationUrl(params.get('presentation'));
+  const presentationUrl = sanitizePresentationUrl(params.get('presentation'), window.location.href);
   const position = params.get('position');
   const style = params.get('style');
 
