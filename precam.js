@@ -10,6 +10,7 @@ import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
 import { trapTabKey } from './focusTrap.js';
 import { deriveSourceTitle, hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { STORAGE_KEYS, SYNC_CHANNEL } from './constants.js';
+import { sourceIndexForKey, startMainLink } from './linkChannel.js';
 import {
   buildQuery,
   parseQuery,
@@ -20,7 +21,6 @@ import {
 
 const sources = createSourcesStore();
 const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna desde el panel (\\) para añadir otra.`;
-let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
 
 // ─── BroadcastChannel hacia el panel de control ──────────────
 // Canal compartido para sync de sources (sources:* messages) y para
@@ -32,31 +32,9 @@ const sourcesBinding = bindSourcesToChannel(sources, syncChannel);
 if (isDebugEnabled(window.location.search)) {
   window.__cam = { sources, channel: syncChannel, binding: sourcesBinding, role: 'main' };
 }
-let panelLinked = false;
-syncChannel.addEventListener('message', event => {
-  const { type } = event.data || {};
-  switch (type) {
-    case 'panel:hello':
-    case 'panel:heartbeat':
-      panelLinked = true;
-      syncChannel.postMessage({ type: 'main:heartbeat' });
-      break;
-    case 'panel:hello-ack':
-      panelLinked = true;
-      break;
-    case 'panel:bye':
-      panelLinked = false;
-      break;
-    default:
-      break;
-  }
-});
-syncChannel.postMessage({ type: 'main:hello' });
-window.setInterval(() => {
-  if (panelLinked) syncChannel.postMessage({ type: 'main:heartbeat' });
-}, 4000);
+const panelLink = startMainLink(syncChannel);
 window.addEventListener('beforeunload', () => {
-  try { syncChannel.postMessage({ type: 'main:bye' }); } catch { /* noop */ }
+  try { panelLink.bye(); } catch { /* el canal puede estar ya cerrado */ }
 });
 
 const presentationSection = document.getElementById('presentationSection');
@@ -352,13 +330,10 @@ function handleGlobalShortcut(event) {
   }
 
   // 1..9 → cambiar source activa
-  if (/^[1-9]$/.test(event.key)) {
-    const index = Number(event.key) - 1;
-    const list = sources.list();
-    if (index < list.length) {
-      event.preventDefault();
-      sources.setActive(index);
-    }
+  const index = sourceIndexForKey(event, sources.list().length);
+  if (index !== null) {
+    event.preventDefault();
+    sources.setActive(index);
   }
 }
 
