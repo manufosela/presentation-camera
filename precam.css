@@ -1175,6 +1175,17 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 }
 #webcamVideo { display: none; }
 
+/* Marco: el <video> se muestra directamente (sin bucle de canvas por frame). */
+#webcamSection.frame #webcamVideo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  border-radius: calc(var(--radius-md) - 6px);
+}
+#webcamSection.frame canvas { display: none; }
+
 /* Webcam tools: floating strip below the camera, hover to reveal */
 .webcam-tools {
   position: absolute;

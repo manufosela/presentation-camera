@@ -5,6 +5,7 @@ import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime
 import { deckCommandForKey, sendDeckCommand } from './deckKeys.js';
 import { allowForSource, sandboxForSource } from './frameSandbox.js';
 import { createPresenceTracker, personCoverage } from './presence.js';
+import { needsCanvasLoop } from './renderMode.js';
 
 const sources = createSourcesStore();
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
@@ -114,6 +115,7 @@ let lastMask = null;
 const NO_PERSON_MESSAGE = 'No te detecto en modo recorte: mostrando la cámara completa. Revisa la luz o el encuadre.';
 let presence = createPresenceTracker();
 let noPersonNoticeShown = false;
+let firstFrameDrawn = false;
 let lastSegmentationAt = 0;
 let segmentationInFlight = false;
 let currentDeviceId = null;
@@ -675,9 +677,18 @@ async function startWebcam() {
   webcamSection.hidden = false;
   populateCameraSelect().catch(() => {}); // refresca labels una vez concedido el permiso
   showStatus('Cargando modelo BodyPix...');
-  const model = await loadBodyPix();
-  showStatus('Procesando la señal de vídeo, esto puede tardar un par de segundos...');
-  renderLoop(model);
+  await loadBodyPix();
+  showStatus(needsCanvasLoop(currentStyle)
+    ? 'Procesando la señal de vídeo, esto puede tardar un par de segundos...'
+    : '');
+  ensureRenderLoop();
+}
+
+// Arranca el bucle de canvas solo si el estilo lo necesita y no está ya en marcha.
+function ensureRenderLoop() {
+  if (!stream || !net || animationFrameId || !needsCanvasLoop(currentStyle)) return;
+  firstFrameDrawn = false;
+  renderLoop(net);
 }
 
 async function populateCameraSelect() {
@@ -752,7 +763,7 @@ async function loadBodyPix() {
 
 function getCanvasCtx() {
   if (!canvasCtx) {
-    canvasCtx = canvas.getContext('2d', { willReadFrequently: true });
+    canvasCtx = canvas.getContext('2d'); // sin willReadFrequently: nunca se leen píxeles
   }
   return canvasCtx;
 }
@@ -793,6 +804,12 @@ async function renderLoop(model) {
     showStatus('La cámara se detuvo.', true);
     return;
   }
+  if (!needsCanvasLoop(currentStyle)) {
+    // Modo marco: el <video> se ve directamente; el bucle se detiene.
+    animationFrameId = null;
+    syncNoPersonNotice();
+    return;
+  }
   if (!video.videoWidth || !video.videoHeight) {
     animationFrameId = requestAnimationFrame(() => renderLoop(model));
     return;
@@ -829,8 +846,10 @@ async function renderLoop(model) {
   syncNoPersonNotice();
 
   animationFrameId = requestAnimationFrame(() => renderLoop(model));
-  if (!statusMessage.hidden && !statusMessage.classList.contains('error')) {
-    showStatus('');
+  if (!firstFrameDrawn) {
+    // Solo tras el primer frame: retirar el «Procesando…» (no los errores).
+    firstFrameDrawn = true;
+    if (!statusMessage.classList.contains('error')) showStatus('');
   }
 }
 
@@ -911,6 +930,7 @@ function updateStyleClass(style) {
   currentStyle = style;
   webcamSection.classList.remove(...styles);
   webcamSection.classList.add(style);
+  ensureRenderLoop(); // al pasar a recorte; en marco el bucle se para solo
 }
 
 function updateSizeClass(size) {
