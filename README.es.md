@@ -59,7 +59,7 @@ enteramente en el navegador — instalable como app.
 | `H` | ocultar / mostrar los controles |
 | `\` | abrir el panel de control |
 | `1`–`9` | cambiar la fuente activa |
-| `Esc` | salir de pantalla completa y luego finalizar |
+| `Esc` | vista general del deck (reveal.js); sale de pantalla completa. Para terminar, botón de salir |
 
 ### Instalar como app (PWA)
 

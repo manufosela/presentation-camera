@@ -321,6 +321,7 @@ function handleGlobalShortcut(event) {
 
 function handleKeyboardShortcut(event) {
   if (!isPresentationActive()) return;
+  if (onboarding && !onboarding.hidden) return; // Esc cierra la ayuda (handleGlobalShortcut)
   if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
   // Las teclas de navegación son del deck (reveal.js), no de la app.
   const deckCommand = deckCommandForKey(event);
@@ -354,14 +355,6 @@ function handleKeyboardShortcut(event) {
     case 'F':
       event.preventDefault();
       toggleFullscreen();
-      break;
-    case 'Escape':
-      event.preventDefault();
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      } else {
-        returnToSetup();
-      }
       break;
     default:
       break;
