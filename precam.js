@@ -10,6 +10,13 @@ import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
 import { trapTabKey } from './focusTrap.js';
 import { deriveSourceTitle, hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { STORAGE_KEYS, SYNC_CHANNEL } from './constants.js';
+import {
+  buildQuery,
+  parseQuery,
+  POSITIONS as positions,
+  SIZES as sizes,
+  STYLES as styles,
+} from './queryState.js';
 
 const sources = createSourcesStore();
 const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna desde el panel (\\) para añadir otra.`;
@@ -117,9 +124,6 @@ function loadAutoRecordPref() {
   } catch { return true; }
 }
 
-const positions = ['bottom-right', 'bottom-left', 'top-left', 'top-right'];
-const styles = ['frame', 'cutout'];
-const sizes = ['s', 'm', 'l'];
 const SEGMENTATION_INTERVAL_MS = 50; // ~20 fps para BodyPix
 let currentPositionIndex = 0;
 let currentStyle = 'frame';
@@ -934,31 +938,13 @@ function updateSizeClass(size) {
 }
 
 function persistState(url, position, style) {
-  const params = new URLSearchParams(window.location.search);
-  if (url) {
-    params.set('presentation', url);
-  } else {
-    params.delete('presentation');
-  }
-  if (positions.includes(position)) {
-    params.set('position', position);
-  }
-  if (styles.includes(style)) {
-    params.set('style', style);
-  }
-  if (sizes.includes(currentSize)) {
-    params.set('size', currentSize);
-  }
-  params.delete('camera'); // la cámara vive en localStorage (y limpia URLs antiguas)
-  const newQuery = params.toString();
+  const newQuery = buildQuery(window.location.search, { url, position, style, size: currentSize });
   const newUrl = `${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`;
   window.history.replaceState({}, '', newUrl);
 }
 async function initializeFromQueryParams() {
-  const params = new URLSearchParams(window.location.search);
-  const presentationUrl = sanitizePresentationUrl(params.get('presentation'), window.location.href);
-  const position = params.get('position');
-  const style = params.get('style');
+  const { presentationUrl, position, style, size: sizeParam, legacyCameraId } =
+    parseQuery(window.location.search, window.location.href);
 
   if (presentationUrl) {
     urlInput.value = presentationUrl;
@@ -968,7 +954,7 @@ async function initializeFromQueryParams() {
     const active = sources.getActive();
     if (active?.url) urlInput.value = active.url;
   }
-  if (position && positions.includes(position)) {
+  if (position) {
     const positionInput = document.querySelector(`input[name="position"][value="${position}"]`);
     if (positionInput) {
       positionInput.checked = true;
@@ -977,27 +963,21 @@ async function initializeFromQueryParams() {
   } else {
     updatePositionClass(document.querySelector('input[name="position"]:checked').value);
   }
-  const initialStyle = style && styles.includes(style)
-    ? style
-    : document.querySelector('input[name="webcam-style"]:checked').value;
+  const initialStyle = style ?? document.querySelector('input[name="webcam-style"]:checked').value;
   const styleInput = document.querySelector(`input[name="webcam-style"][value="${initialStyle}"]`);
   if (styleInput) {
     styleInput.checked = true;
   }
   updateStyleClass(initialStyle);
 
-  const sizeParam = params.get('size');
-  const initialSize = sizes.includes(sizeParam)
-    ? sizeParam
-    : document.querySelector('input[name="webcam-size"]:checked')?.value || 'm';
+  const initialSize = sizeParam ?? document.querySelector('input[name="webcam-size"]:checked')?.value ?? 'm';
   const sizeInput = document.querySelector(`input[name="webcam-size"][value="${initialSize}"]`);
   if (sizeInput) sizeInput.checked = true;
   updateSizeClass(initialSize);
 
   // ?camera= de enlaces antiguos se migra a localStorage; persistState lo quita.
-  const cameraParam = params.get('camera');
-  if (cameraParam) persistCameraId(cameraParam);
-  currentDeviceId = cameraParam ?? readCameraId();
+  if (legacyCameraId) persistCameraId(legacyCameraId);
+  currentDeviceId = legacyCameraId ?? readCameraId();
   await populateCameraSelect();
 
   if (presentationUrl) {
