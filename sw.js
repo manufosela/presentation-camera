@@ -32,9 +32,19 @@ function mimeFor(name) {
 
 // Sirve un fichero de un bundle HTML local guardado en OPFS:
 // ruta .../_local/<id>/<path...>  →  OPFS local-bundles/<id>/<path...>
+// Decodifica un segmento de la URL ('mi%20imagen.png' → 'mi imagen.png'). Lanza
+// si la codificación es inválida o el segmento no es un nombre de fichero simple.
+function decodeSegment(segment) {
+  const name = decodeURIComponent(segment);
+  if (name === '.' || name === '..' || name.includes('/') || name.includes('\\')) {
+    throw new Error(`Segmento no válido: ${segment}`);
+  }
+  return name;
+}
+
 async function serveLocalBundle(rest) {
   try {
-    const parts = rest.split('/').filter(Boolean);
+    const parts = rest.split('/').filter(Boolean).map(decodeSegment);
     const id = parts.shift();
     if (!id) return new Response('Not found', { status: 404 });
     const fileName = parts.length ? parts.pop() : 'index.html';
