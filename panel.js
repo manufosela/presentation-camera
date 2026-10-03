@@ -11,6 +11,7 @@
  * bidireccional de activeIndex.
  */
 
+import './frameGuard.js'; // primero: aborta si el panel está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel } from './sources.js';
 
 const sources = createSourcesStore();

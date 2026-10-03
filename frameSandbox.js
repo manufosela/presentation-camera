@@ -10,10 +10,45 @@
  * Los bundles (carpetas) los sirve el Service Worker desde OPFS, y el SW no
  * controla iframes de origin opaco: con sandbox darían 404. Quedan sin sandbox
  * hasta tener otra forma de servirlos.
+ *
+ * Las presentaciones remotas conservan su propio origin (allow-same-origin es
+ * el de ELLAS, no el de la app) pero sin allow-top-navigation: una URL
+ * maliciosa no puede redirigir la ventana principal en plena clase. Los
+ * popups escapan del sandbox para que los enlaces del deck abran normales.
  */
 
-/** Devuelve el valor del atributo sandbox para la source, o null si no se aplica. */
-export function sandboxForSource(source) {
-  if (source.type === 'html' && !source.bundle) return 'allow-scripts';
-  return null;
+const REMOTE_SANDBOX = [
+  'allow-scripts',
+  'allow-same-origin',
+  'allow-popups',
+  'allow-popups-to-escape-sandbox',
+  'allow-forms',
+  'allow-presentation',
+].join(' ');
+
+// Origin opaco: el contenido ejecuta JS pero no comparte origin con nadie.
+const OPAQUE_SANDBOX = 'allow-scripts';
+
+function isCrossOrigin(url, appOrigin) {
+  try {
+    return new URL(url).origin !== appOrigin;
+  } catch {
+    return false; // no parseable → se trata como no fiable (política opaca)
+  }
+}
+
+/**
+ * Devuelve el valor del atributo sandbox para la source, o null si no se aplica.
+ * `appOrigin` es el origin de la app: una URL de ese mismo origin con
+ * allow-scripts + allow-same-origin podría quitarse el sandbox, así que recibe
+ * la política opaca.
+ */
+export function sandboxForSource(source, appOrigin) {
+  if (source.type === 'html') return source.bundle ? null : OPAQUE_SANDBOX;
+  return isCrossOrigin(source.url, appOrigin) ? REMOTE_SANDBOX : OPAQUE_SANDBOX;
+}
+
+/** Devuelve el atributo allow (Permissions Policy) del iframe, o null. */
+export function allowForSource(source) {
+  return source.type === 'html' ? null : 'fullscreen; autoplay';
 }
