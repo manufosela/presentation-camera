@@ -50,8 +50,10 @@ and runs entirely in your browser — installable as an app.
 
 | Key | Action |
 |-----|--------|
-| `←` / `→` | rotate webcam corner |
-| `B` | toggle framed ↔ cut-out |
+| `←` `→` `↑` `↓`, `PgUp`/`PgDn`, `Space`, `Home`/`End` | navigate the deck (reveal.js, via its postMessage API) |
+| `B` / `.` | black out the deck (reveal.js pause) |
+| `C` / `Shift+C` | rotate webcam corner |
+| `M` | toggle framed ↔ cut-out |
 | `F` | enter / exit fullscreen |
 | `R` | start / stop recording |
 | `H` | hide / show the app controls |
