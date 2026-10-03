@@ -6,6 +6,7 @@ import { deckCommandForKey, sendDeckCommand } from './deckKeys.js';
 import { allowForSource, sandboxForSource } from './frameSandbox.js';
 import { createPresenceTracker, personCoverage } from './presence.js';
 import { needsCanvasLoop } from './renderMode.js';
+import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
 
 const sources = createSourcesStore();
 const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna desde el panel (\\) para añadir otra.`;
@@ -17,8 +18,10 @@ let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
 const syncChannel = new BroadcastChannel('cam.sync');
 const sourcesBinding = bindSourcesToChannel(sources, syncChannel);
 
-// Debug helper accesible desde la consola del navegador.
-window.__cam = { sources, channel: syncChannel, binding: sourcesBinding, role: 'main' };
+// Debug helper accesible desde la consola del navegador (solo con ?debug=1).
+if (isDebugEnabled(window.location.search)) {
+  window.__cam = { sources, channel: syncChannel, binding: sourcesBinding, role: 'main' };
+}
 let panelLinked = false;
 syncChannel.addEventListener('message', event => {
   const { type } = event.data || {};
@@ -94,6 +97,16 @@ const AUTO_RECORD_KEY = 'cam.autoRecord.v1';
 let recordingCtrl = null;
 let autoRecordEnabled = loadAutoRecordPref();
 
+// localStorage puede lanzar (modo privado, almacenamiento bloqueado): la cámara
+// elegida es una comodidad, así que sin almacenamiento se usa la automática.
+function readCameraId() {
+  try { return loadCameraId(window.localStorage); } catch { return null; }
+}
+
+function persistCameraId(deviceId) {
+  try { saveCameraId(window.localStorage, deviceId); } catch { /* noop */ }
+}
+
 function loadAutoRecordPref() {
   try {
     const raw = window.localStorage.getItem(AUTO_RECORD_KEY);
@@ -166,6 +179,7 @@ sizeInputs.forEach(input => {
 });
 cameraSelect?.addEventListener('change', async event => {
   currentDeviceId = event.target.value || null;
+  persistCameraId(currentDeviceId);
   persistState(urlInput.value.trim(), getSelectedPosition(), currentStyle);
   if (isPresentationActive()) {
     await startWebcam().catch(error => {
@@ -965,11 +979,7 @@ function persistState(url, position, style) {
   if (sizes.includes(currentSize)) {
     params.set('size', currentSize);
   }
-  if (currentDeviceId) {
-    params.set('camera', currentDeviceId);
-  } else {
-    params.delete('camera');
-  }
+  params.delete('camera'); // la cámara vive en localStorage (y limpia URLs antiguas)
   const newQuery = params.toString();
   const newUrl = `${window.location.pathname}${newQuery ? `?${newQuery}` : ''}`;
   window.history.replaceState({}, '', newUrl);
@@ -1014,8 +1024,10 @@ async function initializeFromQueryParams() {
   if (sizeInput) sizeInput.checked = true;
   updateSizeClass(initialSize);
 
+  // ?camera= de enlaces antiguos se migra a localStorage; persistState lo quita.
   const cameraParam = params.get('camera');
-  if (cameraParam) currentDeviceId = cameraParam;
+  if (cameraParam) persistCameraId(cameraParam);
+  currentDeviceId = cameraParam ?? readCameraId();
   await populateCameraSelect();
 
   if (presentationUrl) {

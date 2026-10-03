@@ -13,6 +13,7 @@
 
 import './frameGuard.js'; // primero: aborta si el panel está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
+import { isDebugEnabled } from './appPrefs.js';
 
 const sources = createSourcesStore();
 const linkStatus = document.getElementById('linkStatus');
@@ -27,8 +28,10 @@ const binding = bindSourcesToChannel(sources, channel);
 let linked = false;
 let linkLostTimer = null;
 
-// Debug helper accesible desde la consola del navegador.
-window.__cam = { sources, channel, binding, role: 'panel' };
+// Debug helper accesible desde la consola del navegador (solo con ?debug=1).
+if (isDebugEnabled(window.location.search)) {
+  window.__cam = { sources, channel, binding, role: 'panel' };
+}
 
 channel.addEventListener('message', event => {
   const { type } = event.data || {};
