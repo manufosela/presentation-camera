@@ -4,6 +4,7 @@ import { saveHtml, getHtmlBlobUrl, saveBundle } from './localStore.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 import { deckCommandForKey, sendDeckCommand } from './deckKeys.js';
 import { allowForSource, sandboxForSource } from './frameSandbox.js';
+import { createPresenceTracker, personCoverage } from './presence.js';
 
 const sources = createSourcesStore();
 let isPanelWindow = false; // panel.js puede inspeccionarlo si lo necesita
@@ -110,6 +111,9 @@ let net;
 let netPromise;
 let canvasCtx;
 let lastMask = null;
+const NO_PERSON_MESSAGE = 'No te detecto en modo recorte: mostrando la cámara completa. Revisa la luz o el encuadre.';
+let presence = createPresenceTracker();
+let noPersonNoticeShown = false;
 let lastSegmentationAt = 0;
 let segmentationInFlight = false;
 let currentDeviceId = null;
@@ -661,6 +665,8 @@ async function startPresentation(presetUrl) {
 
 async function startWebcam() {
   stopWebcam();
+  presence = createPresenceTracker(); // nueva cámara: sin arrastrar la ausencia anterior
+  noPersonNoticeShown = false;
   showStatus('Solicitando acceso a la cámara...');
   const mediaStream = await requestVideoStream();
   stream = mediaStream;
@@ -760,6 +766,7 @@ async function refreshMask(model) {
       internalResolution: 'medium',
       segmentationThreshold: 0.7
     });
+    presence.update(personCoverage(segmentation.data), performance.now());
     lastMask = bodyPix.toMask(
       segmentation,
       { r: 0, g: 0, b: 0, a: 255 }, // persona opaca
@@ -769,6 +776,16 @@ async function refreshMask(model) {
   } finally {
     segmentationInFlight = false;
   }
+}
+
+// Aviso persistente (estilo error, para que renderLoop no lo limpie) mientras el
+// recorte no detecte a nadie; se retira solo si sigue siendo el aviso visible.
+function syncNoPersonNotice() {
+  const absent = currentStyle === 'cutout' && !presence.isPresent();
+  if (absent === noPersonNoticeShown) return;
+  noPersonNoticeShown = absent;
+  if (absent) showStatus(NO_PERSON_MESSAGE, true);
+  else if (statusMessage.textContent === NO_PERSON_MESSAGE) showStatus('');
 }
 
 async function renderLoop(model) {
@@ -799,13 +816,17 @@ async function renderLoop(model) {
     if (!lastMask || elapsed >= SEGMENTATION_INTERVAL_MS) {
       refreshMask(model).catch(error => console.warn('Segmentación fallida', error));
     }
-    if (lastMask) {
+    if (!presence.isPresent()) {
+      // Nadie detectado: cámara completa (con aviso) en vez de un overlay vacío.
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    } else if (lastMask) {
       ctx.putImageData(lastMask, 0, 0);
       ctx.globalCompositeOperation = 'source-in';
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'source-over';
     }
   }
+  syncNoPersonNotice();
 
   animationFrameId = requestAnimationFrame(() => renderLoop(model));
   if (!statusMessage.hidden && !statusMessage.classList.contains('error')) {
