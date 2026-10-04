@@ -36,4 +36,7 @@ node_modules/
 !.karajan/hooks/commit-msg
 !.karajan/hooks/pre-push
 !.karajan/hooks/post-merge
+!.karajan/hooks/prepare-commit-msg
 !.karajan/adrs/
+!.karajan/supervisor-provenance.json
+.karajan/identity.local.yml
