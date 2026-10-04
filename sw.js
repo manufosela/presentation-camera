@@ -47,6 +47,7 @@ const SHELL = [
   'segmentationLoader.js',
   'bundleRewrite.js',
   'bundleBlobs.js',
+  'recordingFlow.js',
   'panel.html',
   'panel.css',
   'panel.js',
