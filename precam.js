@@ -2,6 +2,7 @@ import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
 import { saveHtml, saveBundle, readLocalHtml, removeHtml, removeBundle } from './localStore.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
+import { removedLocalFiles, sourceLabel } from './savedSources.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
@@ -22,7 +23,7 @@ import {
 } from './queryState.js';
 
 const sources = createSourcesStore();
-const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Para verlas y quitar alguna, pulsa «Open control panel» (o la tecla \\) y usa la ✕ de cada una.`;
+const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna con la ✕ en «Presentaciones guardadas», debajo de los botones de cargar.`;
 
 // ─── BroadcastChannel hacia el panel de control ──────────────
 // Canal compartido para sync de sources (sources:* messages) y para
@@ -285,6 +286,58 @@ window.addEventListener('message', event => {
   if (!slide) return;
   deckSlide = slide;
   publishNotes();
+});
+
+// ─── Presentaciones guardadas (pantalla inicial) ─────────────
+// Lista para elegir la activa y quitar las que sobran. Al desaparecer una
+// source local (aquí, en el panel o al reemplazarla) se borra su fichero de
+// OPFS y se olvidan sus cachés.
+const savedSourcesList = document.getElementById('savedSources');
+const savedSourcesCount = document.getElementById('savedSourcesCount');
+const savedSourcesEmpty = document.getElementById('savedSourcesEmpty');
+let previousSources = sources.list();
+
+function renderSavedSource(source, index, activeIndex) {
+  const { title, kind } = sourceLabel(source);
+  const li = document.createElement('li');
+  li.className = 'saved-source';
+
+  const pick = document.createElement('button');
+  pick.type = 'button';
+  pick.className = 'saved-source-pick';
+  pick.setAttribute('aria-pressed', String(index === activeIndex));
+  const titleEl = document.createElement('span');
+  titleEl.className = 'saved-source-title';
+  titleEl.textContent = title;
+  const kindEl = document.createElement('span');
+  kindEl.className = 'saved-source-kind';
+  kindEl.textContent = kind;
+  pick.append(titleEl, kindEl);
+  pick.addEventListener('click', () => sources.setActive(index));
+
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'saved-source-remove';
+  remove.textContent = '✕';
+  remove.setAttribute('aria-label', `Quitar ${title}`);
+  remove.addEventListener('click', () => sources.remove(source.id));
+
+  li.append(pick, remove);
+  return li;
+}
+
+sources.subscribe(({ list, activeIndex }) => {
+  savedSourcesList?.replaceChildren(...list.map((source, index) => renderSavedSource(source, index, activeIndex)));
+  if (savedSourcesCount) savedSourcesCount.textContent = list.length ? `(${list.length}/${MAX_SOURCES})` : '';
+  if (savedSourcesEmpty) savedSourcesEmpty.hidden = list.length > 0;
+
+  const currentIds = new Set(list.map(s => s.id));
+  for (const gone of previousSources.filter(s => !currentIds.has(s.id))) forgetLocalCaches(gone.id);
+  for (const file of removedLocalFiles(previousSources, list)) {
+    (file.bundle ? removeBundle(file.localRef) : removeHtml(file.localRef))
+      .catch(error => console.warn('[sources] no se pudo borrar el fichero local', error));
+  }
+  previousSources = list;
 });
 
 function renderIframeStack(list, activeIndex) {
@@ -621,8 +674,7 @@ async function handleLocalHtmlPick(event) {
     const id = await saveHtml(file);
     sources.addLocal({ type: 'html', title, localRef: id });
     if (previous) {
-      forgetLocalCaches(previous.id);
-      await removeHtml(previous.localRef);
+      forgetLocalCaches(previous.id); // mismo id: su fichero viejo lo borra la limpieza de sources
     }
     showStatus(previous
       ? 'HTML local actualizado. Pulsa «Go live» para presentarlo.'
@@ -653,8 +705,7 @@ async function handleLocalBundlePick() {
     const id = await saveBundle(dirHandle);
     sources.addLocal({ type: 'html', bundle: true, title, localRef: id });
     if (previous) {
-      forgetLocalCaches(previous.id);
-      await removeBundle(previous.localRef);
+      forgetLocalCaches(previous.id); // mismo id: su fichero viejo lo borra la limpieza de sources
     }
     showStatus(previous
       ? 'Carpeta HTML actualizada. Pulsa «Go live» para presentarla.'
