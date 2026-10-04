@@ -24,12 +24,14 @@ const BRIDGE_SCRIPT = `(function () {
   }, true);
 })();`;
 
-/** Devuelve el HTML con el script puente antes de </body> (o al final). */
+/**
+ * Devuelve el HTML con el script puente añadido al final del documento. Nunca
+ * se busca "</body>" en el texto: un deck puede contenerlo dentro de su propio
+ * JS (p. ej. el plugin de notas incrustado) y la inserción partiría ese script
+ * (CAM-BUG-0015). Al final del todo, el parser HTML lo coloca en el body.
+ */
 export function injectDeckBridge(html) {
-  const tag = `<script>${BRIDGE_SCRIPT}</script>`;
-  const bodyClose = html.toLowerCase().lastIndexOf('</body>');
-  if (bodyClose === -1) return html + tag;
-  return html.slice(0, bodyClose) + tag + html.slice(bodyClose);
+  return `${html}<script>${BRIDGE_SCRIPT}</script>`;
 }
 
 /** 'open-notes' si el mensaje es una petición del script puente, o null. */
