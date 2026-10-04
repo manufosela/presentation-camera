@@ -43,6 +43,26 @@ export function parseDeckNotes(html) {
     });
 }
 
+/**
+ * Lo que muestra el panel a partir del mensaje notes:update de la ventana
+ * principal (o null si aún no ha llegado ninguno).
+ */
+export function notesView(update) {
+  if (!update) return { position: '', text: 'Las notas aparecerán aquí al empezar la presentación.', empty: true };
+  if (!update.local) {
+    return {
+      position: '',
+      text: 'Presentación publicada: pulsa S en la ventana principal para abrir las notas de reveal.js.',
+      empty: true,
+    };
+  }
+  const vertical = update.v > 0 ? `.${update.v + 1}` : '';
+  const position = `Slide ${update.h + 1}${vertical}`;
+  return update.text
+    ? { position, text: update.text, empty: false }
+    : { position, text: 'Esta slide no tiene notas.', empty: true };
+}
+
 /** Nota de la slide [h][v], o cadena vacía si no existe. */
 export function notesAt(notes, h, v) {
   return notes[h]?.[v] ?? '';

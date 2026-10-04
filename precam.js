@@ -265,6 +265,11 @@ async function syncDeckNotes() {
   publishNotes();
 }
 
+// El panel pide la nota actual al abrirse.
+syncChannel.addEventListener('message', event => {
+  if (event.data?.type === 'notes:request') publishNotes();
+});
+
 window.addEventListener('message', event => {
   // Solo el deck activo: su ventana y el origin que le corresponde según su sandbox.
   const active = sources.getActive();
@@ -402,6 +407,14 @@ function handleKeyboardShortcut(event) {
   if (!isPresentationActive()) return;
   if (onboarding && !onboarding.hidden) return; // Esc cierra la ayuda (handleGlobalShortcut)
   if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
+  // S con un deck local: las notas se muestran en el panel (la ventana de notas
+  // de reveal.js no funciona con decks servidos como blob, CAM-BUG-0013).
+  const plainS = (event.key === 's' || event.key === 'S') && !event.ctrlKey && !event.metaKey && !event.altKey;
+  if (plainS && sources.getActive()?.type === 'html') {
+    event.preventDefault();
+    openControlPanel();
+    return;
+  }
   // Las teclas de navegación son del deck (reveal.js), no de la app.
   const deckCommand = deckCommandForKey(event);
   if (deckCommand) {

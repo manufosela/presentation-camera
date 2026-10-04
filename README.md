@@ -52,7 +52,7 @@ and runs entirely in your browser — installable as an app.
 |-----|--------|
 | `←` `→` `↑` `↓`, `PgUp`/`PgDn`, `Space`, `Home`/`End` | navigate the deck (reveal.js, via its postMessage API) |
 | `B` / `.` | black out the deck (reveal.js pause) |
-| `S` | open the reveal.js speaker notes (if the browser blocks the popup, allow it for that site) |
+| `S` | speaker notes: for a local deck they are shown in the control panel (they follow the current slide and stay out of the recording); for a published deck it opens the reveal.js notes window (if the browser blocks the popup, allow it for that site) |
 | `C` / `Shift+C` | rotate webcam corner |
 | `M` | toggle framed ↔ cut-out |
 | `F` | enter / exit fullscreen |
