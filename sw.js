@@ -86,13 +86,14 @@ const SHELL = [
   'savedSources.js',
   'appVersion.js',
   'streamSwitch.js',
+  // TensorFlow y BodyPix no se precachean: se cargan solo al usar el recorte y
+  // quedan cacheados en ese primer uso (stale-while-revalidate).
+  'segmentationLoader.js',
   'panel.html',
   'panel.css',
   'panel.js',
   'manifest.webmanifest',
   'icon.svg',
-  'vendor/tf.min.js',
-  'vendor/body-pix.min.js',
   'vendor/fonts/fraunces-latin.woff2',
 ];
 
