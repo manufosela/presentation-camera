@@ -35,6 +35,26 @@ export function deckCommandForKey(event) {
   return method ? { method, args: [] } : null;
 }
 
+const POSITION_EVENTS = new Set(['slidechanged', 'ready']);
+const isIndex = n => Number.isInteger(n) && n >= 0;
+
+/**
+ * Posición { h, v } del deck a partir de un mensaje de reveal.js (eventos con
+ * postMessageEvents o la respuesta a getIndices), o null si no la trae. El
+ * mensaje viene de un iframe ajeno: se valida, no se confía.
+ */
+export function revealSlideFromMessage(data) {
+  let message;
+  try { message = typeof data === 'string' ? JSON.parse(data) : null; } catch { return null; }
+  if (message?.namespace !== 'reveal') return null;
+  let h;
+  let v;
+  if (POSITION_EVENTS.has(message.eventName)) ({ indexh: h, indexv: v } = message.state ?? {});
+  else if (message.eventName === 'callback' && message.method === 'getIndices') ({ h, v } = message.result ?? {});
+  else return null;
+  return isIndex(h) && isIndex(v) ? { h, v } : null;
+}
+
 /** Envía el comando al iframe del deck. Devuelve false si el iframe no está listo. */
 export function sendDeckCommand(frame, command) {
   const target = frame?.contentWindow;

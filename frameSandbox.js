@@ -48,6 +48,18 @@ export function sandboxForSource(source, appOrigin) {
   return isCrossOrigin(source.url, appOrigin) ? REMOTE_SANDBOX : OPAQUE_SANDBOX;
 }
 
+/**
+ * Origin con el que llegan los mensajes postMessage del deck: "null" si su
+ * sandbox es opaco (sin allow-same-origin), el de la app para un bundle sin
+ * sandbox y el de la URL para una remota.
+ */
+export function deckOrigin(source, appOrigin) {
+  const sandbox = sandboxForSource(source, appOrigin);
+  if (sandbox === null) return appOrigin;
+  if (!sandbox.split(' ').includes('allow-same-origin')) return 'null';
+  return new URL(source.url).origin;
+}
+
 /** Devuelve el atributo allow (Permissions Policy) del iframe, o null. */
 export function allowForSource(source) {
   return source.type === 'html' ? null : 'fullscreen; autoplay';

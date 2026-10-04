@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { allowForSource, sandboxForSource } from './frameSandbox.js';
+import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
 
 const APP_ORIGIN = 'https://app.example';
 
@@ -38,5 +38,23 @@ describe('allowForSource — permisos (Permissions Policy) del iframe', () => {
 
   it('HTML local: sin permisos extra', () => {
     expect(allowForSource({ type: 'html', localRef: 'abc' })).toBeNull();
+  });
+});
+
+describe('deckOrigin — origin esperado en los mensajes del deck', () => {
+  it('HTML local de un solo fichero (sandbox opaco) → "null"', () => {
+    expect(deckOrigin({ type: 'html', localRef: 'abc' }, APP_ORIGIN)).toBe('null');
+  });
+
+  it('bundle local (sin sandbox, servido por el SW) → origin de la app', () => {
+    expect(deckOrigin({ type: 'html', bundle: true, localRef: 'abc' }, APP_ORIGIN)).toBe(APP_ORIGIN);
+  });
+
+  it('remota de otro origin → su propio origin', () => {
+    expect(deckOrigin({ type: 'url', url: 'https://slides.example/deck/#/2' }, APP_ORIGIN)).toBe('https://slides.example');
+  });
+
+  it('URL del mismo origin que la app (sandbox opaco) → "null"', () => {
+    expect(deckOrigin({ type: 'url', url: `${APP_ORIGIN}/deck.html` }, APP_ORIGIN)).toBe('null');
   });
 });

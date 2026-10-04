@@ -1,9 +1,10 @@
 import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
-import { saveHtml, getHtmlBlobUrl, saveBundle } from './localStore.js';
+import { saveHtml, getHtmlBlobUrl, saveBundle, readLocalHtml } from './localStore.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
-import { deckCommandForKey, sendDeckCommand } from './deckKeys.js';
-import { allowForSource, sandboxForSource } from './frameSandbox.js';
+import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
+import { notesAt, parseDeckNotes } from './deckNotes.js';
+import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
 import { createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
 import { needsCanvasLoop } from './renderMode.js';
 import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
@@ -219,6 +220,62 @@ sources.subscribe(({ list, activeIndex }) => {
   if (presentationActive) renderIframeStack(list, activeIndex);
 });
 
+// ─── Notas del ponente ───────────────────────────────────────
+// Con sources locales la app lee las notas del HTML guardado y sigue la slide
+// actual con los eventos postMessage de reveal.js; las publica al panel, que
+// las muestra en otra ventana (no sale en la grabación). La ventana de notas
+// de reveal.js no funciona con decks servidos como blob (CAM-BUG-0013).
+let deckNotes = { sourceId: null, notes: [] };
+let deckSlide = { h: 0, v: 0 };
+
+function activeFrame() {
+  return iframeStack?.querySelector('iframe.is-active') ?? null;
+}
+
+function enableDeckEvents(frame) {
+  sendDeckCommand(frame, { method: 'configure', args: [{ postMessageEvents: true }] });
+  sendDeckCommand(frame, { method: 'getIndices', args: [] });
+}
+
+function publishNotes() {
+  const active = sources.getActive();
+  syncChannel.postMessage({
+    type: 'notes:update',
+    local: active?.type === 'html',
+    sourceId: deckNotes.sourceId,
+    h: deckSlide.h,
+    v: deckSlide.v,
+    text: notesAt(deckNotes.notes, deckSlide.h, deckSlide.v),
+  });
+}
+
+// Carga las notas de la source activa (si cambió) y publica la actual.
+async function syncDeckNotes() {
+  const active = sources.getActive();
+  if (!active || active.id === deckNotes.sourceId) {
+    publishNotes();
+    return;
+  }
+  const sourceId = active.id;
+  const html = active.type === 'html' ? await readLocalHtml(active) : null;
+  if (sources.getActive()?.id !== sourceId) return; // cambió mientras se leía
+  deckNotes = { sourceId, notes: html ? parseDeckNotes(html) : [] };
+  deckSlide = { h: 0, v: 0 };
+  sendDeckCommand(activeFrame(), { method: 'getIndices', args: [] });
+  publishNotes();
+}
+
+window.addEventListener('message', event => {
+  // Solo el deck activo: su ventana y el origin que le corresponde según su sandbox.
+  const active = sources.getActive();
+  if (!active || event.origin !== deckOrigin(active, window.location.origin)) return;
+  if (event.source !== activeFrame()?.contentWindow) return;
+  const slide = revealSlideFromMessage(event.data);
+  if (!slide) return;
+  deckSlide = slide;
+  publishNotes();
+});
+
 function renderIframeStack(list, activeIndex) {
   if (!iframeStack) return;
   const existing = new Map();
@@ -239,6 +296,8 @@ function renderIframeStack(list, activeIndex) {
     if (!frame) {
       frame = document.createElement('iframe');
       frame.dataset.sourceId = source.id;
+      // Al cargar, pedir a reveal.js que avise de los cambios de slide (notas).
+      frame.addEventListener('load', () => enableDeckEvents(frame));
       // El sandbox debe fijarse antes de la primera navegación del iframe.
       const sandbox = sandboxForSource(source, window.location.origin);
       if (sandbox !== null) frame.setAttribute('sandbox', sandbox);
@@ -266,6 +325,7 @@ function renderIframeStack(list, activeIndex) {
     }
     frame.classList.toggle('is-active', index === activeIndex);
   });
+  syncDeckNotes().catch(error => console.warn('[notes] no se pudieron leer las notas', error));
 }
 
 function isPresentationActive() {
