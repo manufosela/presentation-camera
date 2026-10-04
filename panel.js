@@ -13,7 +13,7 @@
 
 import './frameGuard.js'; // primero: aborta si el panel está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
-import { isDebugEnabled } from './appPrefs.js';
+import { isDebugEnabled, loadSingleKeyShortcuts } from './appPrefs.js';
 import { hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startPanelLink } from './linkChannel.js';
@@ -212,8 +212,14 @@ function setupInlineEdit(node, item) {
   });
 }
 
-// Atajos numéricos 1-9 en el panel
+// Atajos numéricos 1-9 en el panel; se leen en cada pulsación porque la
+// preferencia se cambia desde la ventana principal (mismo localStorage).
+function singleKeyShortcutsEnabled() {
+  try { return loadSingleKeyShortcuts(window.localStorage); } catch { return true; }
+}
+
 document.addEventListener('keydown', event => {
+  if (!singleKeyShortcutsEnabled()) return;
   const index = sourceIndexForKey(event, sources.list().length);
   if (index !== null) {
     event.preventDefault();

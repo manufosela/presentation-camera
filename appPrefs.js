@@ -25,3 +25,16 @@ export function saveCameraId(storage, deviceId) {
   if (deviceId) storage.setItem(CAMERA_KEY, deviceId);
   else storage.removeItem(CAMERA_KEY);
 }
+
+// Atajos de una sola tecla (C, M, R, F, H, S, \, 1-9): desactivables para que
+// el dictado por voz no dispare acciones (WCAG 2.1.4). Activados por defecto.
+const SINGLE_KEY_SHORTCUTS_KEY = STORAGE_KEYS.singleKeyShortcuts;
+
+/** false solo si el usuario los desactivó. */
+export function loadSingleKeyShortcuts(storage) {
+  return storage.getItem(SINGLE_KEY_SHORTCUTS_KEY) !== 'false';
+}
+
+export function saveSingleKeyShortcuts(storage, enabled) {
+  storage.setItem(SINGLE_KEY_SHORTCUTS_KEY, String(enabled));
+}

@@ -11,7 +11,13 @@ import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js'
 import { createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
 import { createStreamSwitcher } from './streamSwitch.js';
 import { needsCanvasLoop } from './renderMode.js';
-import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
+import {
+  isDebugEnabled,
+  loadCameraId,
+  loadSingleKeyShortcuts,
+  saveCameraId,
+  saveSingleKeyShortcuts,
+} from './appPrefs.js';
 import { trapTabKey } from './focusTrap.js';
 import { deriveSourceTitle, hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { STORAGE_KEYS, SYNC_CHANNEL } from './constants.js';
@@ -89,6 +95,11 @@ const localBlobUrls = new Map();
 const AUTO_RECORD_KEY = STORAGE_KEYS.autoRecord;
 let recordingCtrl = null;
 let autoRecordEnabled = loadAutoRecordPref();
+
+// Atajos de una tecla desactivables (WCAG 2.1.4). Sin almacenamiento, activados.
+const singleKeyShortcutsInput = document.getElementById('singleKeyShortcutsInput');
+let singleKeyShortcuts = true;
+try { singleKeyShortcuts = loadSingleKeyShortcuts(window.localStorage); } catch { /* noop */ }
 
 // localStorage puede lanzar (modo privado, almacenamiento bloqueado): la cámara
 // elegida es una comodidad, así que sin almacenamiento se usa la automática.
@@ -199,6 +210,13 @@ onboarding?.addEventListener('click', event => {
   if (event.target === onboarding) closeOnboarding(); // click en el fondo
 });
 onboarding?.addEventListener('keydown', event => trapTabKey(onboarding, event));
+if (singleKeyShortcutsInput) {
+  singleKeyShortcutsInput.checked = singleKeyShortcuts;
+  singleKeyShortcutsInput.addEventListener('change', () => {
+    singleKeyShortcuts = singleKeyShortcutsInput.checked;
+    try { saveSingleKeyShortcuts(window.localStorage, singleKeyShortcuts); } catch { /* noop */ }
+  });
+}
 if (autoRecordInput) {
   autoRecordInput.checked = autoRecordEnabled;
   autoRecordInput.addEventListener('change', () => {
@@ -286,8 +304,10 @@ window.addEventListener('message', event => {
   const active = sources.getActive();
   if (!active || event.origin !== deckOrigin(active, window.location.origin)) return;
   if (event.source !== activeFrame()?.contentWindow) return;
-  // S o H pulsadas con el foco dentro del deck local (script puente).
+  // S o H pulsadas con el foco dentro del deck local (script puente); son atajos
+  // de una tecla, así que se ignoran si están desactivados.
   const bridgeRequest = bridgeRequestFromMessage(event.data);
+  if (bridgeRequest && !singleKeyShortcuts) return;
   if (bridgeRequest === 'open-notes') {
     openControlPanel();
     return;
@@ -460,6 +480,7 @@ function handleGlobalShortcut(event) {
   // Saltar si estamos escribiendo en un input/textarea.
   if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
   if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (!singleKeyShortcuts) return;
 
   // \ → abrir panel
   if (event.key === '\\') {
@@ -483,18 +504,20 @@ function handleKeyboardShortcut(event) {
   // S con un deck local: las notas se muestran en el panel (la ventana de notas
   // de reveal.js no funciona con decks servidos como blob, CAM-BUG-0013).
   const plainS = (event.key === 's' || event.key === 'S') && !event.ctrlKey && !event.metaKey && !event.altKey;
-  if (plainS && sources.getActive()?.type === 'html') {
+  if (singleKeyShortcuts && plainS && sources.getActive()?.type === 'html') {
     event.preventDefault();
     openControlPanel();
     return;
   }
-  // Las teclas de navegación son del deck (reveal.js), no de la app.
+  // Las teclas de navegación son del deck (reveal.js), no de la app: siguen
+  // funcionando aunque los atajos de una tecla estén desactivados.
   const deckCommand = deckCommandForKey(event);
   if (deckCommand) {
     event.preventDefault();
     sendDeckCommand(iframeStack?.querySelector('iframe.is-active'), deckCommand);
     return;
   }
+  if (!singleKeyShortcuts) return;
   switch (event.key) {
     case 'c':
     case 'C':

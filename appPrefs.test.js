@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { CAMERA_KEY, isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
+import {
+  CAMERA_KEY,
+  isDebugEnabled,
+  loadCameraId,
+  loadSingleKeyShortcuts,
+  saveCameraId,
+  saveSingleKeyShortcuts,
+} from './appPrefs.js';
 
 function memoryStorage() {
   const map = new Map();
@@ -39,5 +46,19 @@ describe('cámara elegida — en almacenamiento local, no en la URL', () => {
 
   it('sin preferencia guardada → null', () => {
     expect(loadCameraId(memoryStorage())).toBeNull();
+  });
+});
+
+describe('atajos de una tecla — desactivables (WCAG 2.1.4)', () => {
+  it('activados por defecto', () => {
+    expect(loadSingleKeyShortcuts(memoryStorage())).toBe(true);
+  });
+
+  it('se recuerda la elección', () => {
+    const storage = memoryStorage();
+    saveSingleKeyShortcuts(storage, false);
+    expect(loadSingleKeyShortcuts(storage)).toBe(false);
+    saveSingleKeyShortcuts(storage, true);
+    expect(loadSingleKeyShortcuts(storage)).toBe(true);
   });
 });

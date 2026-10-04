@@ -14,6 +14,7 @@ describe('constants — contrato entre ventanas y con el almacenamiento', () => 
       onboarded: 'cam.onboarded.v1',
       autoRecord: 'cam.autoRecord.v1',
       camera: 'cam.camera.v1',
+      singleKeyShortcuts: 'cam.singleKeyShortcuts.v1',
     });
   });
 
