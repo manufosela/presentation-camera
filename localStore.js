@@ -76,6 +76,30 @@ export async function readLocalHtml({ localRef, bundle }) {
   }
 }
 
+async function collectFiles(dir, prefix, files) {
+  for await (const [name, handle] of dir.entries()) {
+    if (handle.kind === 'file') files.set(`${prefix}${name}`, await handle.getFile());
+    else if (handle.kind === 'directory') await collectFiles(handle, `${prefix}${name}/`, files);
+  }
+  return files;
+}
+
+/**
+ * Ficheros de una carpeta guardada: Map ruta desde la raíz → File. null si ya
+ * no existe en OPFS.
+ */
+export async function readBundleFiles(id) {
+  if (typeof id !== 'string' || !id) return null;
+  let dir;
+  try {
+    const root = await navigator.storage.getDirectory();
+    dir = await (await root.getDirectoryHandle(BUNDLES_DIR)).getDirectoryHandle(id);
+  } catch {
+    return null;
+  }
+  return collectFiles(dir, '', new Map());
+}
+
 /** Borra una carpeta (bundle) guardada. Devuelve true si existía y se borró. */
 export async function removeBundle(id) {
   if (typeof id !== 'string' || !id) return false;

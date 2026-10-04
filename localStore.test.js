@@ -171,6 +171,19 @@ describe('saveBundle', () => {
     expect(await removeBundle('no-existe')).toBe(false);
   });
 
+  it('readBundleFiles devuelve los ficheros con su ruta desde la raíz; null si no existe', async () => {
+    const src = dirNode();
+    src.files.set('index.html', fileNode('index.html', '<h1>deck</h1>'));
+    const sub = dirNode();
+    sub.files.set('app.css', fileNode('app.css', 'body{}'));
+    src.dirs.set('css', sub);
+    const { saveBundle, readBundleFiles } = await import('./localStore.js');
+    const id = await saveBundle(src);
+    const files = await readBundleFiles(id);
+    expect([...files.keys()].toSorted()).toEqual(['css/app.css', 'index.html']);
+    expect(await readBundleFiles('no-existe')).toBeNull();
+  });
+
   it('rechaza una carpeta sin index.html', async () => {
     const src = dirNode();
     src.files.set('readme.txt', fileNode('readme.txt', 'x'));
