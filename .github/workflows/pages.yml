@@ -31,7 +31,13 @@ jobs:
             --exclude '.*' --exclude '_site' --exclude 'node_modules' --exclude 'docs' \
             --exclude '*.test.js' --exclude '*.md' --exclude 'package*.json' \
             --exclude 'eslint.config.js' --exclude 'commitlint.config.js' \
-            --exclude 'sonar-project.properties' --exclude 'firebase.json' --exclude 'start.sh'
+            --exclude 'sonar-project.properties' --exclude 'firebase.json' --exclude 'start.sh' \
+            --exclude 'scripts' --exclude 'models'
+
+      # El modelo del recorte se sirve desde el propio sitio (offline, sin
+      # googleapis); el script verifica su sha256 y falla si no coincide.
+      - name: Descargar el modelo de BodyPix
+        run: node scripts/fetch-model.mjs _site/models/bodypix
 
       - name: Generar version.json
         env:

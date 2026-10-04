@@ -940,7 +940,9 @@ async function loadBodyPix() {
       architecture: 'MobileNetV1',
       outputStride: 16,
       multiplier: 0.75,
-      quantBytes: 2
+      quantBytes: 2,
+      // Pesos servidos desde el propio sitio (scripts/fetch-model.mjs), no desde googleapis.
+      modelUrl: new URL('models/bodypix/model-stride16.json', document.baseURI).href,
     });
   });
   try {
