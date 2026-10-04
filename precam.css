@@ -440,6 +440,14 @@ kbd {
   max-width: 56ch;
 }
 
+/* Versión publicada (version.json) en el pie */
+.app-version {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+
 /* Presentaciones guardadas: elegir la activa y quitar las que sobran */
 .saved-sources { display: grid; gap: 0.5rem; padding-top: 0.25rem; }
 .saved-sources-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }

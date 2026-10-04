@@ -3,6 +3,7 @@ import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources
 import { saveHtml, saveBundle, readLocalHtml, removeHtml, removeBundle } from './localStore.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { removedLocalFiles, sourceLabel } from './savedSources.js';
+import { formatVersion, loadVersion } from './appVersion.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
@@ -532,6 +533,20 @@ maybeShowOnboarding();
 if ('serviceWorker' in navigator && window.isSecureContext) {
   navigator.serviceWorker.register('sw.js').catch(error => {
     console.warn('[pwa] Service Worker no registrado', error);
+  });
+}
+
+// Versión en el pie y aviso cuando se publica una nueva con la app abierta: el
+// SW nuevo toma el control (controllerchange). Si no había SW al cargar, es la
+// primera visita, no una actualización.
+const appVersionEl = document.getElementById('appVersion');
+const NEW_VERSION_MESSAGE = 'Hay una versión nueva de la app. Recarga la página para usarla.';
+if ('serviceWorker' in navigator) {
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) return;
+    showStatus(NEW_VERSION_MESSAGE);
+    if (appVersionEl) appVersionEl.textContent += ' · hay una versión nueva: recarga';
   });
 }
 
@@ -1079,3 +1094,8 @@ async function initializeFromQueryParams() {
     });
   }
 }
+
+// Versión publicada en el pie. Al final del módulo: este await no retrasa nada
+// de lo anterior (manejadores, arranque de la app).
+const versionInfo = await loadVersion();
+if (appVersionEl) appVersionEl.textContent = formatVersion(versionInfo);

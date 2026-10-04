@@ -14,7 +14,7 @@
  * locales desde OPFS en rutas /_local/<id>/* (aún no implementado aquí).
  */
 
-const CACHE = 'cam-shell-v24';
+const CACHE = 'cam-shell-v25';
 
 const MIME = {
   html: 'text/html', htm: 'text/html', css: 'text/css', js: 'text/javascript',
@@ -84,6 +84,7 @@ const SHELL = [
   'deckNotes.js',
   'deckBridge.js',
   'savedSources.js',
+  'appVersion.js',
   'panel.html',
   'panel.css',
   'panel.js',
@@ -123,6 +124,22 @@ self.addEventListener('fetch', event => {
   const localIdx = url.pathname.indexOf('/_local/');
   if (localIdx !== -1) {
     event.respondWith(serveLocalBundle(url.pathname.slice(localIdx + '/_local/'.length)));
+    return;
+  }
+
+  // version.json (lo genera el workflow de Pages): network-first, para que el pie
+  // muestre la publicación actual y no la que había al instalar el SW.
+  if (url.pathname.endsWith('/version.json')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      try {
+        const fresh = await fetch(request);
+        if (fresh.ok) cache.put(request, fresh.clone()).catch(() => {});
+        return fresh;
+      } catch {
+        return (await cache.match(request)) || Response.error();
+      }
+    })());
     return;
   }
 
