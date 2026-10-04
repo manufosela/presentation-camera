@@ -18,6 +18,7 @@ import { hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startPanelLink } from './linkChannel.js';
 import { notesView } from './deckNotes.js';
+import { formatVersion, loadVersion } from './appVersion.js';
 
 const sources = createSourcesStore();
 const linkStatus = document.getElementById('linkStatus');
@@ -60,6 +61,7 @@ function renderNotes(update) {
 }
 
 renderNotes(null);
+
 channel.addEventListener('message', event => {
   if (event.data?.type === 'notes:update') renderNotes(event.data);
 });
@@ -222,3 +224,9 @@ document.addEventListener('keydown', event => {
 window.addEventListener('beforeunload', () => {
   try { mainLink.bye(); } catch { /* el canal puede estar ya cerrado */ }
 });
+
+// Versión publicada en el pie (version.json del workflow de Pages). Al final del
+// módulo: este await no retrasa nada de lo anterior.
+const appVersionEl = document.getElementById('appVersion');
+const versionInfo = await loadVersion();
+if (appVersionEl) appVersionEl.textContent = formatVersion(versionInfo);
