@@ -58,6 +58,24 @@ export async function getHtmlBlobUrl(id) {
   return URL.createObjectURL(blob);
 }
 
+/**
+ * Texto del HTML de una source local: el .html guardado o el index.html del
+ * bundle. null si ya no existe en OPFS.
+ */
+export async function readLocalHtml({ localRef, bundle }) {
+  if (typeof localRef !== 'string' || !localRef) return null;
+  try {
+    const root = await navigator.storage.getDirectory();
+    const handle = bundle
+      ? await (await (await root.getDirectoryHandle(BUNDLES_DIR)).getDirectoryHandle(localRef)).getFileHandle('index.html')
+      : await (await getDir()).getFileHandle(`${localRef}.html`);
+    const file = await handle.getFile();
+    return new TextDecoder().decode(await file.arrayBuffer());
+  } catch {
+    return null; // no existe (p. ej. OPFS limpiado): la source sigue, sin notas
+  }
+}
+
 /** Borra el HTML guardado. Devuelve true si existía y se borró. */
 export async function removeHtml(id) {
   if (typeof id !== 'string' || !id) return false;

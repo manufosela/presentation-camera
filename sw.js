@@ -14,7 +14,7 @@
  * locales desde OPFS en rutas /_local/<id>/* (aún no implementado aquí).
  */
 
-const CACHE = 'cam-shell-v18';
+const CACHE = 'cam-shell-v19';
 
 const MIME = {
   html: 'text/html', htm: 'text/html', css: 'text/css', js: 'text/javascript',
@@ -81,6 +81,7 @@ const SHELL = [
   'queryState.js',
   'linkChannel.js',
   'webcamLoop.js',
+  'deckNotes.js',
   'panel.html',
   'panel.css',
   'panel.js',

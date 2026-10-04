@@ -59,6 +59,13 @@ describe('localStore (OPFS)', () => {
     expect(opfs.files.has(`${id}.html`)).toBe(true);
   });
 
+  it('readLocalHtml devuelve el texto de un .html guardado, o null si no existe', async () => {
+    const { readLocalHtml } = await import('./localStore.js');
+    const id = await saveHtml(htmlFile('<!doctype html><h1>notas</h1>'));
+    expect(await readLocalHtml({ localRef: id, bundle: false })).toBe('<!doctype html><h1>notas</h1>');
+    expect(await readLocalHtml({ localRef: 'no-existe', bundle: false })).toBeNull();
+  });
+
   it('getHtmlBlobUrl devuelve un blob URL para un id existente', async () => {
     const id = await saveHtml(htmlFile());
     const url = await getHtmlBlobUrl(id);
@@ -143,6 +150,15 @@ describe('saveBundle', () => {
     expect(bundles.dirs.has(id)).toBe(true);
     expect(bundles.dirs.get(id).files.has('index.html')).toBe(true);
     expect(bundles.dirs.get(id).dirs.get('css').files.has('app.css')).toBe(true);
+  });
+
+  it('readLocalHtml lee el index.html de un bundle guardado', async () => {
+    const src = dirNode();
+    src.files.set('index.html', fileNode('index.html', '<h1>deck</h1>'));
+    const { saveBundle, readLocalHtml } = await import('./localStore.js');
+    const id = await saveBundle(src);
+    expect(await readLocalHtml({ localRef: id, bundle: true })).toBe('<h1>deck</h1>');
+    expect(await readLocalHtml({ localRef: 'no-existe', bundle: true })).toBeNull();
   });
 
   it('rechaza una carpeta sin index.html', async () => {
