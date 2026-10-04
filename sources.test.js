@@ -96,6 +96,42 @@ describe('hydrate — sync entre ventanas con tipos', () => {
   });
 });
 
+describe('addLocal — volver a cargar el mismo HTML local lo reemplaza', () => {
+  it('mismo título y tipo: misma entrada (mismo id), localRef nuevo, activa y sin duplicar', () => {
+    const store = createSourcesStore();
+    store.add('https://otra.test');
+    const first = store.addLocal({ type: 'html', title: 'charla', localRef: 'opfs-1' });
+    store.setActive(0);
+    const again = store.addLocal({ type: 'html', title: 'charla', localRef: 'opfs-2' });
+    expect(again.id).toBe(first.id);
+    expect(again.localRef).toBe('opfs-2');
+    expect(store.list()).toHaveLength(2);
+    expect(store.getActive().id).toBe(first.id);
+  });
+
+  it('un .html y una carpeta con el mismo nombre son entradas distintas', () => {
+    const store = createSourcesStore();
+    store.addLocal({ type: 'html', title: 'charla', localRef: 'opfs-1' });
+    store.addLocal({ type: 'html', title: 'charla', localRef: 'bundle-1', bundle: true });
+    expect(store.list()).toHaveLength(2);
+  });
+
+  it('findLocal devuelve la entrada existente (para borrar su fichero viejo)', () => {
+    const store = createSourcesStore();
+    store.addLocal({ type: 'html', title: 'charla', localRef: 'opfs-1' });
+    expect(store.findLocal({ title: 'charla', bundle: false })).toMatchObject({ localRef: 'opfs-1' });
+    expect(store.findLocal({ title: 'otra', bundle: false })).toBeNull();
+  });
+
+  it('con la lista llena, reemplazar sigue funcionando', () => {
+    const store = createSourcesStore();
+    store.addLocal({ type: 'html', title: 'charla', localRef: 'opfs-1' });
+    for (let i = 0; i < MAX_SOURCES - 1; i++) store.add(`https://s${i}.test`);
+    expect(store.isFull()).toBe(true);
+    expect(store.addLocal({ type: 'html', title: 'charla', localRef: 'opfs-2' })).toMatchObject({ localRef: 'opfs-2' });
+  });
+});
+
 describe('isFull — límite de sources (MAX_SOURCES)', () => {
   it('false con hueco, true al llegar al límite; add y addLocal devuelven null y no cambian la lista', () => {
     const store = createSourcesStore();
