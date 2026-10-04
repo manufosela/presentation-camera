@@ -161,6 +161,16 @@ describe('saveBundle', () => {
     expect(await readLocalHtml({ localRef: 'no-existe', bundle: true })).toBeNull();
   });
 
+  it('removeBundle borra la carpeta guardada; false si no existe', async () => {
+    const src = dirNode();
+    src.files.set('index.html', fileNode('index.html', '<h1>deck</h1>'));
+    const { saveBundle, removeBundle } = await import('./localStore.js');
+    const id = await saveBundle(src);
+    expect(await removeBundle(id)).toBe(true);
+    expect(root.dirs.get('local-bundles').dirs.has(id)).toBe(false);
+    expect(await removeBundle('no-existe')).toBe(false);
+  });
+
   it('rechaza una carpeta sin index.html', async () => {
     const src = dirNode();
     src.files.set('readme.txt', fileNode('readme.txt', 'x'));

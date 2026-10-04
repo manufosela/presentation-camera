@@ -1,6 +1,6 @@
 import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
-import { saveHtml, saveBundle, readLocalHtml } from './localStore.js';
+import { saveHtml, saveBundle, readLocalHtml, removeHtml, removeBundle } from './localStore.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
@@ -22,7 +22,7 @@ import {
 } from './queryState.js';
 
 const sources = createSourcesStore();
-const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna desde el panel (\\) para añadir otra.`;
+const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Para verlas y quitar alguna, pulsa «Open control panel» (o la tecla \\) y usa la ✕ de cada una.`;
 
 // ─── BroadcastChannel hacia el panel de control ──────────────
 // Canal compartido para sync de sources (sources:* messages) y para
@@ -613,12 +613,20 @@ async function handleLocalHtmlPick(event) {
     return;
   }
   try {
-    // Antes de guardar en OPFS: si no cabe, no dejar un fichero huérfano.
-    if (sources.isFull()) throw new Error(SOURCES_FULL_MESSAGE);
-    const id = await saveHtml(file);
     const title = file.name.replace(/\.html?$/i, '');
+    // Mismo nombre: se reemplaza (no cuenta para el límite). Si no cabe, no
+    // guardar en OPFS para no dejar un fichero huérfano.
+    const previous = sources.findLocal({ title, bundle: false });
+    if (!previous && sources.isFull()) throw new Error(SOURCES_FULL_MESSAGE);
+    const id = await saveHtml(file);
     sources.addLocal({ type: 'html', title, localRef: id });
-    showStatus('HTML local añadido. Pulsa «Go live» para presentarlo.');
+    if (previous) {
+      forgetLocalCaches(previous.id);
+      await removeHtml(previous.localRef);
+    }
+    showStatus(previous
+      ? 'HTML local actualizado. Pulsa «Go live» para presentarlo.'
+      : 'HTML local añadido. Pulsa «Go live» para presentarlo.');
   } catch (error) {
     console.error(error);
     showStatus(error.message || 'No se pudo cargar el HTML local.', true);
@@ -639,14 +647,31 @@ async function handleLocalBundlePick() {
     return; // el usuario canceló el selector
   }
   try {
-    if (sources.isFull()) throw new Error(SOURCES_FULL_MESSAGE);
+    const title = dirHandle.name || 'Presentación HTML';
+    const previous = sources.findLocal({ title, bundle: true });
+    if (!previous && sources.isFull()) throw new Error(SOURCES_FULL_MESSAGE);
     const id = await saveBundle(dirHandle);
-    sources.addLocal({ type: 'html', bundle: true, title: dirHandle.name || 'Presentación HTML', localRef: id });
-    showStatus('Carpeta HTML añadida. Pulsa «Go live» para presentarla.');
+    sources.addLocal({ type: 'html', bundle: true, title, localRef: id });
+    if (previous) {
+      forgetLocalCaches(previous.id);
+      await removeBundle(previous.localRef);
+    }
+    showStatus(previous
+      ? 'Carpeta HTML actualizada. Pulsa «Go live» para presentarla.'
+      : 'Carpeta HTML añadida. Pulsa «Go live» para presentarla.');
   } catch (error) {
     console.error(error);
     showStatus(error.message || 'No se pudo cargar la carpeta.', true);
   }
+}
+
+// Una source local reemplazada conserva su id: olvidar su blob y sus notas
+// cacheados para que se use el fichero nuevo.
+function forgetLocalCaches(sourceId) {
+  const url = localBlobUrls.get(sourceId);
+  if (url) URL.revokeObjectURL(url);
+  localBlobUrls.delete(sourceId);
+  if (deckNotes.sourceId === sourceId) deckNotes = { sourceId: null, notes: [] };
 }
 
 async function resolveLocalFrameSrc(frame, source) {

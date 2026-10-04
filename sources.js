@@ -105,6 +105,11 @@ export function createSourcesStore() {
     emit();
   }
 
+  /** Source local con ese título y tipo (.html o carpeta), o null. */
+  function findLocal({ title, bundle = false }) {
+    return state.list.find(s => s.type === 'html' && s.title === title && s.bundle === (bundle === true)) ?? null;
+  }
+
   return {
     list() {
       return [...state.list];
@@ -143,9 +148,18 @@ export function createSourcesStore() {
      * registra la referencia (`localRef`). Sin localRef no hay recurso que
      * mostrar, así que se rechaza (no se persiste un item roto).
      */
+    findLocal,
     addLocal({ type = 'html', title = null, localRef, bundle = false } = {}) {
       if (type !== 'html') return null;
       if (typeof localRef !== 'string' || !localRef) return null;
+      // Volver a cargar el mismo fichero/carpeta reemplaza la entrada (no duplica).
+      const existing = findLocal({ title, bundle });
+      if (existing) {
+        const updated = { ...existing, localRef };
+        const list = state.list.map(s => (s.id === existing.id ? updated : s));
+        commit({ list, activeIndex: list.indexOf(updated) });
+        return updated;
+      }
       if (state.list.length >= MAX_SOURCES) return null;
       const item = { id: generateId(), type: 'html', title: title ?? null, localRef, bundle: bundle === true };
       const list = [...state.list, item];

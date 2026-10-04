@@ -76,6 +76,20 @@ export async function readLocalHtml({ localRef, bundle }) {
   }
 }
 
+/** Borra una carpeta (bundle) guardada. Devuelve true si existía y se borró. */
+export async function removeBundle(id) {
+  if (typeof id !== 'string' || !id) return false;
+  try {
+    const root = await navigator.storage.getDirectory();
+    const bundles = await root.getDirectoryHandle(BUNDLES_DIR);
+    await bundles.getDirectoryHandle(id); // lanza si no existe
+    await bundles.removeEntry(id, { recursive: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Borra el HTML guardado. Devuelve true si existía y se borró. */
 export async function removeHtml(id) {
   if (typeof id !== 'string' || !id) return false;
