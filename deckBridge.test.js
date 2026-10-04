@@ -4,18 +4,23 @@ import { describe, expect, it } from 'vitest';
 import { BRIDGE_NAMESPACE, bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 
 describe('injectDeckBridge — script puente en el HTML local', () => {
-  it('añade el script antes de </body>', () => {
-    const html = injectDeckBridge('<html><body><p>deck</p></body></html>');
-    expect(html).toMatch(/<script>[\s\S]*<\/script><\/body>/);
+  it('añade el script al final del documento sin tocar el original', () => {
+    const original = '<html><body><p>deck</p></body></html>';
+    const html = injectDeckBridge(original);
+    expect(html.startsWith(original)).toBe(true);
+    expect(html.endsWith('</script>')).toBe(true);
     expect(html).toContain(BRIDGE_NAMESPACE);
   });
 
-  it('sin </body> (HTML abreviado): lo añade al final', () => {
-    expect(injectDeckBridge('<p>deck</p>').endsWith('</script>')).toBe(true);
-  });
-
-  it('respeta mayúsculas en </BODY>', () => {
-    expect(injectDeckBridge('<BODY>x</BODY>')).toMatch(/<\/script><\/BODY>$/);
+  it('no parte scripts del deck que contienen "</body>" dentro de un string (plugin de notas incrustado)', () => {
+    const inlinePlugin = '<script>var view = "<html><body>notas<\\/body></html>"; var raw = \'</body>\';</script>';
+    const original = `<html><body><div class="reveal"></div>${inlinePlugin}`; // sin </body> real al final
+    const html = injectDeckBridge(original);
+    expect(html.startsWith(original)).toBe(true); // el script del deck queda intacto
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const scripts = [...doc.querySelectorAll('script')].map(s => s.textContent);
+    expect(scripts[0]).toBe('var view = "<html><body>notas<\\/body></html>"; var raw = \'</body>\';');
+    expect(scripts.at(-1)).toContain(BRIDGE_NAMESPACE);
   });
 
   it('el script, ejecutado en el deck, convierte S en un aviso a la app y frena el atajo del deck', () => {
