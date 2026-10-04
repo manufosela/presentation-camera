@@ -70,3 +70,62 @@ export function rewriteCssRefs(css, fromDir, lookup) {
   const { resolve, unresolved } = createResolver(fromDir, lookup);
   return { css: rewriteCss(css, resolve), unresolved };
 }
+
+const isSpace = char => /\s/.test(char);
+
+// srcset según el algoritmo de HTML: la URL es una secuencia sin espacios (puede
+// llevar comas, como un data: URI); el descriptor llega hasta la coma siguiente.
+function parseSrcset(value) {
+  const candidates = [];
+  let i = 0;
+  while (i < value.length) {
+    while (i < value.length && (isSpace(value[i]) || value[i] === ',')) i += 1;
+    if (i >= value.length) break;
+    const urlStart = i;
+    while (i < value.length && !isSpace(value[i])) i += 1;
+    let url = value.slice(urlStart, i);
+    let descriptor = '';
+    if (url.endsWith(',')) {
+      url = url.replace(/,+$/, '');
+    } else {
+      const descriptorStart = i;
+      while (i < value.length && value[i] !== ',') i += 1;
+      descriptor = value.slice(descriptorStart, i).trim();
+    }
+    candidates.push({ url, descriptor });
+  }
+  return candidates;
+}
+
+const URL_ATTRIBUTES = [
+  ['script[src], img[src], source[src], video[src], audio[src], track[src], embed[src], input[src]', 'src'],
+  ['link[href]', 'href'],
+  ['video[poster]', 'poster'],
+];
+
+/** Reescribe las referencias estáticas de un HTML que está en la raíz del bundle. */
+export function rewriteHtmlRefs(html, lookup) {
+  const { resolve, unresolved } = createResolver('', lookup);
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  for (const [selector, attribute] of URL_ATTRIBUTES) {
+    for (const element of doc.querySelectorAll(selector)) {
+      const url = resolve(element.getAttribute(attribute));
+      if (url !== null) element.setAttribute(attribute, url);
+    }
+  }
+  for (const element of doc.querySelectorAll('[srcset]')) {
+    const candidates = parseSrcset(element.getAttribute('srcset'))
+      .map(({ url, descriptor }) => [resolve(url) ?? url, descriptor].filter(Boolean).join(' '));
+    element.setAttribute('srcset', candidates.join(', '));
+  }
+  for (const element of doc.querySelectorAll('[style]')) {
+    element.setAttribute('style', rewriteCss(element.getAttribute('style'), resolve));
+  }
+  for (const style of doc.querySelectorAll('style')) {
+    style.textContent = rewriteCss(style.textContent, resolve);
+  }
+
+  const doctype = doc.doctype ? new XMLSerializer().serializeToString(doc.doctype) : '';
+  return { html: `${doctype}${doc.documentElement.outerHTML}`, unresolved };
+}
