@@ -1,6 +1,7 @@
 import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
-import { saveHtml, getHtmlBlobUrl, saveBundle, readLocalHtml } from './localStore.js';
+import { saveHtml, saveBundle, readLocalHtml } from './localStore.js';
+import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
@@ -275,6 +276,11 @@ window.addEventListener('message', event => {
   const active = sources.getActive();
   if (!active || event.origin !== deckOrigin(active, window.location.origin)) return;
   if (event.source !== activeFrame()?.contentWindow) return;
+  // S pulsada con el foco dentro del deck local (script puente): abrir las notas.
+  if (bridgeRequestFromMessage(event.data) === 'open-notes') {
+    openControlPanel();
+    return;
+  }
   const slide = revealSlideFromMessage(event.data);
   if (!slide) return;
   deckSlide = slide;
@@ -647,11 +653,13 @@ async function resolveLocalFrameSrc(frame, source) {
   try {
     let url = localBlobUrls.get(source.id);
     if (!url) {
-      url = await getHtmlBlobUrl(source.localRef);
-      if (!url) {
+      const html = await readLocalHtml(source);
+      if (html === null) {
         showStatus('No se encontró el HTML local guardado. Vuelve a cargarlo.', true);
         return;
       }
+      // Con el script puente: S dentro del deck abre el panel de notas.
+      url = URL.createObjectURL(new Blob([injectDeckBridge(html)], { type: 'text/html;charset=utf-8' }));
       localBlobUrls.set(source.id, url);
     }
     frame.src = url;
