@@ -66,7 +66,7 @@ describe('listas de valores válidos', () => {
   });
 
   it('estilos y tamaños', () => {
-    expect(STYLES).toEqual(['frame', 'cutout']);
+    expect(STYLES).toEqual(['frame', 'cutout', 'none']);
     expect(SIZES).toEqual(['s', 'm', 'l']);
   });
 });
