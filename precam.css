@@ -1396,9 +1396,10 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 
 /* ─── Ocultar controles durante la grabación ─────────────────── */
 /* Con body.chrome-hidden se ocultan los controles de la app para que no salgan
-   en la grabación; la presentación y la cámara siguen visibles. */
+   en la grabación, avisos incluidos; la presentación y la cámara siguen visibles. */
 body.chrome-hidden #topActions,
 body.chrome-hidden #liveBadge,
+body.chrome-hidden #statusMessage,
 body.chrome-hidden #webcamSection .webcam-tools {
   display: none !important;
 }
