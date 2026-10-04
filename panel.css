@@ -110,6 +110,28 @@
 }
 .panel-section-hint[hidden] { display: none; }
 
+/* ─── Notas del ponente ──────────────────────────────────────── */
+
+.panel-notes { align-content: start; }
+
+.panel-notes-position {
+  font-family: var(--mono, monospace);
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  margin-left: 0.5rem;
+}
+.panel-notes-text {
+  white-space: pre-wrap; /* respeta los saltos de línea de las notas */
+  font-size: 1.15rem;
+  line-height: 1.55;
+  color: var(--ink-strong);
+}
+.panel-notes-text.is-empty {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+}
+
 /* ─── Add input ──────────────────────────────────────────────── */
 
 .panel-add {

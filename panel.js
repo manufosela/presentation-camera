@@ -17,6 +17,7 @@ import { isDebugEnabled } from './appPrefs.js';
 import { hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startPanelLink } from './linkChannel.js';
+import { notesView } from './deckNotes.js';
 
 const sources = createSourcesStore();
 const linkStatus = document.getElementById('linkStatus');
@@ -43,6 +44,26 @@ function setStatus(state) {
 }
 
 const mainLink = startPanelLink(channel, setStatus);
+
+// Notas del ponente: las publica la ventana principal (notes:update). Se pintan
+// como texto plano; el panel no sale en la grabación.
+const notesPosition = document.getElementById('notesPosition');
+const notesText = document.getElementById('notesText');
+
+function renderNotes(update) {
+  const view = notesView(update);
+  if (notesPosition) notesPosition.textContent = view.position;
+  if (notesText) {
+    notesText.textContent = view.text;
+    notesText.classList.toggle('is-empty', view.empty);
+  }
+}
+
+renderNotes(null);
+channel.addEventListener('message', event => {
+  if (event.data?.type === 'notes:update') renderNotes(event.data);
+});
+channel.postMessage({ type: 'notes:request' });
 
 // Mientras no haya sincronizado con la principal (o vencido el timeout),
 // deshabilitamos el input add para no pisar la lista de la otra ventana.

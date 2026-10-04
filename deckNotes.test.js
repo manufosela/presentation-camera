@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { notesAt, parseDeckNotes } from './deckNotes.js';
+import { notesAt, notesView, parseDeckNotes } from './deckNotes.js';
 
 const deck = slides => `<!doctype html><html><body><div class="reveal"><div class="slides">${slides}</div></div></body></html>`;
 
@@ -62,5 +62,30 @@ describe('notesAt — nota de una slide concreta', () => {
   it('fuera de rango → cadena vacía', () => {
     expect(notesAt(notes, 5, 0)).toBe('');
     expect(notesAt(notes, 0, 3)).toBe('');
+  });
+});
+
+describe('notesView — qué muestra el panel', () => {
+  it('deck local con nota: posición legible (base 1) y el texto', () => {
+    expect(notesView({ local: true, h: 1, v: 0, text: 'Hola' })).toEqual({ position: 'Slide 2', text: 'Hola', empty: false });
+  });
+
+  it('slide vertical: Slide h.v', () => {
+    expect(notesView({ local: true, h: 2, v: 1, text: 'x' }).position).toBe('Slide 3.2');
+  });
+
+  it('deck local sin nota en esa slide', () => {
+    expect(notesView({ local: true, h: 0, v: 0, text: '' })).toEqual({ position: 'Slide 1', text: 'Esta slide no tiene notas.', empty: true });
+  });
+
+  it('presentación publicada: indica usar S en la ventana principal', () => {
+    const view = notesView({ local: false, h: 0, v: 0, text: '' });
+    expect(view.empty).toBe(true);
+    expect(view.position).toBe('');
+    expect(view.text).toMatch(/\bS\b/);
+  });
+
+  it('sin datos todavía (aún no hay presentación en marcha)', () => {
+    expect(notesView(null)).toEqual({ position: '', text: 'Las notas aparecerán aquí al empezar la presentación.', empty: true });
   });
 });

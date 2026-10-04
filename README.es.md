@@ -52,7 +52,7 @@ enteramente en el navegador — instalable como app.
 |-------|--------|
 | `←` `→` `↑` `↓`, `RePág`/`AvPág`, `Espacio`, `Inicio`/`Fin` | navegar el deck (reveal.js, vía su API postMessage) |
 | `B` / `.` | fundido a negro del deck (pausa de reveal.js) |
-| `S` | abrir las notas del ponente de reveal.js (si el navegador bloquea la ventana, permítela para ese sitio) |
+| `S` | notas del ponente: con un deck local se muestran en el panel de control (sigue la slide actual y no sale en la grabación); con una presentación publicada abre la ventana de notas de reveal.js (si el navegador la bloquea, permítela para ese sitio) |
 | `C` / `Shift+C` | rotar la esquina de la webcam |
 | `M` | alternar marco ↔ recorte |
 | `F` | entrar / salir de pantalla completa |
