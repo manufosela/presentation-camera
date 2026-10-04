@@ -20,6 +20,11 @@ describe('deckCommandForKey — teclas de navegación del deck (API postMessage 
     expect(deckCommandForKey(key(k))).toEqual({ method, args: [] });
   });
 
+  it('S abre las notas del ponente: se simula la tecla dentro del deck (triggerKey)', () => {
+    expect(deckCommandForKey(key('s'))).toEqual({ method: 'triggerKey', args: [83] });
+    expect(deckCommandForKey(key('S'))).toEqual({ method: 'triggerKey', args: [83] });
+  });
+
   it('Home y End van a la primera y última slide', () => {
     expect(deckCommandForKey(key('Home'))).toEqual({ method: 'slide', args: [0] });
     expect(deckCommandForKey(key('End'))).toEqual({ method: 'slide', args: [Number.MAX_SAFE_INTEGER] });
