@@ -8,7 +8,7 @@ import { sanitizePresentationUrl } from './urlUtils.js';
 
 /** Esquinas en el orden en que rota la cámara (C / Shift+C). */
 export const POSITIONS = Object.freeze(['bottom-right', 'bottom-left', 'top-left', 'top-right']);
-export const STYLES = Object.freeze(['frame', 'cutout']);
+export const STYLES = Object.freeze(['frame', 'cutout', 'none']);
 export const SIZES = Object.freeze(['s', 'm', 'l']);
 
 /**

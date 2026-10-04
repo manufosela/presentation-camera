@@ -12,7 +12,7 @@ import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js'
 import { createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
 import { createStreamSwitcher } from './streamSwitch.js';
 import { loadBodyPixLibrary } from './segmentationLoader.js';
-import { needsCanvasLoop } from './renderMode.js';
+import { needsCanvasLoop, toggledStyle, usesCamera } from './renderMode.js';
 import {
   isDebugEnabled,
   loadCameraId,
@@ -193,7 +193,7 @@ cameraSelect?.addEventListener('change', async event => {
   currentDeviceId = event.target.value || null;
   persistCameraId(currentDeviceId);
   persistState(urlInput.value.trim(), getSelectedPosition(), currentStyle);
-  if (isPresentationActive()) {
+  if (isPresentationActive() && usesCamera(currentStyle)) {
     await startWebcam().catch(error => {
       console.error(error);
       showStatus(error.message || 'No se pudo cambiar de cámara.', true);
@@ -548,7 +548,8 @@ function handleKeyboardShortcut(event) {
 }
 
 function toggleStyle() {
-  const nextStyle = currentStyle === 'frame' ? 'cutout' : 'frame';
+  const nextStyle = toggledStyle(currentStyle);
+  if (nextStyle === currentStyle) return;
   const input = document.querySelector(`input[name="webcam-style"][value="${nextStyle}"]`);
   if (input) input.checked = true;
   updateStyleClass(nextStyle);
@@ -853,6 +854,7 @@ async function startPresentation(presetUrl) {
   // para que el navegador permita getDisplayMedia. Si el usuario cancela el
   // selector, startRecordingFlow lo gestiona y la presentación continúa.
   if (autoRecordEnabled) await startRecordingFlow();
+  if (!usesCamera(currentStyle)) return; // sin cámara: ni permiso ni recuadro
   await startWebcam().catch(error => {
     console.error(error);
     showStatus(error.message || 'No se pudo iniciar la webcam.', true);
@@ -1117,8 +1119,23 @@ function updateStyleClass(style) {
   currentStyle = style;
   webcamSection.classList.remove(...styles);
   webcamSection.classList.add(style);
+  if (isPresentationActive()) syncCameraWithStyle();
   // Al pasar a recorte carga el modelo si aún no está; en marco el bucle se para solo.
   ensureCutout().catch(error => console.error(error));
+}
+
+// «Sin cámara» apaga la cámara y quita el recuadro; volver a marco/recorte la
+// enciende. Solo durante la presentación (en el setup no hay cámara).
+function syncCameraWithStyle() {
+  if (!usesCamera(currentStyle)) {
+    stopWebcam();
+    webcamSection.hidden = true;
+  } else if (!stream) {
+    startWebcam().catch(error => {
+      console.error(error);
+      showStatus(error.message || 'No se pudo iniciar la webcam.', true);
+    });
+  }
 }
 
 function updateSizeClass(size) {
