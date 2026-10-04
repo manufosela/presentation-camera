@@ -1,10 +1,12 @@
 /**
- * Deck de carpeta servido como blob URLs (CAM-TSK-0055).
+ * Deck de carpeta preparado para un iframe de origin opaco (CAM-TSK-0055).
  *
- * Con blob URLs el deck puede ir en un iframe de origin opaco (sandbox
- * allow-scripts): no lee el OPFS (grabaciones) ni el localStorage de la app.
- * Solo se crean blobs de lo que el deck referencia; los CSS se reescriben en
- * cascada. `files` es un Map ruta → Blob con las rutas desde la raíz.
+ * En un iframe sandbox=allow-scripts el deck no lee el OPFS (grabaciones) ni el
+ * localStorage de la app. El index va como blob URL (la navegación sí se
+ * permite), pero sus recursos no pueden ser blob URLs: están ligadas al origin
+ * de la app y el iframe opaco no puede cargarlas (CAM-BUG-0018). Van como
+ * data: URIs. Solo se codifica lo que el deck referencia; los CSS se reescriben
+ * en cascada. `files` es un Map ruta → Blob con las rutas desde la raíz.
  */
 
 import { rewriteCssRefs, rewriteHtmlRefs } from './bundleRewrite.js';
@@ -16,10 +18,21 @@ const MIME = {
   webp: 'image/webp', avif: 'image/avif', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf',
   otf: 'font/otf', mp4: 'video/mp4', webm: 'video/webm', mp3: 'audio/mpeg', wav: 'audio/wav',
 };
-const mimeFor = path => MIME[path.split('.').pop().toLowerCase()] ?? '';
+const mimeFor = path => MIME[path.split('.').pop().toLowerCase()] ?? 'application/octet-stream';
 const dirOf = path => path.slice(0, path.lastIndexOf('/') + 1);
 
-export async function buildBundleBlobs(files, { createUrl, wrapIndex = html => html }) {
+/** data: URI en base64 de un Blob. */
+export async function blobToDataUrl(blob) {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  const CHUNK = 0x8000; // String.fromCharCode con demasiados argumentos desborda la pila
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return `data:${blob.type};base64,${btoa(binary)}`;
+}
+
+export async function buildBundleBlobs(files, { createIndexUrl, wrapIndex = html => html, toDataUrl = blobToDataUrl }) {
   const index = files.get('index.html');
   if (!index) throw new Error('La carpeta no contiene un index.html en su raíz.');
 
@@ -28,36 +41,48 @@ export async function buildBundleBlobs(files, { createUrl, wrapIndex = html => h
   for (const [path, file] of files) {
     if (path.endsWith('.css')) cssTexts.set(path, await file.text());
   }
+  const indexText = await index.text();
 
-  const urls = [];
+  // 1) Qué ficheros (no CSS) referencia el deck, recorriendo los CSS en cascada.
+  const referenced = new Set();
+  const visitedCss = new Set();
+  const record = path => {
+    if (!files.has(path)) return null;
+    if (!cssTexts.has(path)) referenced.add(path);
+    else if (!visitedCss.has(path)) {
+      visitedCss.add(path);
+      rewriteCssRefs(cssTexts.get(path), dirOf(path), record);
+    }
+    return 'data:,';
+  };
+  rewriteHtmlRefs(indexText, record);
+
+  // 2) Solo esos se codifican (es lo único asíncrono).
+  const encoded = new Map();
+  for (const path of referenced) {
+    encoded.set(path, await toDataUrl(new Blob([files.get(path)], { type: mimeFor(path) })));
+  }
+
+  // 3) Reescritura real: los CSS embeben ya las data: URIs de lo que importan.
   const unresolved = [];
-  const created = new Map();
+  const cssUrls = new Map();
   const inProgress = new Set();
   const noteMissing = paths => paths.forEach(path => { if (!unresolved.includes(path)) unresolved.push(path); });
-
   const lookup = path => {
-    if (created.has(path)) return created.get(path);
-    const file = files.get(path);
-    if (!file || inProgress.has(path)) return null; // falta, o @import circular
-    let blob;
-    if (cssTexts.has(path)) {
-      inProgress.add(path);
-      const { css, unresolved: missing } = rewriteCssRefs(cssTexts.get(path), dirOf(path), lookup);
-      inProgress.delete(path);
-      noteMissing(missing);
-      blob = new Blob([css], { type: 'text/css' });
-    } else {
-      blob = new Blob([file], { type: mimeFor(path) });
-    }
-    const url = createUrl(blob);
-    urls.push(url);
-    created.set(path, url);
+    if (encoded.has(path)) return encoded.get(path);
+    if (cssUrls.has(path)) return cssUrls.get(path);
+    if (!cssTexts.has(path) || inProgress.has(path)) return null; // falta, o @import circular
+    inProgress.add(path);
+    const { css, unresolved: missing } = rewriteCssRefs(cssTexts.get(path), dirOf(path), lookup);
+    inProgress.delete(path);
+    noteMissing(missing);
+    const url = `data:text/css;charset=utf-8,${encodeURIComponent(css)}`;
+    cssUrls.set(path, url);
     return url;
   };
 
-  const { html, unresolved: missing } = rewriteHtmlRefs(await index.text(), lookup);
+  const { html, unresolved: missing } = rewriteHtmlRefs(indexText, lookup);
   noteMissing(missing);
-  const indexUrl = createUrl(new Blob([wrapIndex(html)], { type: 'text/html;charset=utf-8' }));
-  urls.push(indexUrl);
-  return { indexUrl, urls, unresolved };
+  const indexUrl = createIndexUrl(new Blob([wrapIndex(html)], { type: 'text/html;charset=utf-8' }));
+  return { indexUrl, urls: [indexUrl], unresolved };
 }

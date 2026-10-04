@@ -2,15 +2,21 @@
 import { describe, expect, it } from 'vitest';
 import { buildBundleBlobs } from './bundleBlobs.js';
 
-// createUrl falso: guarda cada Blob creado y devuelve "blob:<n>".
-function urlFactory() {
+// createIndexUrl falso: guarda el Blob del index y devuelve "blob:index".
+function indexFactory() {
   const created = new Map();
-  const createUrl = blob => {
-    const url = `blob:${created.size}`;
-    created.set(url, blob);
-    return url;
+  const createIndexUrl = blob => {
+    created.set('blob:index', blob);
+    return 'blob:index';
   };
-  return { created, createUrl };
+  return { created, createIndexUrl };
+}
+
+// Contenido de un data: URI (base64 o texto codificado).
+function decodeDataUrl(url) {
+  const comma = url.indexOf(',');
+  const [header, payload] = [url.slice(0, comma), url.slice(comma + 1)];
+  return header.endsWith(';base64') ? atob(payload) : decodeURIComponent(payload);
 }
 
 const bundle = () => new Map([
@@ -22,39 +28,50 @@ const bundle = () => new Map([
   ['img/unused.png', new Blob(['nadie lo usa'])],
 ]);
 
-describe('buildBundleBlobs — un deck de carpeta servido como blob URLs', () => {
-  it('el index apunta a los blobs de sus recursos, con el script puente aplicado', async () => {
-    const { created, createUrl } = urlFactory();
-    const { indexUrl } = await buildBundleBlobs(bundle(), { createUrl, wrapIndex: html => `${html}<!--bridge-->` });
-    const indexHtml = await created.get(indexUrl).text();
-    expect(created.get(indexUrl).type).toBe('text/html;charset=utf-8');
-    expect(indexHtml.endsWith('<!--bridge-->')).toBe(true);
-    const cssUrl = indexHtml.match(/href="(blob:\d+)"/)[1];
-    expect(created.get(cssUrl).type).toBe('text/css'); // sin text/css el navegador ignora la hoja
+async function build(files, options = {}) {
+  const { created, createIndexUrl } = indexFactory();
+  const result = await buildBundleBlobs(files, { createIndexUrl, ...options });
+  const indexBlob = created.get(result.indexUrl);
+  const doc = new DOMParser().parseFromString(await indexBlob.text(), 'text/html');
+  return { ...result, indexBlob, doc };
+}
+
+// Un iframe de origin opaco no puede cargar blob URLs de la app; data: URIs sí.
+describe('buildBundleBlobs — deck de carpeta para un iframe de origin opaco', () => {
+  it('el index es una blob URL con el script puente aplicado; es lo único a revocar', async () => {
+    const { indexBlob, urls } = await build(bundle(), { wrapIndex: html => `${html}<!--bridge-->` });
+    expect(indexBlob.type).toBe('text/html;charset=utf-8');
+    expect((await indexBlob.text()).endsWith('<!--bridge-->')).toBe(true);
+    expect(urls).toEqual(['blob:index']);
+  });
+
+  it('los recursos van como data: URIs con su tipo MIME', async () => {
+    const { doc } = await build(bundle());
+    const logo = doc.querySelector('img').getAttribute('src');
+    expect(logo.startsWith('data:image/png;base64,')).toBe(true);
+    expect(decodeDataUrl(logo)).toBe('png');
+    // sin text/css el navegador ignora la hoja
+    expect(doc.querySelector('link').getAttribute('href').startsWith('data:text/css;charset=utf-8,')).toBe(true);
   });
 
   it('los CSS se reescriben en cascada (@import y url() relativas a su carpeta)', async () => {
-    const { created, createUrl } = urlFactory();
-    const { indexUrl } = await buildBundleBlobs(bundle(), { createUrl });
-    const cssUrl = (await created.get(indexUrl).text()).match(/href="(blob:\d+)"/)[1];
-    const css = await created.get(cssUrl).text();
-    const [, baseUrl] = css.match(/@import "(blob:\d+)"/);
-    const [, bgUrl] = css.match(/url\("(blob:\d+)"\)/);
-    expect(await created.get(baseUrl).text()).toBe('body { color: red }');
-    expect(await created.get(bgUrl).text()).toBe('bg');
-    expect(created.get(bgUrl).type).toBe('image/png');
+    const { doc } = await build(bundle());
+    const css = decodeDataUrl(doc.querySelector('link').getAttribute('href'));
+    expect(decodeDataUrl(css.match(/@import "(data:[^"]+)"/)[1])).toBe('body { color: red }');
+    expect(decodeDataUrl(css.match(/url\("(data:[^"]+)"\)/)[1])).toBe('bg');
   });
 
-  it('solo crea blobs de lo referenciado, devuelve todas las URLs para revocarlas y lo que falta', async () => {
-    const { created, createUrl } = urlFactory();
-    const { urls, unresolved } = await buildBundleBlobs(bundle(), { createUrl });
-    expect(urls.toSorted()).toEqual([...created.keys()].toSorted());
-    expect(urls).toHaveLength(5); // index, theme.css, base.css, logo.png, bg.png
+  it('solo codifica lo referenciado y devuelve lo que falta', async () => {
+    const encoded = [];
+    const { unresolved } = await build(bundle(), {
+      toDataUrl: async blob => { encoded.push(await blob.text()); return 'data:x,'; },
+    });
+    expect(encoded.toSorted()).toEqual(['bg', 'png']);
     expect(unresolved).toEqual(['js/missing.js']);
   });
 
   it('sin index.html en la raíz falla de forma visible', async () => {
-    await expect(buildBundleBlobs(new Map(), urlFactory())).rejects.toThrow(/index\.html/);
+    await expect(buildBundleBlobs(new Map(), indexFactory())).rejects.toThrow(/index\.html/);
   });
 
   it('un @import circular no cuelga: se apunta como no resuelto', async () => {
@@ -63,7 +80,7 @@ describe('buildBundleBlobs — un deck de carpeta servido como blob URLs', () =>
       ['a.css', new Blob(['@import "b.css";'])],
       ['b.css', new Blob(['@import "a.css";'])],
     ]);
-    const { unresolved } = await buildBundleBlobs(files, urlFactory());
+    const { unresolved } = await build(files);
     expect(unresolved).toEqual(['a.css']);
   });
 });
