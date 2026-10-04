@@ -10,6 +10,7 @@ import { notesAt, parseDeckNotes } from './deckNotes.js';
 import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
 import { createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
 import { createStreamSwitcher } from './streamSwitch.js';
+import { loadBodyPixLibrary } from './segmentationLoader.js';
 import { needsCanvasLoop } from './renderMode.js';
 import {
   isDebugEnabled,
@@ -124,6 +125,7 @@ let currentStyle = 'frame';
 let stream;
 let net;
 let netPromise;
+let bodyPix = null; // API de BodyPix, disponible tras la carga diferida
 let renderer = null; // motor del recorte; se crea al tener el modelo cargado
 // Bucle de dibujo del recorte (renderStep es una declaración de función, ya disponible).
 const cameraLoop = createFrameLoop({
@@ -857,13 +859,8 @@ async function startWebcam() {
   if (!cameraRequests.isCurrent(mediaStream)) return;
   webcamSection.hidden = false;
   populateCameraSelect().catch(() => {}); // refresca labels una vez concedido el permiso
-  showStatus('Cargando modelo BodyPix...');
-  await loadBodyPix();
-  if (!cameraRequests.isCurrent(mediaStream)) return;
-  showStatus(needsCanvasLoop(currentStyle)
-    ? 'Procesando la señal de vídeo, esto puede tardar un par de segundos...'
-    : '');
-  ensureRenderLoop();
+  showStatus('');
+  await ensureCutout(); // en modo marco no descarga nada
 }
 
 // Arranca el bucle de canvas solo si el estilo lo necesita y no está ya en marcha.
@@ -936,16 +933,43 @@ function stopWebcam() {
 
 async function loadBodyPix() {
   if (net) return net;
-  if (!netPromise) {
-    netPromise = bodyPix.load({
+  // Las librerías se descargan aquí, la primera vez que hace falta el recorte.
+  netPromise ??= loadBodyPixLibrary().then(api => {
+    bodyPix = api;
+    return api.load({
       architecture: 'MobileNetV1',
       outputStride: 16,
       multiplier: 0.75,
       quantBytes: 2
     });
+  });
+  try {
+    net = await netPromise;
+  } catch (error) {
+    netPromise = null; // permitir reintentar al volver a elegir el recorte
+    throw error;
   }
-  net = await netPromise;
   return net;
+}
+
+// Recorte bajo demanda: carga el modelo si hace falta y arranca el bucle. Si la
+// carga falla, vuelve al marco y lo dice (la presentación sigue).
+async function ensureCutout() {
+  if (!stream || !needsCanvasLoop(currentStyle)) return;
+  if (!net) {
+    showStatus('Cargando el recorte de fondo…');
+    try {
+      await loadBodyPix();
+    } catch (error) {
+      console.error(error);
+      updateStyleClass('frame');
+      showStatus('No se pudo cargar el recorte de fondo: se muestra la cámara con marco.', true);
+      return;
+    }
+    if (!stream || !needsCanvasLoop(currentStyle)) return;
+  }
+  if (!cameraLoop.isRunning()) showStatus('Procesando la señal de vídeo, esto puede tardar un par de segundos...');
+  ensureRenderLoop();
 }
 
 // Segmentación con BodyPix: 0/1 por píxel (presencia) y la máscara para componer.
@@ -1072,7 +1096,8 @@ function updateStyleClass(style) {
   currentStyle = style;
   webcamSection.classList.remove(...styles);
   webcamSection.classList.add(style);
-  ensureRenderLoop(); // al pasar a recorte; en marco el bucle se para solo
+  // Al pasar a recorte carga el modelo si aún no está; en marco el bucle se para solo.
+  ensureCutout().catch(error => console.error(error));
 }
 
 function updateSizeClass(size) {
