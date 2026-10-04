@@ -5,7 +5,8 @@ import { buildBundleBlobs, missingResourcesMessage } from './bundleBlobs.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { removedLocalFiles, sourceLabel } from './savedSources.js';
 import { formatVersion, loadVersion } from './appVersion.js';
-import { startScreenRecording, downloadBlob, buildRecordingFilename, extFromMime, estimateStorage } from './recorder.js';
+import { startScreenRecording, downloadBlob, estimateStorage } from './recorder.js';
+import { createRecordingFlow } from './recordingFlow.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
 import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
@@ -92,10 +93,17 @@ let panelWindow = null;
 // recrearlas en cada render. Se revocan al volver al setup.
 const localBlobUrls = new Map();
 
-// Grabación: controlador activo (null si no se está grabando) y preferencia de
-// auto-grabación al pulsar Go live (por defecto activada, persistida).
+// Grabación (recordingFlow.js; las funciones que recibe son declaraciones, ya
+// disponibles) y preferencia de auto-grabación al pulsar Go live (por defecto
+// activada, persistida).
+const recording = createRecordingFlow({
+  startRecording: startScreenRecording,
+  download: downloadBlob,
+  setChromeHidden: hidden => setChromeHidden(hidden),
+  showStatus: (message, isError) => showStatus(message, isError),
+  onChange: () => updateRecordButton(),
+});
 const AUTO_RECORD_KEY = STORAGE_KEYS.autoRecord;
-let recordingCtrl = null;
 let autoRecordEnabled = loadAutoRecordPref();
 
 // Atajos de una tecla desactivables (WCAG 2.1.4). Sin almacenamiento, activados.
@@ -626,10 +634,6 @@ function getSelectedStyle() {
   return document.querySelector('input[name="webcam-style"]:checked').value;
 }
 
-function isRecording() {
-  return !!recordingCtrl;
-}
-
 // Oculta/muestra los controles de la app (topActions, LIVE, herramientas de
 // cámara) para que no aparezcan en la grabación. La presentación y la cámara
 // siguen visibles. Un botón discreto permite volver a mostrarlos.
@@ -664,47 +668,13 @@ async function updateRecordEstimate() {
 
 function updateRecordButton() {
   if (!recordBtn) return;
-  recordBtn.classList.toggle('is-recording', isRecording());
-  if (recordLabel) recordLabel.textContent = isRecording() ? 'Stop' : 'REC';
-}
-
-async function startRecordingFlow() {
-  if (isRecording()) return;
-  try {
-    recordingCtrl = await startScreenRecording({
-      withMic: true,
-      withSystemAudio: true,
-      onStop: (blob, type) => {
-        downloadBlob(blob, buildRecordingFilename(new Date(), extFromMime(type)));
-        recordingCtrl = null;
-        updateRecordButton();
-        setChromeHidden(false); // al terminar, volver a mostrar los controles
-      },
-      onError: error => {
-        console.error(error);
-        showStatus(error.message || 'Error de grabación.', true);
-      },
-    });
-    updateRecordButton();
-    setChromeHidden(true); // ocultar controles para que no salgan en la grabación
-    showStatus(''); // ningún aviso encima de lo que se graba
-  } catch (error) {
-    // El usuario canceló el selector de captura u otro fallo: seguimos sin grabar.
-    console.warn('Grabación no iniciada', error);
-    recordingCtrl = null;
-    updateRecordButton();
-    showStatus('Grabación no iniciada. Puedes activarla con el botón REC.', false);
-  }
-}
-
-function stopRecording() {
-  if (recordingCtrl) recordingCtrl.stop(); // dispara onStop → descarga
+  recordBtn.classList.toggle('is-recording', recording.isRecording());
+  if (recordLabel) recordLabel.textContent = recording.isRecording() ? 'Stop' : 'REC';
 }
 
 function toggleRecording() {
   if (!isPresentationActive()) return;
-  if (isRecording()) stopRecording();
-  else startRecordingFlow();
+  recording.toggle();
 }
 
 async function handleLocalHtmlPick(event) {
@@ -852,8 +822,8 @@ async function startPresentation(presetUrl) {
   updateRecordButton();
   // Auto-grabación (si está activada): se lanza dentro del gesto «Go live»
   // para que el navegador permita getDisplayMedia. Si el usuario cancela el
-  // selector, startRecordingFlow lo gestiona y la presentación continúa.
-  if (autoRecordEnabled) await startRecordingFlow();
+  // selector, recordingFlow lo gestiona y la presentación continúa.
+  if (autoRecordEnabled) await recording.start();
   if (!usesCamera(currentStyle)) return; // sin cámara: ni permiso ni recuadro
   await startWebcam().catch(error => {
     console.error(error);
@@ -1044,7 +1014,7 @@ function renderStep() {
 
 window.addEventListener('beforeunload', stopWebcam);
 function returnToSetup() {
-  stopRecording(); // si había grabación en curso, se detiene y se descarga
+  recording.stop(); // si había grabación en curso, se detiene y se descarga
   updateRecordButton();
   setChromeHidden(false); // restaurar controles al salir
   stopWebcam();
