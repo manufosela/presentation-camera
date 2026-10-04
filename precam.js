@@ -652,7 +652,7 @@ async function startRecordingFlow() {
     });
     updateRecordButton();
     setChromeHidden(true); // ocultar controles para que no salgan en la grabación
-    showStatus('Grabando la sesión… (pulsa H para mostrar/ocultar los controles)');
+    showStatus(''); // ningún aviso encima de lo que se graba
   } catch (error) {
     // El usuario canceló el selector de captura u otro fallo: seguimos sin grabar.
     console.warn('Grabación no iniciada', error);
