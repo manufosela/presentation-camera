@@ -41,11 +41,32 @@ describe('injectDeckBridge — script puente en el HTML local', () => {
     expect(stopped && prevented).toBe(true);
     expect(bridgeRequestFromMessage(posted[0][0])).toBe('open-notes');
   });
+
+  it('convierte H en la petición de mostrar/ocultar los controles y deja pasar las demás teclas', () => {
+    const html = injectDeckBridge('<html><body></body></html>');
+    const code = html.match(/<script>([\s\S]*)<\/script>/)[1];
+    const posted = [];
+    const fakeWindow = {
+      listeners: [],
+      addEventListener(type, fn, capture) { this.listeners.push({ type, fn, capture }); },
+      parent: { postMessage: data => posted.push(data) },
+    };
+    runInNewContext(code, { window: fakeWindow, JSON });
+    const [listener] = fakeWindow.listeners;
+    const press = key => listener.fn({ key, ctrlKey: false, metaKey: false, altKey: false, preventDefault() {}, stopImmediatePropagation() {} });
+    press('H');
+    press('ArrowRight');
+    expect(posted.map(bridgeRequestFromMessage)).toEqual(['toggle-chrome']);
+  });
 });
 
 describe('bridgeRequestFromMessage — mensajes del script puente', () => {
   it('reconoce la petición de notas', () => {
     expect(bridgeRequestFromMessage(JSON.stringify({ namespace: BRIDGE_NAMESPACE, type: 'open-notes' }))).toBe('open-notes');
+  });
+
+  it('reconoce la petición de mostrar/ocultar los controles', () => {
+    expect(bridgeRequestFromMessage(JSON.stringify({ namespace: BRIDGE_NAMESPACE, type: 'toggle-chrome' }))).toBe('toggle-chrome');
   });
 
   it('ignora tipos desconocidos, otros namespaces y basura', () => {

@@ -12,15 +12,19 @@
 export const BRIDGE_NAMESPACE = 'presentation-camera';
 
 const OPEN_NOTES = 'open-notes';
+const TOGGLE_CHROME = 'toggle-chrome';
+const REQUESTS = new Set([OPEN_NOTES, TOGGLE_CHROME]);
 
 // Se ejecuta en el deck; sin dependencias ni sintaxis moderna obligatoria.
+// S → notas; H → mostrar/ocultar los controles de la app (CAM-BUG-0017).
 const BRIDGE_SCRIPT = `(function () {
+  var requests = { s: '${OPEN_NOTES}', h: '${TOGGLE_CHROME}' };
   window.addEventListener('keydown', function (event) {
-    var isS = event.key === 's' || event.key === 'S';
-    if (!isS || event.ctrlKey || event.metaKey || event.altKey) return;
+    var type = requests[String(event.key).toLowerCase()];
+    if (!type || event.ctrlKey || event.metaKey || event.altKey) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    window.parent.postMessage(JSON.stringify({ namespace: '${BRIDGE_NAMESPACE}', type: '${OPEN_NOTES}' }), '*');
+    window.parent.postMessage(JSON.stringify({ namespace: '${BRIDGE_NAMESPACE}', type: type }), '*');
   }, true);
 })();`;
 
@@ -34,10 +38,10 @@ export function injectDeckBridge(html) {
   return `${html}<script>${BRIDGE_SCRIPT}</script>`;
 }
 
-/** 'open-notes' si el mensaje es una petición del script puente, o null. */
+/** 'open-notes' o 'toggle-chrome' si el mensaje es una petición del script puente, o null. */
 export function bridgeRequestFromMessage(data) {
   let message;
   try { message = typeof data === 'string' ? JSON.parse(data) : null; } catch { return null; }
   if (message?.namespace !== BRIDGE_NAMESPACE) return null;
-  return message.type === OPEN_NOTES ? OPEN_NOTES : null;
+  return REQUESTS.has(message.type) ? message.type : null;
 }
