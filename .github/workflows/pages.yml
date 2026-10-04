@@ -32,7 +32,7 @@ jobs:
             --exclude '*.test.js' --exclude '*.md' --exclude 'package*.json' \
             --exclude 'eslint.config.js' --exclude 'commitlint.config.js' \
             --exclude 'sonar-project.properties' --exclude 'firebase.json' --exclude 'start.sh' \
-            --exclude 'scripts' --exclude 'models'
+            --exclude 'scripts' --exclude 'models' --exclude 'test-support'
 
       # El modelo del recorte se sirve desde el propio sitio (offline, sin
       # googleapis); el script verifica su sha256 y falla si no coincide.
