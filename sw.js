@@ -10,55 +10,11 @@
  *     caché si no hay red.
  *   - Resto de estáticos: cache-first (rápido y offline).
  *
- * Diseñado para que CAM-TSK-0022 reutilice este SW sirviendo bundles HTML
- * locales desde OPFS en rutas /_local/<id>/* (aún no implementado aquí).
+ * Los decks de carpeta ya no pasan por aquí: se sirven como blob URLs en un
+ * iframe aislado (bundleBlobs.js).
  */
 
 const CACHE = 'cam-shell-v25';
-
-const MIME = {
-  html: 'text/html', htm: 'text/html', css: 'text/css', js: 'text/javascript',
-  mjs: 'text/javascript', json: 'application/json', svg: 'image/svg+xml',
-  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
-  webp: 'image/webp', avif: 'image/avif', ico: 'image/x-icon',
-  woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf',
-  mp4: 'video/mp4', webm: 'video/webm', mp3: 'audio/mpeg', wav: 'audio/wav',
-  txt: 'text/plain',
-};
-function mimeFor(name) {
-  const ext = name.split('.').pop().toLowerCase();
-  return MIME[ext] || 'application/octet-stream';
-}
-
-// Sirve un fichero de un bundle HTML local guardado en OPFS:
-// ruta .../_local/<id>/<path...>  →  OPFS local-bundles/<id>/<path...>
-// Decodifica un segmento de la URL ('mi%20imagen.png' → 'mi imagen.png'). Lanza
-// si la codificación es inválida o el segmento no es un nombre de fichero simple.
-function decodeSegment(segment) {
-  const name = decodeURIComponent(segment);
-  if (name === '.' || name === '..' || name.includes('/') || name.includes('\\')) {
-    throw new Error(`Segmento no válido: ${segment}`);
-  }
-  return name;
-}
-
-async function serveLocalBundle(rest) {
-  try {
-    const parts = rest.split('/').filter(Boolean).map(decodeSegment);
-    const id = parts.shift();
-    if (!id) return new Response('Not found', { status: 404 });
-    const fileName = parts.length ? parts.pop() : 'index.html';
-    const root = await navigator.storage.getDirectory();
-    let dir = await root.getDirectoryHandle('local-bundles');
-    dir = await dir.getDirectoryHandle(id);
-    for (const segment of parts) dir = await dir.getDirectoryHandle(segment);
-    const handle = await dir.getFileHandle(fileName);
-    const file = await handle.getFile();
-    return new Response(file, { headers: { 'Content-Type': mimeFor(fileName) } });
-  } catch {
-    return new Response('Not found', { status: 404 });
-  }
-}
 
 // Rutas relativas al scope del SW (funciona también en subruta /presentation-camera/).
 const SHELL = [
@@ -89,6 +45,8 @@ const SHELL = [
   // TensorFlow y BodyPix no se precachean: se cargan solo al usar el recorte y
   // quedan cacheados en ese primer uso (stale-while-revalidate).
   'segmentationLoader.js',
+  'bundleRewrite.js',
+  'bundleBlobs.js',
   'panel.html',
   'panel.css',
   'panel.js',
@@ -121,13 +79,6 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   // No tocar peticiones cross-origin (iframes remotos, CDNs, etc.).
   if (url.origin !== self.location.origin) return;
-
-  // Bundles HTML locales servidos desde OPFS.
-  const localIdx = url.pathname.indexOf('/_local/');
-  if (localIdx !== -1) {
-    event.respondWith(serveLocalBundle(url.pathname.slice(localIdx + '/_local/'.length)));
-    return;
-  }
 
   // version.json (lo genera el workflow de Pages): network-first, para que el pie
   // muestre la publicación actual y no la que había al instalar el SW.

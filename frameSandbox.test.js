@@ -12,8 +12,8 @@ describe('sandboxForSource — aislamiento de los iframes de presentación', () 
     expect(sandboxForSource({ type: 'html', localRef: 'abc' })).not.toContain('allow-same-origin');
   });
 
-  it('bundle local (carpeta servida por el Service Worker): sin sandbox, el SW no controla iframes de origin opaco', () => {
-    expect(sandboxForSource({ type: 'html', bundle: true, localRef: 'abc' })).toBeNull();
+  it('bundle local (carpeta servida como blob URLs): también origin opaco', () => {
+    expect(sandboxForSource({ type: 'html', bundle: true, localRef: 'abc' })).toBe('allow-scripts');
   });
 
   it('source remota: sandbox que conserva su propio origin pero no puede navegar la ventana principal', () => {
@@ -46,8 +46,8 @@ describe('deckOrigin — origin esperado en los mensajes del deck', () => {
     expect(deckOrigin({ type: 'html', localRef: 'abc' }, APP_ORIGIN)).toBe('null');
   });
 
-  it('bundle local (sin sandbox, servido por el SW) → origin de la app', () => {
-    expect(deckOrigin({ type: 'html', bundle: true, localRef: 'abc' }, APP_ORIGIN)).toBe(APP_ORIGIN);
+  it('bundle local (sandbox opaco) → "null"', () => {
+    expect(deckOrigin({ type: 'html', bundle: true, localRef: 'abc' }, APP_ORIGIN)).toBe('null');
   });
 
   it('remota de otro origin → su propio origin', () => {

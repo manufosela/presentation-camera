@@ -7,9 +7,8 @@
  * el deck corre en un origin opaco y queda aislado; la navegación por
  * postMessage de reveal.js sigue funcionando.
  *
- * Los bundles (carpetas) los sirve el Service Worker desde OPFS, y el SW no
- * controla iframes de origin opaco: con sandbox darían 404. Quedan sin sandbox
- * hasta tener otra forma de servirlos.
+ * Los bundles (carpetas) también: se sirven como blob URLs con sus referencias
+ * reescritas (bundleBlobs.js), así que van igual de aislados.
  *
  * Las presentaciones remotas conservan su propio origin (allow-same-origin es
  * el de ELLAS, no el de la app) pero sin allow-top-navigation: una URL
@@ -44,18 +43,16 @@ function isCrossOrigin(url, appOrigin) {
  * la política opaca.
  */
 export function sandboxForSource(source, appOrigin) {
-  if (source.type === 'html') return source.bundle ? null : OPAQUE_SANDBOX;
+  if (source.type === 'html') return OPAQUE_SANDBOX;
   return isCrossOrigin(source.url, appOrigin) ? REMOTE_SANDBOX : OPAQUE_SANDBOX;
 }
 
 /**
  * Origin con el que llegan los mensajes postMessage del deck: "null" si su
- * sandbox es opaco (sin allow-same-origin), el de la app para un bundle sin
- * sandbox y el de la URL para una remota.
+ * sandbox es opaco (sin allow-same-origin) y el de la URL para una remota.
  */
 export function deckOrigin(source, appOrigin) {
   const sandbox = sandboxForSource(source, appOrigin);
-  if (sandbox === null) return appOrigin;
   if (!sandbox.split(' ').includes('allow-same-origin')) return 'null';
   return new URL(source.url).origin;
 }

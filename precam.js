@@ -1,6 +1,7 @@
 import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
-import { saveHtml, saveBundle, readLocalHtml, removeHtml, removeBundle } from './localStore.js';
+import { saveHtml, saveBundle, readBundleFiles, readLocalHtml, removeHtml, removeBundle } from './localStore.js';
+import { buildBundleBlobs } from './bundleBlobs.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { removedLocalFiles, sourceLabel } from './savedSources.js';
 import { formatVersion, loadVersion } from './appVersion.js';
@@ -407,13 +408,8 @@ function renderIframeStack(list, activeIndex) {
         // Source HTML local: el contenido vive en OPFS.
         frame.title = source.title || 'HTML local';
         iframeStack.appendChild(frame);
-        if (source.bundle) {
-          // Bundle con assets: lo sirve el Service Worker desde OPFS (same-origin).
-          frame.src = `_local/${source.localRef}/index.html`;
-        } else {
-          // Un único .html autocontenido: blob URL.
-          resolveLocalFrameSrc(frame, source);
-        }
+        // Un .html o una carpeta: blob URLs en un iframe de origin opaco.
+        resolveLocalFrameSrc(frame, source);
       } else {
         frame.title = source.title || hostnameOf(source.url);
         frame.src = sanitizePresentationUrl(source.url, window.location.href) ?? source.url;
@@ -772,26 +768,42 @@ async function handleLocalBundlePick() {
 // Una source local reemplazada conserva su id: olvidar su blob y sus notas
 // cacheados para que se use el fichero nuevo.
 function forgetLocalCaches(sourceId) {
-  const url = localBlobUrls.get(sourceId);
-  if (url) URL.revokeObjectURL(url);
+  localBlobUrls.get(sourceId)?.urls.forEach(url => URL.revokeObjectURL(url));
   localBlobUrls.delete(sourceId);
   if (deckNotes.sourceId === sourceId) deckNotes = { sourceId: null, notes: [] };
 }
 
+// Blob URLs de una source local: { indexUrl, urls (todas, para revocarlas) }.
+// Con el script puente: S/H dentro del deck llegan a la app.
+async function createLocalBlobs(source) {
+  if (source.bundle) {
+    const files = await readBundleFiles(source.localRef);
+    if (files === null) return null;
+    const blobs = await buildBundleBlobs(files, {
+      createIndexUrl: blob => URL.createObjectURL(blob),
+      wrapIndex: injectDeckBridge,
+    });
+    if (blobs.unresolved.length) console.warn('[bundle] recursos no encontrados en la carpeta:', blobs.unresolved);
+    return blobs;
+  }
+  const html = await readLocalHtml(source);
+  if (html === null) return null;
+  const indexUrl = URL.createObjectURL(new Blob([injectDeckBridge(html)], { type: 'text/html;charset=utf-8' }));
+  return { indexUrl, urls: [indexUrl] };
+}
+
 async function resolveLocalFrameSrc(frame, source) {
   try {
-    let url = localBlobUrls.get(source.id);
-    if (!url) {
-      const html = await readLocalHtml(source);
-      if (html === null) {
+    let blobs = localBlobUrls.get(source.id);
+    if (!blobs) {
+      blobs = await createLocalBlobs(source);
+      if (blobs === null) {
         showStatus('No se encontró el HTML local guardado. Vuelve a cargarlo.', true);
         return;
       }
-      // Con el script puente: S dentro del deck abre el panel de notas.
-      url = URL.createObjectURL(new Blob([injectDeckBridge(html)], { type: 'text/html;charset=utf-8' }));
-      localBlobUrls.set(source.id, url);
+      localBlobUrls.set(source.id, blobs);
     }
-    frame.src = url;
+    frame.src = blobs.indexUrl;
   } catch (error) {
     console.error(error);
     showStatus(error.message || 'No se pudo abrir el HTML local.', true);
@@ -1031,8 +1043,8 @@ function returnToSetup() {
   presentationActive = false;
   if (iframeStack) iframeStack.replaceChildren();
   // Revocar blob URLs de sources HTML locales para no fugar memoria.
-  for (const url of localBlobUrls.values()) {
-    try { URL.revokeObjectURL(url); } catch { /* noop */ }
+  for (const { urls } of localBlobUrls.values()) {
+    urls.forEach(url => URL.revokeObjectURL(url));
   }
   localBlobUrls.clear();
   presentationSection.hidden = true;
