@@ -21,6 +21,19 @@ const MIME = {
 const mimeFor = path => MIME[path.split('.').pop().toLowerCase()] ?? 'application/octet-stream';
 const dirOf = path => path.slice(0, path.lastIndexOf('/') + 1);
 
+/**
+ * Aviso para el usuario si el deck de carpeta referencia ficheros que no están
+ * (o que solo se cargan dinámicamente, que no se cubren), o null si no falta nada.
+ */
+export function missingResourcesMessage(unresolved) {
+  if (unresolved.length === 0) return null;
+  const SHOWN = 3;
+  const names = unresolved.slice(0, SHOWN).join(', ');
+  const rest = unresolved.length > SHOWN ? ` y ${unresolved.length - SHOWN} más` : '';
+  const count = unresolved.length === 1 ? 'le falta 1 recurso' : `le faltan ${unresolved.length} recursos`;
+  return `Al deck de la carpeta ${count}: ${names}${rest}. Puede verse incompleto.`;
+}
+
 /** data: URI en base64 de un Blob. */
 export async function blobToDataUrl(blob) {
   const bytes = new Uint8Array(await blob.arrayBuffer());

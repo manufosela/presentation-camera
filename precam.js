@@ -1,7 +1,7 @@
 import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
 import { saveHtml, saveBundle, readBundleFiles, readLocalHtml, removeHtml, removeBundle } from './localStore.js';
-import { buildBundleBlobs } from './bundleBlobs.js';
+import { buildBundleBlobs, missingResourcesMessage } from './bundleBlobs.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { removedLocalFiles, sourceLabel } from './savedSources.js';
 import { formatVersion, loadVersion } from './appVersion.js';
@@ -783,7 +783,8 @@ async function createLocalBlobs(source) {
       createIndexUrl: blob => URL.createObjectURL(blob),
       wrapIndex: injectDeckBridge,
     });
-    if (blobs.unresolved.length) console.warn('[bundle] recursos no encontrados en la carpeta:', blobs.unresolved);
+    const missing = missingResourcesMessage(blobs.unresolved);
+    if (missing) showStatus(missing, true);
     return blobs;
   }
   const html = await readLocalHtml(source);
@@ -862,7 +863,7 @@ async function startWebcam() {
   stopWebcam();
   renderer?.reset(); // nueva cámara: sin arrastrar la ausencia anterior
   noPersonNoticeShown = false;
-  showStatus('Solicitando acceso a la cámara...');
+  showProgress('Solicitando acceso a la cámara...');
   const mediaStream = await cameraRequests.acquire();
   if (!mediaStream) return; // otra petición más reciente (o volver al setup) la sustituyó
   stream = mediaStream;
@@ -871,8 +872,14 @@ async function startWebcam() {
   if (!cameraRequests.isCurrent(mediaStream)) return;
   webcamSection.hidden = false;
   populateCameraSelect().catch(() => {}); // refresca labels una vez concedido el permiso
-  showStatus('');
+  showProgress('');
   await ensureCutout(); // en modo marco no descarga nada
+}
+
+// Progreso de la cámara: no pisa ni borra un aviso de error que esté a la vista
+// (p. ej. los recursos que le faltan a un deck de carpeta, que llega en paralelo).
+function showProgress(message) {
+  if (!statusMessage.classList.contains('error')) showStatus(message);
 }
 
 // Arranca el bucle de canvas solo si el estilo lo necesita y no está ya en marcha.
