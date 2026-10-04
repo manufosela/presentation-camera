@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+# Publica el sitio estático en cada push a main. Además de copiar los ficheros:
+#   - genera version.json { version, commit, date } para mostrar la versión en la app;
+#   - añade el commit corto al nombre de la caché del Service Worker, para que cada
+#     publicación renueve la caché sin depender de subir la versión a mano.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Copiar el sitio (sin herramientas, tests ni documentación)
+        run: |
+          mkdir _site
+          rsync -a ./ _site/ \
+            --exclude '.*' --exclude '_site' --exclude 'node_modules' --exclude 'docs' \
+            --exclude '*.test.js' --exclude '*.md' --exclude 'package*.json' \
+            --exclude 'eslint.config.js' --exclude 'commitlint.config.js' \
+            --exclude 'sonar-project.properties' --exclude 'firebase.json' --exclude 'start.sh'
+
+      - name: Generar version.json
+        env:
+          COMMIT: ${{ github.sha }}
+        run: |
+          node -e '
+            const { version } = require("./package.json");
+            const info = { version, commit: process.env.COMMIT.slice(0, 7), date: new Date().toISOString().slice(0, 10) };
+            require("fs").writeFileSync("_site/version.json", JSON.stringify(info));
+            console.log(info);
+          '
+
+      - name: Caché del Service Worker por commit
+        env:
+          COMMIT: ${{ github.sha }}
+        run: |
+          short="${COMMIT:0:7}"
+          sed -i "s/^const CACHE = '\(cam-shell-v[0-9]*\)';/const CACHE = '\1-${short}';/" _site/sw.js
+          grep -q "^const CACHE = 'cam-shell-v[0-9]*-${short}';" _site/sw.js || { echo "::error::no se pudo versionar la caché de sw.js"; exit 1; }
+
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
