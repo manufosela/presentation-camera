@@ -278,9 +278,14 @@ window.addEventListener('message', event => {
   const active = sources.getActive();
   if (!active || event.origin !== deckOrigin(active, window.location.origin)) return;
   if (event.source !== activeFrame()?.contentWindow) return;
-  // S pulsada con el foco dentro del deck local (script puente): abrir las notas.
-  if (bridgeRequestFromMessage(event.data) === 'open-notes') {
+  // S o H pulsadas con el foco dentro del deck local (script puente).
+  const bridgeRequest = bridgeRequestFromMessage(event.data);
+  if (bridgeRequest === 'open-notes') {
     openControlPanel();
+    return;
+  }
+  if (bridgeRequest === 'toggle-chrome') {
+    toggleChrome();
     return;
   }
   const slide = revealSlideFromMessage(event.data);
