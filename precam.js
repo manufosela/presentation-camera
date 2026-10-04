@@ -9,6 +9,7 @@ import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './de
 import { notesAt, parseDeckNotes } from './deckNotes.js';
 import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
 import { createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
+import { createStreamSwitcher } from './streamSwitch.js';
 import { needsCanvasLoop } from './renderMode.js';
 import { isDebugEnabled, loadCameraId, saveCameraId } from './appPrefs.js';
 import { trapTabKey } from './focusTrap.js';
@@ -119,7 +120,14 @@ const cameraLoop = createFrameLoop({
   requestFrame: cb => requestAnimationFrame(cb),
   cancelFrame: id => cancelAnimationFrame(id),
 });
-const NO_PERSON_MESSAGE = 'No te detecto en modo recorte: mostrando la cámara completa. Revisa la luz o el encuadre.';
+// Cambios rápidos de cámara: solo la última petición gana; las que llegan tarde
+// se paran (si no, la cámara quedaría encendida). requestVideoStream es una
+// declaración de función, ya disponible.
+const cameraRequests = createStreamSwitcher({
+  request: () => requestVideoStream(),
+  release: lateStream => lateStream.getTracks().forEach(track => track.stop()),
+});
+const NO_PERSON_MESSAGE ='No te detecto en modo recorte: mostrando la cámara completa. Revisa la luz o el encuadre.';
 let noPersonNoticeShown = false;
 let firstFrameDrawn = false;
 let currentDeviceId = null;
@@ -818,14 +826,17 @@ async function startWebcam() {
   renderer?.reset(); // nueva cámara: sin arrastrar la ausencia anterior
   noPersonNoticeShown = false;
   showStatus('Solicitando acceso a la cámara...');
-  const mediaStream = await requestVideoStream();
+  const mediaStream = await cameraRequests.acquire();
+  if (!mediaStream) return; // otra petición más reciente (o volver al setup) la sustituyó
   stream = mediaStream;
   video.srcObject = stream;
   await video.play();
+  if (!cameraRequests.isCurrent(mediaStream)) return;
   webcamSection.hidden = false;
   populateCameraSelect().catch(() => {}); // refresca labels una vez concedido el permiso
   showStatus('Cargando modelo BodyPix...');
   await loadBodyPix();
+  if (!cameraRequests.isCurrent(mediaStream)) return;
   showStatus(needsCanvasLoop(currentStyle)
     ? 'Procesando la señal de vídeo, esto puede tardar un par de segundos...'
     : '');
@@ -892,6 +903,7 @@ async function requestVideoStream() {
 }
 
 function stopWebcam() {
+  cameraRequests.cancel();
   cameraLoop.stop();
   if (stream) {
     stream.getTracks().forEach(track => track.stop());
