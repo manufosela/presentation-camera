@@ -1186,7 +1186,13 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 }
 #webcamSection.frame canvas { display: none; }
 
-/* Webcam tools: floating strip below the camera, hover to reveal */
+/* La cámara es solo imagen: deja pasar los clics a la presentación de debajo
+   (p. ej. las flechas de reveal.js en la esquina inferior derecha). Solo su
+   tira de herramientas recibe eventos. */
+#webcamSection { pointer-events: none; }
+
+/* Webcam tools: floating strip below the camera, siempre visible pero discreta
+   (sin pointer-events en la cámara, el :hover sobre ella no se dispara). */
 .webcam-tools {
   position: absolute;
   left: 50%;
@@ -1200,15 +1206,14 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
   backdrop-filter: blur(10px);
   border: 1px solid var(--line-soft);
   border-radius: 999px;
-  opacity: 0;
-  pointer-events: none;
+  opacity: .55;
+  pointer-events: auto;
   transition: opacity .2s var(--ease-soft), transform .25s var(--ease-out);
   box-shadow: 0 12px 24px -8px oklch(0 0 0 / .6);
 }
-#webcamSection:hover .webcam-tools,
-#webcamSection:focus-within .webcam-tools {
+.webcam-tools:hover,
+.webcam-tools:focus-within {
   opacity: 1;
-  pointer-events: auto;
   transform: translate(-50%, 0);
 }
 .tool-btn {
