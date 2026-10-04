@@ -14,7 +14,7 @@
  * locales desde OPFS en rutas /_local/<id>/* (aún no implementado aquí).
  */
 
-const CACHE = 'cam-shell-v17';
+const CACHE = 'cam-shell-v18';
 
 const MIME = {
   html: 'text/html', htm: 'text/html', css: 'text/css', js: 'text/javascript',
