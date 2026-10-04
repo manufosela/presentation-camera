@@ -85,6 +85,7 @@ const SHELL = [
   'deckBridge.js',
   'savedSources.js',
   'appVersion.js',
+  'streamSwitch.js',
   'panel.html',
   'panel.css',
   'panel.js',
