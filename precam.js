@@ -17,7 +17,7 @@ import { needsCanvasLoop, toggledStyle, usesCamera } from './renderMode.js';
 import { listBackgrounds, readBackground, removeBackground, saveBackground } from './backgroundStore.js';
 import { renderBackgroundPicker } from './backgroundPicker.js';
 import { bindThemeToggle } from './themeToggle.js';
-import { initI18n } from './i18n.js';
+import { initI18n, t } from './i18n.js';
 import {
   isDebugEnabled,
   loadBackgroundId,
@@ -42,7 +42,7 @@ import {
 const sources = createSourcesStore();
 bindThemeToggle(document.getElementById('themeBtn'));
 initI18n({ storage: window.localStorage, languages: navigator.languages, button: document.getElementById('langBtn') });
-const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna con la ✕ en «Presentaciones guardadas», debajo de los botones de cargar.`;
+const sourcesFullMessage = () => t('status.sourcesFull', { max: MAX_SOURCES });
 
 // ─── BroadcastChannel hacia el panel de control ──────────────
 // Canal compartido para sync de sources (sources:* messages) y para
@@ -157,7 +157,7 @@ const cameraRequests = createStreamSwitcher({
   request: () => requestVideoStream(),
   release: lateStream => lateStream.getTracks().forEach(track => track.stop()),
 });
-const NO_PERSON_MESSAGE ='No te detecto en modo recorte: mostrando la cámara completa. Revisa la luz o el encuadre.';
+const noPersonMessage = () => t('status.noPerson');
 let noPersonNoticeShown = false;
 let firstFrameDrawn = false;
 let currentDeviceId = null;
@@ -168,13 +168,13 @@ let liveStartedAt = 0;
 startButton.addEventListener('click', () => {
   startPresentation().catch(error => {
     console.error(error);
-    showStatus(error.message || 'No se pudo iniciar la presentación.', true);
+    showStatus(error.message || t('status.startFailed'), true);
   });
 });
 exampleButton.addEventListener('click', () => {
   startPresentation('https://view.genially.com/609ceb5257230a0d5a132ffb/presentation-presentacion-antiguo-egipto-para-ninos').catch(error => {
     console.error(error);
-    showStatus(error.message || 'No se pudo iniciar la presentación.', true);
+    showStatus(error.message || t('status.startFailed'), true);
   });
 });
 moveButton.addEventListener('click', event => {
@@ -212,7 +212,7 @@ cameraSelect?.addEventListener('change', async event => {
   if (isPresentationActive() && usesCamera(currentStyle)) {
     await startWebcam().catch(error => {
       console.error(error);
-      showStatus(error.message || 'No se pudo cambiar de cámara.', true);
+      showStatus(error.message || t('status.cameraSwitchFailed'), true);
     });
   }
 });
@@ -452,7 +452,7 @@ function openControlPanel() {
   const features = 'popup=yes,width=540,height=760,resizable=yes,scrollbars=yes';
   panelWindow = window.open('panel.html', 'cam-panel', features);
   if (!panelWindow) {
-    showStatus('Tu navegador bloqueó el popup. Permite popups para este sitio y vuelve a intentarlo.', true);
+    showStatus(t('status.popupBlocked'), true);
   }
 }
 
@@ -591,7 +591,7 @@ function persistBackgroundId(id) {
 
 function reportBackgroundError(error) {
   console.error(error);
-  showStatus(error.message || 'No se pudo usar el fondo.', true);
+  showStatus(error.message || t('status.backgroundFailed'), true);
 }
 
 async function applyBackground(id, request) {
@@ -650,7 +650,7 @@ refreshBackgrounds().catch(reportBackgroundError);
 
 initializeFromQueryParams().catch(error => {
   console.error(error);
-  showStatus(error.message || 'No se pudo preparar la página.', true);
+  showStatus(error.message || t('status.prepareFailed'), true);
 });
 
 updateRecordEstimate();
@@ -667,13 +667,12 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
 // SW nuevo toma el control (controllerchange). Si no había SW al cargar, es la
 // primera visita, no una actualización.
 const appVersionEl = document.getElementById('appVersion');
-const NEW_VERSION_MESSAGE = 'Hay una versión nueva de la app. Recarga la página para usarla.';
 if ('serviceWorker' in navigator) {
   const hadController = Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!hadController) return;
-    showStatus(NEW_VERSION_MESSAGE);
-    if (appVersionEl) appVersionEl.textContent += ' · hay una versión nueva: recarga';
+    showStatus(t('status.newVersion'));
+    if (appVersionEl) appVersionEl.textContent += ` · ${t('status.newVersionFooter')}`;
   });
 }
 
@@ -765,7 +764,7 @@ async function handleLocalHtmlPick(event) {
   const file = event.target.files?.[0];
   if (!file) return;
   if (!/\.html?$/i.test(file.name)) {
-    showStatus('Selecciona un fichero .html', true);
+    showStatus(t('status.pickHtml'), true);
     event.target.value = '';
     return;
   }
@@ -774,18 +773,16 @@ async function handleLocalHtmlPick(event) {
     // Mismo nombre: se reemplaza (no cuenta para el límite). Si no cabe, no
     // guardar en OPFS para no dejar un fichero huérfano.
     const previous = sources.findLocal({ title, bundle: false });
-    if (!previous && sources.isFull()) throw new Error(SOURCES_FULL_MESSAGE);
+    if (!previous && sources.isFull()) throw new Error(sourcesFullMessage());
     const id = await saveHtml(file);
     sources.addLocal({ type: 'html', title, localRef: id });
     if (previous) {
       forgetLocalCaches(previous.id); // mismo id: su fichero viejo lo borra la limpieza de sources
     }
-    showStatus(previous
-      ? 'HTML local actualizado. Pulsa «Go live» para presentarlo.'
-      : 'HTML local añadido. Pulsa «Go live» para presentarlo.');
+    showStatus(t(previous ? 'status.htmlUpdated' : 'status.htmlAdded'));
   } catch (error) {
     console.error(error);
-    showStatus(error.message || 'No se pudo cargar el HTML local.', true);
+    showStatus(error.message || t('status.htmlLoadFailed'), true);
   } finally {
     event.target.value = '';
   }
@@ -793,7 +790,7 @@ async function handleLocalHtmlPick(event) {
 
 async function handleLocalBundlePick() {
   if (typeof window.showDirectoryPicker !== 'function') {
-    showStatus('Tu navegador no permite elegir carpetas. Usa Chrome o Edge, o carga un .html autocontenido.', true);
+    showStatus(t('status.noFolderPicker'), true);
     return;
   }
   let dirHandle;
@@ -803,20 +800,18 @@ async function handleLocalBundlePick() {
     return; // el usuario canceló el selector
   }
   try {
-    const title = dirHandle.name || 'Presentación HTML';
+    const title = dirHandle.name || t('status.defaultFolderTitle');
     const previous = sources.findLocal({ title, bundle: true });
-    if (!previous && sources.isFull()) throw new Error(SOURCES_FULL_MESSAGE);
+    if (!previous && sources.isFull()) throw new Error(sourcesFullMessage());
     const id = await saveBundle(dirHandle);
     sources.addLocal({ type: 'html', bundle: true, title, localRef: id });
     if (previous) {
       forgetLocalCaches(previous.id); // mismo id: su fichero viejo lo borra la limpieza de sources
     }
-    showStatus(previous
-      ? 'Carpeta HTML actualizada. Pulsa «Go live» para presentarla.'
-      : 'Carpeta HTML añadida. Pulsa «Go live» para presentarla.');
+    showStatus(t(previous ? 'status.folderUpdated' : 'status.folderAdded'));
   } catch (error) {
     console.error(error);
-    showStatus(error.message || 'No se pudo cargar la carpeta.', true);
+    showStatus(error.message || t('status.folderLoadFailed'), true);
   }
 }
 
@@ -854,7 +849,7 @@ async function resolveLocalFrameSrc(frame, source) {
     if (!blobs) {
       blobs = await createLocalBlobs(source);
       if (blobs === null) {
-        showStatus('No se encontró el HTML local guardado. Vuelve a cargarlo.', true);
+        showStatus(t('status.localMissing'), true);
         return;
       }
       localBlobUrls.set(source.id, blobs);
@@ -862,7 +857,7 @@ async function resolveLocalFrameSrc(frame, source) {
     frame.src = blobs.indexUrl;
   } catch (error) {
     console.error(error);
-    showStatus(error.message || 'No se pudo abrir el HTML local.', true);
+    showStatus(error.message || t('status.localOpenFailed'), true);
   }
 }
 
@@ -874,7 +869,7 @@ async function startPresentation(presetUrl) {
   const startingLocal = !rawUrl && active?.type === 'html';
 
   if (!rawUrl && !startingLocal) {
-    showStatus('Introduce la URL de la presentación, carga un HTML local o usa el ejemplo.', true);
+    showStatus(t('status.urlRequired'), true);
     urlInput.focus();
     return;
   }
@@ -883,18 +878,18 @@ async function startPresentation(presetUrl) {
   if (rawUrl) {
     url = sanitizePresentationUrl(rawUrl, window.location.href);
     if (!url) {
-      showStatus('URL no válida. Solo se aceptan enlaces http:// o https://', true);
+      showStatus(t('status.urlInvalid'), true);
       urlInput.focus();
       return;
     }
     // Registrar la URL en el store multi-source (si no estaba ya).
     if (!sources.add(url, deriveSourceTitle(url))) {
-      showStatus(SOURCES_FULL_MESSAGE, true);
+      showStatus(sourcesFullMessage(), true);
       return;
     }
   }
 
-  showStatus('Cargando presentación...');
+  showStatus(t('status.loadingPresentation'));
   presentationActive = true;
   renderIframeStack(sources.list(), sources.getActiveIndex());
   presentationSection.hidden = false;
@@ -911,7 +906,7 @@ async function startPresentation(presetUrl) {
   if (!usesCamera(currentStyle)) return; // sin cámara: ni permiso ni recuadro
   await startWebcam().catch(error => {
     console.error(error);
-    showStatus(error.message || 'No se pudo iniciar la webcam.', true);
+    showStatus(error.message || t('status.webcamFailed'), true);
   });
 }
 
@@ -919,7 +914,7 @@ async function startWebcam() {
   stopWebcam();
   renderer?.reset(); // nueva cámara: sin arrastrar la ausencia anterior
   noPersonNoticeShown = false;
-  showProgress('Solicitando acceso a la cámara...');
+  showProgress(t('status.requestingCamera'));
   const mediaStream = await cameraRequests.acquire();
   if (!mediaStream) return; // otra petición más reciente (o volver al setup) la sustituyó
   stream = mediaStream;
@@ -1035,18 +1030,18 @@ async function loadBodyPix() {
 async function ensureCutout() {
   if (!stream || !needsCanvasLoop(currentStyle)) return;
   if (!net) {
-    showStatus('Cargando el recorte de fondo…');
+    showStatus(t('status.cutoutLoading'));
     try {
       await loadBodyPix();
     } catch (error) {
       console.error(error);
       updateStyleClass('frame');
-      showStatus('No se pudo cargar el recorte de fondo: se muestra la cámara con marco.', true);
+      showStatus(t('status.cutoutFailed'), true);
       return;
     }
     if (!stream || !needsCanvasLoop(currentStyle)) return;
   }
-  if (!cameraLoop.isRunning()) showStatus('Procesando la señal de vídeo, esto puede tardar un par de segundos...');
+  if (!cameraLoop.isRunning()) showStatus(t('status.processing'));
   ensureRenderLoop();
 }
 
@@ -1071,14 +1066,14 @@ function syncNoPersonNotice() {
   const absent = currentStyle === 'cutout' && renderer !== null && !renderer.isPersonPresent();
   if (absent === noPersonNoticeShown) return;
   noPersonNoticeShown = absent;
-  if (absent) showStatus(NO_PERSON_MESSAGE, true);
-  else if (statusMessage.textContent === NO_PERSON_MESSAGE) showStatus('');
+  if (absent) showStatus(noPersonMessage(), true);
+  else if (statusMessage.textContent === noPersonMessage()) showStatus('');
 }
 
 // Un paso del bucle de cámara; devuelve false para detenerlo.
 function renderStep() {
   if (!stream) {
-    showStatus('La cámara se detuvo.', true);
+    showStatus(t('status.cameraStopped'), true);
     return false;
   }
   if (!needsCanvasLoop(currentStyle)) {
@@ -1147,7 +1142,7 @@ async function toggleFullscreen() {
     }
   } catch (error) {
     console.warn('Fullscreen no disponible.', error);
-    showStatus('Fullscreen no disponible en este navegador.', true);
+    showStatus(t('status.fullscreenUnavailable'), true);
   }
 }
 
@@ -1188,7 +1183,7 @@ function syncCameraWithStyle() {
   } else if (!stream) {
     startWebcam().catch(error => {
       console.error(error);
-      showStatus(error.message || 'No se pudo iniciar la webcam.', true);
+      showStatus(error.message || t('status.webcamFailed'), true);
     });
   }
 }
@@ -1248,7 +1243,7 @@ async function initializeFromQueryParams() {
   if (presentationUrl) {
     await startPresentation(presentationUrl).catch(error => {
       console.error(error);
-      showStatus(error.message || 'No se pudo iniciar la webcam.', true);
+      showStatus(error.message || t('status.webcamFailed'), true);
     });
   }
 }
