@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
+import { coverRect, createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
 
 // requestAnimationFrame manual: los frames solo avanzan con tick().
 function fakeFrames() {
@@ -69,6 +69,20 @@ function fakeCanvas() {
 const video = { videoWidth: 640, videoHeight: 480 };
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
+describe('coverRect — la imagen cubre el recuadro sin deformarse', () => {
+  it('más ancha que el recuadro: recorta los lados', () => {
+    expect(coverRect(1600, 900, 640, 480)).toEqual({ sx: 200, sy: 0, sw: 1200, sh: 900 });
+  });
+
+  it('más alta que el recuadro: recorta arriba y abajo', () => {
+    expect(coverRect(800, 1200, 640, 480)).toEqual({ sx: 0, sy: 300, sw: 800, sh: 600 });
+  });
+
+  it('misma proporción: la imagen entera', () => {
+    expect(coverRect(1280, 960, 640, 480)).toEqual({ sx: 0, sy: 0, sw: 1280, sh: 960 });
+  });
+});
+
 describe('createCutoutRenderer — un frame del modo recorte', () => {
   it('ajusta el canvas al vídeo y pide una segmentación', async () => {
     const canvas = fakeCanvas();
@@ -88,6 +102,21 @@ describe('createCutoutRenderer — un frame del modo recorte', () => {
     canvas.ops.length = 0;
     renderer.drawFrame();
     expect(canvas.ops).toEqual(['clear', 'mask', 'draw:source-in']);
+    expect(canvas.getContext().globalCompositeOperation).toBe('source-over');
+  });
+
+  it('con fondo elegido: lo pinta detrás de la persona, recortado para cubrir el recuadro', async () => {
+    const canvas = fakeCanvas();
+    const background = { width: 1600, height: 900 }; // 16:9 sobre un recuadro 4:3
+    const segment = async () => ({ data: Uint8Array.from([1, 1, 0, 0]), mask: {} });
+    const renderer = createCutoutRenderer({ video, canvas, segment, now: () => 0, getBackground: () => background });
+    renderer.drawFrame();
+    await flush();
+    canvas.ops.length = 0;
+    const draw = vi.spyOn(canvas.getContext(), 'drawImage');
+    renderer.drawFrame();
+    expect(canvas.ops).toEqual(['clear', 'mask', 'draw:source-in', 'draw:destination-over']);
+    expect(draw).toHaveBeenLastCalledWith(background, 200, 0, 1200, 900, 0, 0, 640, 480);
     expect(canvas.getContext().globalCompositeOperation).toBe('source-over');
   });
 
