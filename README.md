@@ -4,47 +4,43 @@
 
 **Live demo**: https://manufosela.dev/presentation-camera/
 
-Static web app that overlays your **webcam** on top of an **embedded presentation**. Built for recording or teaching live with your slides and your face on screen at the same time — talking-head style.
+Put your **webcam on top of any presentation** and present or record with your slides and your face on screen at the same time. Everything runs **in your browser**: there is no server, no account and nothing is uploaded.
 
-The webcam can be rendered as a framed rectangle or as a **background-free cut-out** using in-browser person segmentation (TensorFlow.js + BodyPix).
+## What you can do
 
-## What it does
+- **Present any slides**: a public URL (Genially, Google Slides, Canva, a published reveal.js…), a **local `.html`** file or a **local folder** exported from reveal.js/impress (with its `index.html` and assets).
+- **Keep several presentations** saved and switch between them with `1`–`9`.
+- **Place your camera** in any corner, in three sizes, as a **framed** card, as a **cut-out** without background, or **with a virtual background** (your own images, saved for next time). Or choose **No camera** to record only the slides and your voice.
+- **Record the whole session** (slides, camera, microphone and tab sound) to a `.webm` that downloads when you stop. The app controls hide themselves so they don't appear in the video.
+- **Read your speaker notes** in a separate control panel window that never appears in the recording.
+- **Light or dark theme** and **English or Spanish** interface.
+- **Install it as an app** (PWA); the interface works offline.
 
-You bring a presentation (a public URL or a local file) and your webcam; the app
-overlays your face on top of the slides, lets you record the whole thing to disk,
-and runs entirely in your browser — installable as an app.
+## Getting started
 
-## Features
-
-- **Presentation sources**:
-  - Any presentation reachable over **HTTPS** (Genially, Google Slides, Canva, published reveal.js/slides.to…), embedded full-screen.
-  - A **local self-contained `.html`** (one file).
-  - A **local HTML folder** (`index.html` + relative assets), e.g. a reveal.js/impress export (Chromium browsers).
-  - Multiple sources at once, switchable with `1`–`9`, plus a separate **control panel** window.
-  - **Auto-normalisation of Google Slides URLs**: paste an `/edit` URL and it's rewritten to `/preview` so the iframe doesn't go blank.
-- **Webcam overlay**: framed card or **background-free cut-out** (TensorFlow.js + BodyPix); any of the 4 corners; S/M/L size; camera picker.
-- **Recording**: capture the whole session (slides + face) to a `.webm`, with **auto-record on Go live** (toggleable), microphone + system audio, written to disk as you go, and a space/time estimate before you start.
-- **Installable PWA**: add it to your dock; the shell works offline.
-- Zero runtime dependencies: every library and font is served locally from `vendor/`.
-
-## How to use
-
-1. Open the app (the live demo above, or install it).
-2. **Add your presentation** in *Source slides*:
-   - Paste a URL, **or** *Load local HTML (one .html)*, **or** *Load HTML folder (with assets)*.
-   - **PPTX?** PowerPoint doesn't render natively in a browser — upload it to **Office Online** or **Google Slides** and paste *that* URL.
-3. **Set up your camera** in *Camera stage*: corner, size, and Framed vs Cut-out.
-4. Click **Go live**. Your face appears over the slides.
-5. In Zoom/Meet/Teams, **share only this tab/window**.
+1. Open the app (the live demo above, or the installed app).
+2. **Add your presentation** in *Source slides*: paste a URL, or use *Load local HTML (one .html)* or *Load HTML folder (with assets)*. It is saved under *Saved presentations*, so next time you just pick it.
+   - **PPTX?** Browsers can't render PowerPoint: upload it to **Office Online** or **Google Slides** and paste that URL.
+3. **Set up your camera** in *Camera stage*: corner, size and treatment — *Framed*, *Cut-out* (with an optional background image) or *No camera*.
+4. Press **Go live**. Your face appears over the slides.
+5. In Zoom/Meet/Teams, **share only this window**.
 
 ### Recording
 
-- Recording is **on by default** when you go live (turn it off with the *Record automatically* toggle in the setup).
-- When it starts, the browser asks **what to capture** → pick **"This tab" / the current tab** so the browser's "you're sharing" bar stays **out of the video**.
-- Audio: your **microphone** plus **system/tab audio** when the browser/OS allows it (no mic → it still records video).
-- The app's own controls **auto-hide while recording** so they don't appear in the video. Press **`H`** (or the small eye button, top-left) to show/hide them.
-- Stop with the **REC** button or `R` (or End the session); the `.webm` **downloads automatically**.
-- It's written to disk **as you record** (not buffered in RAM), and you'll see an estimated **max duration** before starting.
+- Recording starts **when you go live** (turn it off with *Record automatically when going live*). You can also start and stop it with **REC** or `R`.
+- The browser asks **what to capture**: pick **this tab**, so its "you are sharing" bar stays out of the video.
+- Audio: your **microphone** plus the **tab sound** when the browser allows it. Without a microphone it still records the video.
+- The app controls **hide while recording**. Press `H` (or the small eye button, top left) to show or hide them.
+- When you stop, the `.webm` **downloads automatically**. It is written to disk as you record (not kept in memory); before starting you see an estimate of how long you can record.
+- What you see is what is recorded: the recording is a capture of the tab.
+
+### Virtual background
+
+With *Cut-out*, the *Background* section lets you choose *None*, one of your images or *+ Upload image* (PNG, JPEG or WebP, up to 15 MB). Images are saved in your browser, so you can pick them again without uploading. Use images with your camera's proportions (usually 4:3, e.g. 1600×1200): other proportions are cropped to fill the frame.
+
+### Speaker notes and control panel
+
+Open the **control panel** with `\` (or *Open control panel*): a separate window to keep on another screen. It shows the speaker notes of the current slide for local reveal.js decks, lets you switch and rename presentations, and never appears in the recording.
 
 ### Keyboard shortcuts (while presenting)
 
@@ -54,7 +50,7 @@ and runs entirely in your browser — installable as an app.
 | `B` / `.` | black out the deck (reveal.js pause) |
 | `S` | speaker notes: for a local deck they are shown in the control panel (they follow the current slide and stay out of the recording); for a published deck it opens the reveal.js notes window (if the browser blocks the popup, allow it for that site) |
 | `C` / `Shift+C` | rotate webcam corner |
-| `M` | toggle framed ↔ cut-out |
+| `M` | toggle framed ↔ cut-out (does nothing with *No camera*) |
 | `F` | enter / exit fullscreen |
 | `R` | start / stop recording |
 | `H` | hide / show the app controls |
@@ -62,69 +58,87 @@ and runs entirely in your browser — installable as an app.
 | `1`–`9` | switch active source |
 | `Esc` | deck overview (reveal.js); exits fullscreen. To end the session use the exit button |
 
+The single-key shortcuts (`C`, `M`, `R`, `F`, `H`, `S`, `\`, `1`–`9`) can be turned off in the setup — useful if you use voice dictation. Deck navigation keeps working.
+
+### Theme and language
+
+The sun/moon button switches between **light and dark** (by default it follows your system). The **EN/ES** button switches the interface language (by default, your browser's). Both are remembered and apply to the control panel too.
+
 ### Install as an app (PWA)
 
 In Chrome/Edge, use the install icon in the address bar. It opens in its own
 window and the interface loads offline.
 
+## How it works
+
+- It is a **static web app** (HTML, CSS and JavaScript modules, no build step) published on GitHub Pages. A service worker keeps the interface available offline.
+- **Presentations** are shown in an `iframe` under the camera. Remote ones load directly from their own site. Local `.html` files and folders are stored in your browser and shown in an **isolated `iframe`** (sandboxed, with an opaque origin): the deck's code cannot read the app's data, your recordings or your images.
+- **The camera** is drawn on top of the slides. The *Cut-out* separates you from your background with person segmentation (TensorFlow.js + BodyPix) **running on your computer**; the model is served by this same site and loaded only when you choose *Cut-out*.
+- **The recording** captures the browser tab (`getDisplayMedia`) and encodes it with `MediaRecorder`, mixing your microphone in. It is written to the browser's private storage (OPFS) as it goes and downloaded when you stop.
+- **The control panel** is another window of the same app; both talk through a `BroadcastChannel` inside your browser.
+
+## Privacy: everything stays in your browser
+
+| What | Where it goes |
+|------|---------------|
+| Camera and microphone | Processed on your computer. Never sent anywhere. |
+| Recordings | Written to your browser's storage and downloaded to your disk. Never uploaded. |
+| Local presentations (`.html` and folders) | Stored in your browser (OPFS). Never uploaded. |
+| Background images | Stored in your browser (OPFS). Never uploaded. |
+| Preferences (saved presentations, theme, language, camera…) | Your browser's `localStorage`. |
+| Remote presentations | Loaded by your browser directly from their site, as if you opened them. |
+
+There is no backend, no account, no analytics and no cookies. The only requests the app makes are to load its own files and the presentations you choose.
+
 ## Things to keep in mind
 
 - **Secure context**: the camera only works under `https://` or `http://localhost`.
-- The **"you're sharing/recording" bar is the browser's**, not the app — it can't be hidden from a web page. Capturing **the current tab** keeps it out of the recording.
-- **PPTX** has no faithful in-browser renderer → use an online viewer (Office/Google) and embed the URL.
-- **Local HTML folders** need a browser with the File System Access API (Chrome/Edge). On others, use a single self-contained `.html`.
-- Some remote presentations refuse to be embedded (`X-Frame-Options`); Google Slides is auto-normalised to `/preview`.
-- Local HTML presentations and recordings live in the **browser's storage (OPFS)**, per origin — they aren't shared via the URL.
-- **Cloud upload** (to Drive/Dropbox) is planned and **not available yet**; for now recordings download to your disk.
+- The **"you are sharing" bar belongs to the browser** and cannot be hidden by a page; capturing **this tab** keeps it out of the recording.
+- **PPTX** cannot be rendered in a browser: use Office Online or Google Slides and embed that URL.
+- **Local HTML folders** need a browser that can pick folders (Chrome or Edge). Elsewhere, use a single self-contained `.html`.
+- In folder decks, files loaded dynamically by code (e.g. external Markdown) are not supported; the app tells you which resources it could not find.
+- Some sites refuse to be embedded (`X-Frame-Options`). Google Slides `/edit` links are turned into `/preview` automatically.
+- What is stored in your browser stays in **that** browser: it is not shared through the link or with other computers.
 
 ## Requirements
 
-- A modern browser with `getUserMedia` support (recent Chrome, Firefox, Safari, Edge).
-- **Secure context** is mandatory: the camera only works under `https://` or `http://localhost`.
+- A recent desktop browser. **Chrome or Edge** are recommended: other browsers may lack folder decks or tab capture for recording.
+- A secure context: `https://` or `http://localhost`.
 
 ## Run locally
 
 ```bash
 ./start.sh           # static server on http://localhost:8000
 ./start.sh 8080      # custom port
+npm run fetch-model  # downloads the BodyPix weights used by Cut-out (once)
 ```
 
-The script uses `python3 -m http.server` and picks the next free port if none is given.
+`start.sh` uses `python3 -m http.server` and picks the next free port if none is given. The **or try a demo** button loads a public presentation to test the app.
 
-Open `http://localhost:8000`, paste your presentation URL and click **Go live**.
+## Development
 
-## Demo
-
-There's an **or try a demo** button that loads a public Genially presentation so you can test the app without needing one of your own.
-
-## Layout
+The code is plain ES modules in the repository root, one small module per concern, each with its `*.test.js` next to it:
 
 ```
 .
-├── index.html              # Entry point
-├── precam.js               # Logic: webcam, BodyPix, recording, state, UI
-├── precam.css              # Styles (Editorial Broadcast)
-├── sources.js              # Multi-source store (URL / local HTML) + cross-window sync
-├── localStore.js           # Local HTML files & folder bundles stored in OPFS
-├── recorder.js             # Recording (getDisplayMedia + MediaRecorder) + storage estimate
-├── sw.js                   # Service worker: PWA shell + serves local HTML bundles
-├── manifest.webmanifest    # PWA manifest
-├── icon.svg                # PWA icon
-├── panel.html / panel.js   # Multi-source control panel window
-├── start.sh                # Local static server
-├── *.test.js               # Vitest unit tests (sources, localStore, recorder)
-├── vendor/                 # Locally-served libraries and fonts
-│   ├── tf.min.js                 # TensorFlow.js 4.22.0
-│   ├── body-pix.min.js           # BodyPix 2.2.1
-│   └── fonts/                    # Fraunces variable (display)
-└── package.json
+├── index.html / precam.js / precam.css   # Main window: setup and presentation (precam.js wires the modules)
+├── panel.html / panel.js / panel.css     # Control panel window
+├── theme.js / i18n.js / messages.js      # Theme, interface language and its texts (es/en)
+├── sources.js / localStore.js            # Saved presentations and local files (OPFS)
+├── bundleRewrite.js / bundleBlobs.js     # Folder decks served isolated
+├── webcamLoop.js / segmentationLoader.js # Camera drawing and lazy BodyPix
+├── backgroundStore.js / backgroundPicker.js # Virtual backgrounds
+├── recorder.js / recordingFlow.js        # Recording
+├── sw.js / manifest.webmanifest          # PWA
+├── scripts/fetch-model.mjs               # Downloads the BodyPix weights (checked with sha256)
+└── vendor/                               # TensorFlow.js, BodyPix and fonts, served locally
 ```
-
-## Tests
 
 ```bash
-npm test            # Vitest unit tests (sources, local storage, recorder)
+npm test            # Vitest unit tests
 ```
+
+Pushing to `main` publishes the site with `.github/workflows/pages.yml`, which also downloads the model and writes `version.json` (shown in the footer).
 
 ## Refresh `vendor/`
 
@@ -136,15 +150,7 @@ curl -fsSL -o body-pix.min.js "https://cdn.jsdelivr.net/npm/@tensorflow-models/b
 
 BodyPix 2.x requires TensorFlow.js `^4.10.0`. If you bump one, double-check compatibility with the other.
 
-BodyPix 2.2.x's UMD bundle exposes its API as `window["body-pix"]`. The alias to `window.bodyPix` lives in an inline `<script>` right after the library tag in `index.html` — keep that in mind if you upgrade to a version that changes the UMD wrapper.
-
-## Privacy
-
-All video processing happens **in the browser**. The webcam feed never leaves your
-machine, and **recordings are written locally** (download / OPFS) — nothing is
-uploaded. Local HTML presentations are stored in the browser's OPFS, per origin.
-Remote presentations are loaded in an iframe directly from their original host.
-(Optional cloud upload is planned and will always be **opt-in**.)
+BodyPix 2.2.x's UMD bundle exposes its API as `window["body-pix"]`; `segmentationLoader.js` picks it up from there when it loads the scripts on demand.
 
 ## License
 
