@@ -6,9 +6,10 @@
     <meta name="color-scheme" content="light dark" />
     <meta
       name="description"
+      data-i18n-attr="content:doc.description"
       content="Overlay your webcam on top of any embedded presentation. Built for teachers, streamers and anyone tired of awkward Zoom collages."
     />
-    <title>Presentation Camera — yourself, on top of any slides</title>
+    <title data-i18n="doc.title">Presentation Camera — yourself, on top of any slides</title>
     <link rel="preload" href="vendor/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
     <script src="theme.js"></script>
     <link rel="stylesheet" href="precam.css" />
@@ -28,7 +29,7 @@
     <!-- Live status pill: visible only during presentation -->
     <div id="liveBadge" class="live-badge" hidden>
       <span class="live-dot" aria-hidden="true"></span>
-      <span class="live-text">LIVE</span>
+      <span class="live-text" data-i18n="live.badge">LIVE</span>
       <span class="live-time" id="liveTime" aria-live="off">00:00</span>
     </div>
 
@@ -39,6 +40,7 @@
         class="end-button"
         type="button"
         title="Grabar / detener (R)"
+        data-i18n-attr="title:rec.title"
       >
         <span class="rec-dot" aria-hidden="true"></span>
         <span class="end-button-label" id="recordLabel">REC</span>
@@ -49,6 +51,7 @@
         class="end-button end-button-ghost"
         type="button"
         title="Pantalla completa (F)"
+        data-i18n-attr="title:fullscreen.title"
       >
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" class="fs-icon-enter">
           <path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
@@ -56,7 +59,7 @@
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" class="fs-icon-exit">
           <path d="M6 2v4H2M10 2v4h4M6 14v-4H2M10 14v-4h4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span class="end-button-label">Fullscreen</span>
+        <span class="end-button-label" data-i18n="fullscreen.label">Fullscreen</span>
         <kbd class="kbd-hint">f</kbd>
       </button>
       <button
@@ -64,17 +67,18 @@
         class="end-button"
         type="button"
         title="Volver al setup"
+        data-i18n-attr="title:end.title"
       >
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
           <path d="M5 12L1 8l4-4M1 8h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
           <rect x="12" y="3" width="2" height="10" fill="currentColor"/>
         </svg>
-        <span class="end-button-label">End</span>
+        <span class="end-button-label" data-i18n="end.label">End</span>
       </button>
     </div>
 
     <!-- Botón discreto para volver a mostrar los controles cuando están ocultos -->
-    <button id="showChromeBtn" class="show-chrome-btn" type="button" hidden title="Mostrar controles (H)" aria-label="Mostrar controles">
+    <button id="showChromeBtn" class="show-chrome-btn" type="button" hidden title="Mostrar controles (H)" aria-label="Mostrar controles" data-i18n-attr="title:showChrome.title,aria-label:showChrome.label">
       <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
         <path d="M1 8s2.6-4.5 7-4.5S15 8 15 8s-2.6 4.5-7 4.5S1 8 1 8z" fill="none" stroke="currentColor" stroke-width="1.3"/>
         <circle cx="8" cy="8" r="2.2" fill="currentColor"/>
@@ -87,15 +91,16 @@
       class="video-container bottom-right frame size-m"
       hidden
     >
-      <canvas id="outputCanvas" width="640" height="480" role="img" aria-label="Vídeo del presentador"></canvas>
-      <video id="webcamVideo" playsinline muted aria-label="Vídeo del presentador"></video>
-      <div class="webcam-tools" role="toolbar" aria-label="Webcam controls">
+      <canvas id="outputCanvas" width="640" height="480" role="img" aria-label="Vídeo del presentador" data-i18n-attr="aria-label:webcam.videoLabel"></canvas>
+      <video id="webcamVideo" playsinline muted aria-label="Vídeo del presentador" data-i18n-attr="aria-label:webcam.videoLabel"></video>
+      <div class="webcam-tools" role="toolbar" aria-label="Webcam controls" data-i18n-attr="aria-label:webcam.tools">
         <button
           type="button"
           id="moveWebcamBtn"
           class="tool-btn"
           title="Cambiar posición (C)"
           aria-label="Cambiar posición"
+          data-i18n-attr="title:webcam.move.title,aria-label:webcam.move.label"
         >
           <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
             <rect x="0.5" y="0.5" width="13" height="13" rx="1" stroke="currentColor" stroke-width="1" fill="none" opacity=".35"/>
@@ -108,6 +113,7 @@
           class="tool-btn"
           title="Alternar fondo (M)"
           aria-label="Alternar estilo"
+          data-i18n-attr="title:webcam.style.title,aria-label:webcam.style.label"
         >
           <svg viewBox="0 0 14 14" width="13" height="13" aria-hidden="true">
             <path d="M7 1.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zm0 1.4v8.2A4.1 4.1 0 017 2.9z" fill="currentColor"/>
@@ -135,14 +141,14 @@
         <div class="topbar-meta">
           <span class="status-pill">
             <span class="status-pill-dot" aria-hidden="true"></span>
-            off air
+            <span data-i18n="topbar.offAir">off air</span>
           </span>
           <button id="langBtn" class="topbar-link lang-btn" type="button"></button>
           <button id="themeBtn" class="topbar-link theme-btn" type="button"></button>
-          <button id="helpBtn" class="topbar-link" type="button" title="Ayuda / primeros pasos">
+          <button id="helpBtn" class="topbar-link" type="button" title="Ayuda / primeros pasos" data-i18n="topbar.help" data-i18n-attr="title:topbar.helpTitle">
             ayuda ?
           </button>
-          <a class="topbar-link" href="https://github.com/manufosela/presentation-camera" target="_blank" rel="noopener">
+          <a class="topbar-link" href="https://github.com/manufosela/presentation-camera" target="_blank" rel="noopener" data-i18n="topbar.source">
             source ↗
           </a>
         </div>
@@ -151,13 +157,13 @@
       <article class="hero">
         <p class="hero-eyebrow">
           <span class="rule" aria-hidden="true"></span>
-          <span>a tiny broadcast booth</span>
+          <span data-i18n="hero.eyebrow">a tiny broadcast booth</span>
         </p>
         <h1 class="hero-title">
-          Put your face <em>on&nbsp;top</em><br />
-          of any&nbsp;slides.
+          <span data-i18n="hero.title1">Put your face</span> <em data-i18n="hero.titleEm">on top</em><br />
+          <span data-i18n="hero.title2">of any slides.</span>
         </h1>
-        <p class="hero-lede">
+        <p class="hero-lede" data-i18n="hero.lede">
           Embed a presentation, drop yourself into the corner,
           cut the background if you want. Press one key to move,
           another to vanish. Everything stays in your browser.
@@ -167,7 +173,7 @@
       <section class="panel" aria-labelledby="panel-source">
         <header class="panel-header">
           <span class="panel-num">01</span>
-          <h2 class="panel-title" id="panel-source">Source slides</h2>
+          <h2 class="panel-title" id="panel-source" data-i18n="sources.title">Source slides</h2>
           <span class="panel-rule" aria-hidden="true"></span>
         </header>
         <div class="url-field">
@@ -182,7 +188,7 @@
             inputmode="url"
           />
           <button id="exampleButton" type="button" class="ghost-button">
-            <span>or try a demo</span>
+            <span data-i18n="sources.demo">or try a demo</span>
             <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true">
               <path d="M2 8L8 2M3 2h5v5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -194,24 +200,24 @@
             <svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true">
               <path d="M7 1v8M4 6l3 3 3-3M2 12h10" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span>Cargar HTML local (un .html)</span>
+            <span data-i18n="sources.loadHtml">Cargar HTML local (un .html)</span>
           </button>
           <input id="localHtmlInput" type="file" accept=".html,text/html" hidden />
           <button id="loadLocalBundleBtn" type="button" class="ghost-button ghost-button-wide">
             <svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true">
               <path d="M1.5 4.5h4l1.5 1.5h5.5v6h-11z" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
             </svg>
-            <span>Cargar carpeta HTML (con assets)</span>
+            <span data-i18n="sources.loadFolder">Cargar carpeta HTML (con assets)</span>
           </button>
-          <p class="panel-cta-help">
-            Un único <code>.html</code> autocontenido, o una <strong>carpeta</strong> exportada (reveal/impress/slides.to con <code>index.html</code> + assets). Se guarda en tu navegador, no se sube a ningún sitio.
+          <p class="panel-cta-help" data-i18n="sources.localHelp">
+            Un único .html autocontenido, o una carpeta exportada (reveal, impress, slides.to) con su index.html y sus recursos. Se guarda en tu navegador: no se sube a ningún sitio.
           </p>
         </div>
 
         <div class="saved-sources">
-          <p class="control-label" id="savedSourcesTitle">Presentaciones guardadas <span id="savedSourcesCount"></span></p>
+          <p class="control-label" id="savedSourcesTitle"><span data-i18n="sources.saved">Presentaciones guardadas</span> <span id="savedSourcesCount"></span></p>
           <ol class="saved-sources-list" id="savedSources" aria-labelledby="savedSourcesTitle"></ol>
-          <p class="panel-cta-help" id="savedSourcesEmpty">Aún no hay ninguna. Pega una URL o carga un HTML local.</p>
+          <p class="panel-cta-help" id="savedSourcesEmpty" data-i18n="sources.savedEmpty">Aún no hay ninguna. Pega una URL o carga un HTML local.</p>
         </div>
 
         <div class="panel-cta">
@@ -220,10 +226,10 @@
               <rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/>
               <path d="M5 5h5M5 7h3M5 9h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
             </svg>
-            <span>Open control panel</span>
+            <span data-i18n="sources.openPanel">Open control panel</span>
             <kbd class="kbd-hint">\</kbd>
           </button>
-          <p class="panel-cta-help">
+          <p class="panel-cta-help" data-i18n="sources.panelHelp">
             Otra ventana del navegador con tus presentaciones en pequeño. Mantenla en otro monitor y comparte solo ésta en Zoom/Meet/Teams.
           </p>
         </div>
