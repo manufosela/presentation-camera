@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   CAMERA_KEY,
   isDebugEnabled,
+  loadBackgroundId,
   loadCameraId,
+  saveBackgroundId,
   loadSingleKeyShortcuts,
   saveCameraId,
   saveSingleKeyShortcuts,
@@ -46,6 +48,20 @@ describe('cámara elegida — en almacenamiento local, no en la URL', () => {
 
   it('sin preferencia guardada → null', () => {
     expect(loadCameraId(memoryStorage())).toBeNull();
+  });
+});
+
+describe('fondo elegido para el recorte', () => {
+  it('sin elección guardada → null (sin fondo)', () => {
+    expect(loadBackgroundId(memoryStorage())).toBeNull();
+  });
+
+  it('guarda y lee el id; null lo borra', () => {
+    const storage = memoryStorage();
+    saveBackgroundId(storage, 'a.png');
+    expect(loadBackgroundId(storage)).toBe('a.png');
+    saveBackgroundId(storage, null);
+    expect(loadBackgroundId(storage)).toBeNull();
   });
 });
 
