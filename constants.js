@@ -16,4 +16,5 @@ export const STORAGE_KEYS = Object.freeze({
   singleKeyShortcuts: 'cam.singleKeyShortcuts.v1',
   background: 'cam.background.v1',
   theme: 'cam.theme.v1', // también en theme.js (script clásico, no puede importar)
+  lang: 'cam.lang.v1',
 });
