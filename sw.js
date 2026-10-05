@@ -50,6 +50,7 @@ const SHELL = [
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',
+  'theme.js',
   'panel.html',
   'panel.css',
   'panel.js',
