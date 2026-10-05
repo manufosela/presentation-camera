@@ -76,6 +76,7 @@
   --live-soft:    oklch(0.65 0.235 25 / .18);
 
   --focus-ring:   oklch(0.82 0.16 70 / .55);
+  --on-accent:    oklch(0.18 0.030 60);    /* texto sobre el ámbar */
 
   --serif: 'Fraunces', 'Iowan Old Style', 'Hoefler Text', 'Apple Garamond',
            'Big Caslon', Georgia, serif;
@@ -105,6 +106,54 @@
   --ease-out:  cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in:   cubic-bezier(0.4, 0, 1, 1);
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+
+  color-scheme: dark;
+}
+
+/* Tema claro (CAM-TSK-0065): theme.js fija data-theme. Mismos tokens, papel
+   cálido y tinta oscura; el ámbar se oscurece para leerse sobre claro. */
+:root[data-theme="light"] {
+  --bg-deep:      oklch(0.955 0.012 80);
+  --bg-base:      oklch(0.975 0.010 80);
+  --bg-raised:    oklch(0.990 0.006 80);
+  --bg-elevated:  oklch(1 0 0);
+  --bg-input:     oklch(0.930 0.014 75);
+
+  --line-soft:    oklch(0.87 0.016 70);
+  --line:         oklch(0.76 0.022 65);
+  --line-bright:  oklch(0.60 0.040 60);
+
+  --ink-strong:   oklch(0.20 0.020 55);
+  --ink-body:     oklch(0.30 0.020 55);
+  --ink-muted:    oklch(0.40 0.020 55);
+  --ink-faint:    oklch(0.45 0.018 55);
+
+  --accent:       oklch(0.50 0.140 55);
+  --accent-deep:  oklch(0.44 0.150 50);
+  --accent-soft:  oklch(0.50 0.140 55 / .12);
+  --accent-line:  oklch(0.50 0.140 55 / .38);
+  --on-accent:    oklch(0.99 0.006 80);
+
+  --live:         oklch(0.55 0.220 25);
+  --live-soft:    oklch(0.55 0.220 25 / .14);
+
+  --focus-ring:   oklch(0.52 0.160 58 / .55);
+
+  --shadow-edge: 0 1px 0 oklch(1 0 0 / .7) inset, 0 0 0 1px oklch(0 0 0 / .06) inset;
+  --shadow-low:  0 1px 2px oklch(0 0 0 / .08), 0 4px 12px -4px oklch(0 0 0 / .12);
+  --shadow-mid:  0 8px 24px -8px oklch(0 0 0 / .16), 0 2px 4px oklch(0 0 0 / .08);
+  --shadow-high: 0 24px 56px -16px oklch(0 0 0 / .20),
+                 0 8px 20px -8px oklch(0 0 0 / .10),
+                 0 0 0 1px oklch(0 0 0 / .04) inset;
+
+  --grain: radial-gradient(120% 80% at 20% 0%,
+                            oklch(0.93 0.040 75 / .55),
+                            transparent 55%),
+           radial-gradient(80% 60% at 100% 100%,
+                            oklch(0.92 0.050 40 / .35),
+                            transparent 60%);
+
+  color-scheme: light;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────── */
@@ -925,7 +974,7 @@ kbd {
   gap: 1rem;
   padding: 1rem 1.5rem 1rem 1.7rem;
   background: var(--accent);
-  color: oklch(0.18 0.030 60);
+  color: var(--on-accent);
   border-radius: var(--radius-md);
   font-family: var(--serif);
   font-style: italic;

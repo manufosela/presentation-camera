@@ -25,14 +25,20 @@
   };
 
   let choice = readChoice();
+  const listeners = [];
   const resolve = () => choice ?? (systemDark.matches ? 'dark' : 'light');
-  const apply = () => { root.dataset.theme = resolve(); };
+  const apply = () => {
+    root.dataset.theme = resolve();
+    listeners.forEach(listener => listener(root.dataset.theme));
+  };
 
   apply();
   systemDark.addEventListener('change', apply);
 
   window.camTheme = {
     current: resolve,
+    /** Avisa de cada cambio de tema (del usuario o del sistema). */
+    onChange: listener => { listeners.push(listener); },
     toggle() {
       choice = resolve() === 'dark' ? 'light' : 'dark';
       saveChoice(choice);

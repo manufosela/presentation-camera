@@ -19,8 +19,10 @@ import { SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startPanelLink } from './linkChannel.js';
 import { notesView } from './deckNotes.js';
 import { formatVersion, loadVersion } from './appVersion.js';
+import { bindThemeToggle } from './themeToggle.js';
 
 const sources = createSourcesStore();
+bindThemeToggle(document.getElementById('themeBtn'));
 const linkStatus = document.getElementById('linkStatus');
 const linkLabel = linkStatus?.querySelector('.panel-link-label');
 const hint = document.getElementById('sourcesHint');

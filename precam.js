@@ -16,6 +16,7 @@ import { loadBodyPixLibrary } from './segmentationLoader.js';
 import { needsCanvasLoop, toggledStyle, usesCamera } from './renderMode.js';
 import { listBackgrounds, readBackground, removeBackground, saveBackground } from './backgroundStore.js';
 import { renderBackgroundPicker } from './backgroundPicker.js';
+import { bindThemeToggle } from './themeToggle.js';
 import {
   isDebugEnabled,
   loadBackgroundId,
@@ -38,6 +39,7 @@ import {
 } from './queryState.js';
 
 const sources = createSourcesStore();
+bindThemeToggle(document.getElementById('themeBtn'));
 const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna con la ✕ en «Presentaciones guardadas», debajo de los botones de cargar.`;
 
 // ─── BroadcastChannel hacia el panel de control ──────────────
