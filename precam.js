@@ -978,7 +978,7 @@ async function populateCameraSelect() {
 
 async function requestVideoStream() {
   if (!navigator.mediaDevices?.getUserMedia) {
-    throw new Error('Tu navegador necesita un contexto seguro (https o localhost) para usar la cámara.');
+    throw new Error(t('error.insecureContext'));
   }
   const deviceId = currentDeviceId;
   if (deviceId) {

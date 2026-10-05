@@ -152,4 +152,22 @@ export const MESSAGES = {
   'bg.upload': { es: '+ Subir imagen', en: '+ Upload image' },
   'cameraSelect.auto': { es: 'Automática', en: 'Automatic' },
   'cameraSelect.numbered': { es: 'Cámara {n}', en: 'Camera {n}' },
+
+  // Textos y errores de los módulos
+  'version.dev': { es: 'Versión de desarrollo (sin publicar)', en: 'Development version (unpublished)' },
+  'theme.toLight': { es: 'Cambiar a tema claro', en: 'Switch to light theme' },
+  'theme.toDark': { es: 'Cambiar a tema oscuro', en: 'Switch to dark theme' },
+  'error.noOpfs': { es: 'Tu navegador no soporta almacenamiento local (OPFS).', en: 'Your browser does not support local storage (OPFS).' },
+  'error.bgType': { es: 'El fondo tiene que ser una imagen PNG, JPEG o WebP.', en: 'The background must be a PNG, JPEG or WebP image.' },
+  'error.bgSize': { es: 'La imagen de fondo no puede pasar de 15 MB.', en: 'The background image cannot be larger than 15 MB.' },
+  'error.invalidHtml': { es: 'Fichero HTML no válido.', en: 'Invalid HTML file.' },
+  'error.invalidFolder': { es: 'Carpeta no válida.', en: 'Invalid folder.' },
+  'error.noIndex': { es: 'La carpeta no contiene un index.html en su raíz.', en: 'The folder has no index.html at its root.' },
+  'error.noScreenCapture': { es: 'Tu navegador no permite capturar la pantalla para grabar.', en: 'Your browser cannot capture the screen to record.' },
+  'error.recording': { es: 'Error de grabación.', en: 'Recording error.' },
+  'error.insecureContext': { es: 'Tu navegador necesita un contexto seguro (https o localhost) para usar la cámara.', en: 'Your browser needs a secure context (https or localhost) to use the camera.' },
+  'recording.notStarted': { es: 'Grabación no iniciada. Puedes activarla con el botón REC.', en: 'Recording not started. You can start it with the REC button.' },
+  'bundle.missingOne': { es: 'Al deck de la carpeta le falta 1 recurso: {names}. Puede verse incompleto.', en: 'The folder deck is missing 1 resource: {names}. It may look incomplete.' },
+  'bundle.missingMany': { es: 'Al deck de la carpeta le faltan {count} recursos: {names}{rest}. Puede verse incompleto.', en: 'The folder deck is missing {count} resources: {names}{rest}. It may look incomplete.' },
+  'bundle.andMore': { es: ' y {count} más', en: ' and {count} more' },
 };

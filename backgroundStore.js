@@ -7,6 +7,8 @@
  * ordenar; OPFS no garantiza el orden) y conserva el nombre original.
  */
 
+import { t } from './i18n.js';
+
 const DIR = 'backgrounds';
 export const MAX_BACKGROUND_BYTES = 15 * 1024 * 1024;
 const EXTENSIONS = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' };
@@ -14,7 +16,7 @@ const EXTENSIONS = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'web
 const ID_PATTERN = /^\d{13}-[\da-f-]{36}~[^/\\]*\.(?:png|jpg|webp)$/;
 
 const defaultRoot = () => {
-  if (!navigator.storage?.getDirectory) throw new Error('Tu navegador no soporta almacenamiento local (OPFS).');
+  if (!navigator.storage?.getDirectory) throw new Error(t('error.noOpfs'));
   return navigator.storage.getDirectory();
 };
 
@@ -35,8 +37,8 @@ const nameOf = id => decodeURIComponent(id.slice(id.indexOf('~') + 1, id.lastInd
 /** Guarda la imagen y devuelve { id, name }. Lanza si no es válida. */
 export async function saveBackground(file, getRoot = defaultRoot) {
   const ext = EXTENSIONS[file?.type];
-  if (!ext) throw new Error('El fondo tiene que ser una imagen PNG, JPEG o WebP.');
-  if (file.size > MAX_BACKGROUND_BYTES) throw new Error('La imagen de fondo no puede pasar de 15 MB.');
+  if (!ext) throw new Error(t('error.bgType'));
+  if (file.size > MAX_BACKGROUND_BYTES) throw new Error(t('error.bgSize'));
   const baseName = file.name.replace(/\.[^.]+$/, '').slice(0, 60);
   const id = `${String(Date.now()).padStart(13, '0')}-${crypto.randomUUID()}~${encodeURIComponent(baseName)}.${ext}`;
   const dir = await getDir(getRoot, true);

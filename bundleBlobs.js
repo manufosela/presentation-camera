@@ -10,6 +10,7 @@
  */
 
 import { rewriteCssRefs, rewriteHtmlRefs } from './bundleRewrite.js';
+import { t } from './i18n.js';
 
 // Sin el tipo correcto el navegador ignora una hoja de estilos (y un SVG no se pinta).
 const MIME = {
@@ -29,9 +30,9 @@ export function missingResourcesMessage(unresolved) {
   if (unresolved.length === 0) return null;
   const SHOWN = 3;
   const names = unresolved.slice(0, SHOWN).join(', ');
-  const rest = unresolved.length > SHOWN ? ` y ${unresolved.length - SHOWN} más` : '';
-  const count = unresolved.length === 1 ? 'le falta 1 recurso' : `le faltan ${unresolved.length} recursos`;
-  return `Al deck de la carpeta ${count}: ${names}${rest}. Puede verse incompleto.`;
+  if (unresolved.length === 1) return t('bundle.missingOne', { names });
+  const rest = unresolved.length > SHOWN ? t('bundle.andMore', { count: unresolved.length - SHOWN }) : '';
+  return t('bundle.missingMany', { count: unresolved.length, names, rest });
 }
 
 /** data: URI en base64 de un Blob. */
@@ -47,7 +48,7 @@ export async function blobToDataUrl(blob) {
 
 export async function buildBundleBlobs(files, { createIndexUrl, wrapIndex = html => html, toDataUrl = blobToDataUrl }) {
   const index = files.get('index.html');
-  if (!index) throw new Error('La carpeta no contiene un index.html en su raíz.');
+  if (!index) throw new Error(t('error.noIndex'));
 
   // Los CSS se leen antes: la reescritura (y su lookup) es síncrona.
   const cssTexts = new Map();

@@ -1,5 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+// @vitest-environment happy-dom
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRecordingFlow } from './recordingFlow.js';
+import { setLang } from './i18n.js';
+
+beforeEach(() => setLang('es', null));
 
 // Grabación falsa: startRecording resuelve un controlador cuyo stop() dispara
 // el onStop que la app le pasó, como hace recorder.js.

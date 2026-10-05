@@ -8,8 +8,7 @@
  */
 
 import { buildRecordingFilename, extFromMime } from './recorder.js';
-
-export const NOT_STARTED_MESSAGE = 'Grabación no iniciada. Puedes activarla con el botón REC.';
+import { t } from './i18n.js';
 
 export function createRecordingFlow({
   startRecording,
@@ -37,7 +36,7 @@ export function createRecordingFlow({
         },
         onError: error => {
           logger.error(error);
-          showStatus(error.message || 'Error de grabación.', true);
+          showStatus(error.message || t('error.recording'), true);
         },
       });
       onChange();
@@ -48,7 +47,7 @@ export function createRecordingFlow({
       logger.warn('Grabación no iniciada', error);
       controller = null;
       onChange();
-      showStatus(NOT_STARTED_MESSAGE, false);
+      showStatus(t('recording.notStarted'), false);
     }
   }
 
