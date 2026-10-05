@@ -62,6 +62,10 @@ function fakeCanvas() {
     clearRect: () => ops.push('clear'),
     drawImage: () => ops.push(`draw:${ctx.globalCompositeOperation}`),
     putImageData: () => ops.push('mask'),
+    save: () => ops.push('save'),
+    restore: () => ops.push('restore'),
+    translate: (x, y) => ops.push(`translate:${x},${y}`),
+    scale: (x, y) => ops.push(`scale:${x},${y}`),
   };
   return { width: 0, height: 0, getContext: () => ctx, ops };
 }
@@ -115,7 +119,12 @@ describe('createCutoutRenderer — un frame del modo recorte', () => {
     canvas.ops.length = 0;
     const draw = vi.spyOn(canvas.getContext(), 'drawImage');
     renderer.drawFrame();
-    expect(canvas.ops).toEqual(['clear', 'mask', 'draw:source-in', 'draw:destination-over']);
+    // La cámara se muestra en espejo (CSS scaleX(-1)): el fondo se pinta volteado
+    // para que, tras el espejo, se lea al derecho (CAM-BUG-0020).
+    expect(canvas.ops).toEqual([
+      'clear', 'mask', 'draw:source-in',
+      'save', 'translate:640,0', 'scale:-1,1', 'draw:destination-over', 'restore',
+    ]);
     expect(draw).toHaveBeenLastCalledWith(background, 200, 0, 1200, 900, 0, 0, 640, 480);
     expect(canvas.getContext().globalCompositeOperation).toBe('source-over');
   });
