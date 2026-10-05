@@ -48,6 +48,8 @@ const SHELL = [
   'bundleRewrite.js',
   'bundleBlobs.js',
   'recordingFlow.js',
+  'backgroundStore.js',
+  'backgroundPicker.js',
   'panel.html',
   'panel.css',
   'panel.js',
