@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MESSAGES } from './messages.js';
 import { STORAGE_KEYS } from './constants.js';
-import { LANGS, detectLang, getLang, onLangChange, setLang, t, translateDom } from './i18n.js';
+import { LANGS, detectLang, getLang, initI18n, onLangChange, setLang, t, translateDom } from './i18n.js';
 
 function memoryStorage(initial = {}) {
   const map = new Map(Object.entries(initial));
@@ -71,6 +71,34 @@ describe('translateDom — textos marcados en el HTML', () => {
     expect(button.textContent).toBe(MESSAGES['lang.switch'].en);
     expect(button.getAttribute('aria-label')).toBe(MESSAGES['lang.switchLabel'].en);
     expect(button.title).toBe(MESSAGES['lang.switchLabel'].en);
+  });
+});
+
+describe('initI18n — arranque en la app y en el panel', () => {
+  it('aplica el idioma detectado sin guardarlo y traduce la página', () => {
+    document.body.innerHTML = '<button id="langBtn"></button>';
+    const storage = memoryStorage();
+    initI18n({ storage, languages: ['en-US'], button: document.getElementById('langBtn') });
+    expect(getLang()).toBe('en');
+    expect(storage.map.has(STORAGE_KEYS.lang)).toBe(false);
+    expect(document.getElementById('langBtn').textContent).toBe(MESSAGES['lang.switch'].en);
+  });
+
+  it('el botón cambia al otro idioma, lo recuerda y retraduce', () => {
+    document.body.innerHTML = '<button id="langBtn"></button>';
+    const storage = memoryStorage();
+    initI18n({ storage, languages: ['es-ES'], button: document.getElementById('langBtn') });
+    document.getElementById('langBtn').click();
+    expect(getLang()).toBe('en');
+    expect(storage.map.get(STORAGE_KEYS.lang)).toBe('en');
+    expect(document.getElementById('langBtn').getAttribute('aria-label')).toBe(MESSAGES['lang.switchLabel'].en);
+  });
+
+  it('si otra ventana cambia el idioma (evento storage), esta lo sigue', () => {
+    document.body.innerHTML = '<button id="langBtn"></button>';
+    initI18n({ storage: memoryStorage(), languages: ['es-ES'], button: document.getElementById('langBtn') });
+    window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEYS.lang, newValue: 'en' }));
+    expect(getLang()).toBe('en');
   });
 });
 
