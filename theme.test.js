@@ -51,6 +51,15 @@ describe('theme.js — tema antes de pintar', () => {
     expect(api.current()).toBe('light');
   });
 
+  it('avisa de cada cambio de tema, también los que vienen del sistema', () => {
+    const { api, systemChanges } = run({ systemDark: true });
+    const seen = [];
+    api.onChange(theme => seen.push(theme));
+    systemChanges(false);
+    api.toggle();
+    expect(seen).toEqual(['light', 'dark']);
+  });
+
   it('un valor guardado no válido se ignora (sigue al sistema)', () => {
     expect(run({ stored: 'sepia', systemDark: false }).root.dataset.theme).toBe('light');
   });
