@@ -111,7 +111,6 @@ Hay un botón **or try a demo** que carga una presentación pública de Genially
 ├── manifest.webmanifest    # Manifiesto PWA
 ├── icon.svg                # Icono PWA
 ├── panel.html / panel.js   # Ventana del panel de control multi-fuente
-├── firebase.json           # Config de hosting (preparado; producción: GitHub Pages)
 ├── start.sh                # Servidor estático local
 ├── *.test.js               # Tests unitarios Vitest (sources, localStore, recorder)
 ├── vendor/                 # Librerías y fuentes servidas localmente
