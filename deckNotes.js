@@ -8,6 +8,8 @@
  * carga recursos) y las notas se devuelven como texto plano.
  */
 
+import { t } from './i18n.js';
+
 const BLOCK_ELEMENTS = 'p, div, li, h1, h2, h3, h4, h5, h6, blockquote, pre, tr';
 
 // Texto plano de un nodo: un salto por bloque o <br>, espacios colapsados.
@@ -48,19 +50,13 @@ export function parseDeckNotes(html) {
  * principal (o null si aún no ha llegado ninguno).
  */
 export function notesView(update) {
-  if (!update) return { position: '', text: 'Las notas aparecerán aquí al empezar la presentación.', empty: true };
-  if (!update.local) {
-    return {
-      position: '',
-      text: 'Presentación publicada: pulsa S en la ventana principal para abrir las notas de reveal.js.',
-      empty: true,
-    };
-  }
+  if (!update) return { position: '', text: t('notes.waiting'), empty: true };
+  if (!update.local) return { position: '', text: t('notes.published'), empty: true };
   const vertical = update.v > 0 ? `.${update.v + 1}` : '';
-  const position = `Slide ${update.h + 1}${vertical}`;
+  const position = t('notes.position', { n: `${update.h + 1}${vertical}` });
   return update.text
     ? { position, text: update.text, empty: false }
-    : { position, text: 'Esta slide no tiene notas.', empty: true };
+    : { position, text: t('notes.none'), empty: true };
 }
 
 /** Nota de la slide [h][v], o cadena vacía si no existe. */

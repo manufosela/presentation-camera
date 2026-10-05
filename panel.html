@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
-    <title>CAM Control · presentation·camera</title>
+    <title data-i18n="panel.docTitle">CAM Control · presentation·camera</title>
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="preload" href="vendor/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin />
     <script src="theme.js"></script>
@@ -26,20 +26,20 @@
         <button id="themeBtn" class="theme-btn" type="button"></button>
         <span class="panel-link-status" id="linkStatus" data-state="waiting">
           <span class="panel-link-dot" aria-hidden="true"></span>
-          <span class="panel-link-label">linking…</span>
+          <span class="panel-link-label" data-i18n="panel.linking">linking…</span>
         </span>
       </div>
     </header>
 
     <main class="panel-main">
       <section class="panel-section panel-notes" aria-labelledby="notesTitle">
-        <h2 class="panel-section-title" id="notesTitle">Notas <span class="panel-notes-position" id="notesPosition"></span></h2>
+        <h2 class="panel-section-title" id="notesTitle"><span data-i18n="panel.notes">Notas</span> <span class="panel-notes-position" id="notesPosition"></span></h2>
         <p class="panel-notes-text" id="notesText" aria-live="polite"></p>
       </section>
 
       <section class="panel-section">
-        <h2 class="panel-section-title">Sources</h2>
-        <p class="panel-section-hint" id="sourcesHint">
+        <h2 class="panel-section-title" data-i18n="panel.sources">Sources</h2>
+        <p class="panel-section-hint" id="sourcesHint" data-i18n="panel.empty">
           Aún no hay presentaciones. Añade una desde la ventana principal o pega su URL aquí abajo.
         </p>
 
@@ -48,6 +48,7 @@
             id="panelAddInput"
             type="url"
             aria-label="URL de la presentación"
+            data-i18n-attr="aria-label:panel.urlLabel"
             class="panel-add-input"
             placeholder="https://…"
             autocomplete="off"
@@ -58,15 +59,15 @@
             <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
               <path d="M7 1.5v11M1.5 7h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
             </svg>
-            <span>Add</span>
+            <span data-i18n="panel.add">Add</span>
           </button>
         </div>
 
-        <ol class="panel-sources" id="panelSources" aria-label="Lista de presentaciones"></ol>
+        <ol class="panel-sources" id="panelSources" aria-label="Lista de presentaciones" data-i18n-attr="aria-label:panel.list"></ol>
       </section>
 
       <footer class="panel-foot">
-        <p class="panel-foot-note">
+        <p class="panel-foot-note" data-i18n="panel.footNote">
           Esta ventana se mantiene en segundo plano para conservar el estado interno de cada presentación.
           Comparte solo la ventana principal en Zoom/Meet/Teams.
         </p>
