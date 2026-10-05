@@ -45,6 +45,23 @@ export function t(key, params = {}) {
   return entry[current].replaceAll(/\{(\w+)\}/g, (match, name) => String(params[name] ?? match));
 }
 
+/**
+ * Arranque común de la app y el panel: idioma detectado (sin guardarlo: solo
+ * se guarda al elegirlo), traducción de la página, botón ES/EN y
+ * sincronización con la otra ventana a través del evento storage.
+ */
+export function initI18n({ storage, languages, button }) {
+  setLang(detectLang(storage, languages), null);
+  button.dataset.i18n = 'lang.switch';
+  button.dataset.i18nAttr = 'aria-label:lang.switchLabel,title:lang.switchLabel';
+  button.addEventListener('click', () => setLang(current === 'es' ? 'en' : 'es', storage));
+  onLangChange(() => translateDom(document));
+  window.addEventListener('storage', event => {
+    if (event.key === STORAGE_KEYS.lang && LANGS.includes(event.newValue)) setLang(event.newValue, null);
+  });
+  translateDom(document);
+}
+
 /** Traduce los elementos marcados con data-i18n / data-i18n-attr. */
 export function translateDom(root = document) {
   for (const element of root.querySelectorAll('[data-i18n]')) {

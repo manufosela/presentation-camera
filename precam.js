@@ -17,6 +17,7 @@ import { needsCanvasLoop, toggledStyle, usesCamera } from './renderMode.js';
 import { listBackgrounds, readBackground, removeBackground, saveBackground } from './backgroundStore.js';
 import { renderBackgroundPicker } from './backgroundPicker.js';
 import { bindThemeToggle } from './themeToggle.js';
+import { initI18n } from './i18n.js';
 import {
   isDebugEnabled,
   loadBackgroundId,
@@ -40,6 +41,7 @@ import {
 
 const sources = createSourcesStore();
 bindThemeToggle(document.getElementById('themeBtn'));
+initI18n({ storage: window.localStorage, languages: navigator.languages, button: document.getElementById('langBtn') });
 const SOURCES_FULL_MESSAGE = `Ya tienes ${MAX_SOURCES} presentaciones guardadas, el máximo. Quita alguna con la ✕ en «Presentaciones guardadas», debajo de los botones de cargar.`;
 
 // ─── BroadcastChannel hacia el panel de control ──────────────

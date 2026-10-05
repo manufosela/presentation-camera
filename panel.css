@@ -45,14 +45,15 @@
 }
 
 .panel-bar-right { display: inline-flex; align-items: center; gap: 0.6rem; }
-.theme-btn {
+.theme-btn, .lang-btn {
   min-width: 28px;
   min-height: 28px;
   border-radius: 50%;
   color: var(--ink-muted);
 }
-.theme-btn:hover { color: var(--ink-strong); }
-.theme-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lang-btn { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; }
+.theme-btn:hover, .lang-btn:hover { color: var(--ink-strong); }
+.theme-btn:focus-visible, .lang-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .panel-link-status {
   display: inline-flex;

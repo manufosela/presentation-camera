@@ -20,9 +20,11 @@ import { sourceIndexForKey, startPanelLink } from './linkChannel.js';
 import { notesView } from './deckNotes.js';
 import { formatVersion, loadVersion } from './appVersion.js';
 import { bindThemeToggle } from './themeToggle.js';
+import { initI18n } from './i18n.js';
 
 const sources = createSourcesStore();
 bindThemeToggle(document.getElementById('themeBtn'));
+initI18n({ storage: window.localStorage, languages: navigator.languages, button: document.getElementById('langBtn') });
 const linkStatus = document.getElementById('linkStatus');
 const linkLabel = linkStatus?.querySelector('.panel-link-label');
 const hint = document.getElementById('sourcesHint');

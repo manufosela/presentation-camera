@@ -52,6 +52,8 @@ const SHELL = [
   'backgroundPicker.js',
   'theme.js',
   'themeToggle.js',
+  'i18n.js',
+  'messages.js',
   'panel.html',
   'panel.css',
   'panel.js',
