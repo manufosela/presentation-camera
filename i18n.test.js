@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MESSAGES } from './messages.js';
 import { STORAGE_KEYS } from './constants.js';
@@ -109,6 +109,14 @@ describe('HTML — toda clave marcada existe en el catálogo', () => {
       ...[...html.matchAll(/data-i18n="([^"]+)"/g)].map(([, key]) => key),
       ...[...html.matchAll(/data-i18n-attr="([^"]+)"/g)].flatMap(([, pairs]) => pairs.split(',').map(pair => pair.split(':')[1].trim())),
     ];
+    expect(keys.filter(key => !(key in MESSAGES))).toEqual([]);
+  });
+});
+
+describe('JS — toda clave pedida con t() existe en el catálogo', () => {
+  const sources = readdirSync('.').filter(name => name.endsWith('.js') && !name.endsWith('.test.js'));
+  it.each(sources)('%s', file => {
+    const keys = [...readFileSync(file, 'utf8').matchAll(/\bt\('([^']+)'/g)].map(([, key]) => key);
     expect(keys.filter(key => !(key in MESSAGES))).toEqual([]);
   });
 });

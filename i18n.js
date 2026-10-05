@@ -4,7 +4,7 @@
  * Sin elección guardada se usa el del navegador (español si empieza por "es",
  * si no inglés). Los textos del HTML se marcan con data-i18n="clave" (texto) y
  * data-i18n-attr="atributo:clave,..." (aria-label, title, placeholder…); los
- * del JS piden t('clave', { parámetros }). Una clave que no existe lanza: un
+ * del JS los piden con t(clave, { parámetros }). Una clave que no existe lanza: un
  * texto sin traducir es un fallo, no se muestra la clave en silencio.
  */
 
