@@ -111,7 +111,6 @@ There's an **or try a demo** button that loads a public Genially presentation so
 ├── manifest.webmanifest    # PWA manifest
 ├── icon.svg                # PWA icon
 ├── panel.html / panel.js   # Multi-source control panel window
-├── firebase.json           # Hosting config (prepared; production is GitHub Pages)
 ├── start.sh                # Local static server
 ├── *.test.js               # Vitest unit tests (sources, localStore, recorder)
 ├── vendor/                 # Locally-served libraries and fonts

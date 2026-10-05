@@ -17,9 +17,6 @@ node_modules/
 # Modelo de BodyPix: lo descarga npm run fetch-model (y el workflow al publicar)
 models/
 
-# Firebase
-.firebase/
-
 # Karajan / herramientas locales
 .kj/
 .kj-ready.json
