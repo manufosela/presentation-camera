@@ -17,6 +17,7 @@ describe('constants — contrato entre ventanas y con el almacenamiento', () => 
       singleKeyShortcuts: 'cam.singleKeyShortcuts.v1',
       background: 'cam.background.v1',
       theme: 'cam.theme.v1',
+      lang: 'cam.lang.v1',
     });
   });
 
