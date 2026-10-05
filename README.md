@@ -8,7 +8,7 @@ Put your **webcam on top of any presentation** and present or record with your s
 
 ## What you can do
 
-- **Present any slides**: a public URL (Genially, Google Slides, Canva, a published reveal.js…), a **local `.html`** file or a **local folder** exported from reveal.js/impress (with its `index.html` and assets).
+- **Present any slides**: a public URL (Genially, Google Slides, Canva, a published reveal.js…, as long as that site allows embedding), a **local `.html`** file or a **local folder** exported from reveal.js/impress (with its `index.html` and assets).
 - **Keep several presentations** saved and switch between them with `1`–`9`.
 - **Place your camera** in any corner, in three sizes, as a **framed** card, as a **cut-out** without background, or **with a virtual background** (your own images, saved for next time). Or choose **No camera** to record only the slides and your voice.
 - **Record the whole session** (slides, camera, microphone and tab sound) to a `.webm` that downloads when you stop. The app controls hide themselves so they don't appear in the video.
