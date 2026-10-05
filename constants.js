@@ -14,4 +14,5 @@ export const STORAGE_KEYS = Object.freeze({
   autoRecord: 'cam.autoRecord.v1',
   camera: 'cam.camera.v1',
   singleKeyShortcuts: 'cam.singleKeyShortcuts.v1',
+  background: 'cam.background.v1',
 });

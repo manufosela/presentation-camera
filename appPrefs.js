@@ -26,6 +26,18 @@ export function saveCameraId(storage, deviceId) {
   else storage.removeItem(CAMERA_KEY);
 }
 
+// Fondo elegido para el recorte (id de backgroundStore); null = sin fondo.
+const BACKGROUND_KEY = STORAGE_KEYS.background;
+
+export function loadBackgroundId(storage) {
+  return storage.getItem(BACKGROUND_KEY);
+}
+
+export function saveBackgroundId(storage, id) {
+  if (id) storage.setItem(BACKGROUND_KEY, id);
+  else storage.removeItem(BACKGROUND_KEY);
+}
+
 // Atajos de una sola tecla (C, M, R, F, H, S, \, 1-9): desactivables para que
 // el dictado por voz no dispare acciones (WCAG 2.1.4). Activados por defecto.
 const SINGLE_KEY_SHORTCUTS_KEY = STORAGE_KEYS.singleKeyShortcuts;
