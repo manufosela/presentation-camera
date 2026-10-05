@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest';
+// @vitest-environment happy-dom
+import { beforeEach, describe, expect, it } from 'vitest';
 import { formatVersion, loadVersion, parseVersion } from './appVersion.js';
+import { setLang } from './i18n.js';
+
+beforeEach(() => setLang('es', null));
 
 describe('parseVersion — valida version.json', () => {
   it('acepta {version, commit, date}', () => {

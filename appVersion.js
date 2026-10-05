@@ -3,6 +3,8 @@
  * en version.json; en local (sin publicar) no existe.
  */
 
+import { t } from './i18n.js';
+
 const isText = value => typeof value === 'string' && value.length > 0;
 
 /** { version, commit, date } si version.json tiene la forma esperada, o null. */
@@ -13,7 +15,7 @@ export function parseVersion(data) {
 
 /** Texto del pie: "v1.0.0 · abc1234 · 2026-10-04", o versión de desarrollo. */
 export function formatVersion(info) {
-  if (!info) return 'Versión de desarrollo (sin publicar)';
+  if (!info) return t('version.dev');
   return `v${info.version} · ${info.commit} · ${info.date}`;
 }
 

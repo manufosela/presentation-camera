@@ -8,6 +8,8 @@
  * Ver ADR "Estrategia dual de grabación" (CAM-TSK-0004).
  */
 
+import { t } from './i18n.js';
+
 const MIME_PREFERENCES = [
   'video/webm;codecs=vp9,opus',
   'video/webm;codecs=vp8,opus',
@@ -91,7 +93,7 @@ export async function startScreenRecording({
   onError,
 } = {}) {
   if (!navigator.mediaDevices?.getDisplayMedia) {
-    throw new Error('Tu navegador no permite capturar la pantalla para grabar.');
+    throw new Error(t('error.noScreenCapture'));
   }
   const displayStream = await navigator.mediaDevices.getDisplayMedia({
     video: { frameRate: 30 },
@@ -178,7 +180,7 @@ export async function startScreenRecording({
     }
   });
   recorder.addEventListener('error', event => {
-    onError?.(event.error || new Error('Error de grabación.'));
+    onError?.(event.error || new Error(t('error.recording')));
   });
 
   // Si el usuario detiene la captura desde la barra "Estás compartiendo…".

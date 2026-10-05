@@ -1,4 +1,6 @@
+// @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { setLang } from './i18n.js';
 import {
   MAX_BACKGROUND_BYTES,
   listBackgrounds,
@@ -47,6 +49,7 @@ const getRoot = async () => root;
 const image = (name, type = 'image/png', size = 10) => new File([new Uint8Array(size)], name, { type });
 
 beforeEach(() => {
+  setLang('es', null);
   root = memoryDir();
 });
 afterEach(() => vi.restoreAllMocks());

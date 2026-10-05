@@ -8,11 +8,13 @@
  * relativos (carpeta/zip) se sirven vía Service Worker en CAM-TSK-0022.
  */
 
+import { t } from './i18n.js';
+
 const DIR = 'local-html';
 
 async function getDir() {
   if (!navigator.storage?.getDirectory) {
-    throw new Error('Tu navegador no soporta almacenamiento local (OPFS).');
+    throw new Error(t('error.noOpfs'));
   }
   const root = await navigator.storage.getDirectory();
   return root.getDirectoryHandle(DIR, { create: true });
@@ -29,7 +31,7 @@ function newId() {
  */
 export async function saveHtml(file) {
   if (!file || typeof file.arrayBuffer !== 'function') {
-    throw new Error('Fichero HTML no válido.');
+    throw new Error(t('error.invalidHtml'));
   }
   const dir = await getDir();
   const id = newId();
@@ -151,10 +153,10 @@ async function copyDir(src, dst, onRootEntry) {
  */
 export async function saveBundle(dirHandle) {
   if (!navigator.storage?.getDirectory) {
-    throw new Error('Tu navegador no soporta almacenamiento local (OPFS).');
+    throw new Error(t('error.noOpfs'));
   }
   if (!dirHandle || typeof dirHandle.entries !== 'function') {
-    throw new Error('Carpeta no válida.');
+    throw new Error(t('error.invalidFolder'));
   }
   const root = await navigator.storage.getDirectory();
   const bundles = await root.getDirectoryHandle(BUNDLES_DIR, { create: true });
@@ -164,7 +166,7 @@ export async function saveBundle(dirHandle) {
   await copyDir(dirHandle, dest, name => { if (name === 'index.html') hasIndex = true; });
   if (!hasIndex) {
     try { await bundles.removeEntry(id, { recursive: true }); } catch { /* noop */ }
-    throw new Error('La carpeta no contiene un index.html en su raíz.');
+    throw new Error(t('error.noIndex'));
   }
   return id;
 }

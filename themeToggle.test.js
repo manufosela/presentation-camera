@@ -1,6 +1,9 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { bindThemeToggle } from './themeToggle.js';
+import { setLang } from './i18n.js';
+
+beforeEach(() => setLang('es', null));
 
 function fakeTheme(initial) {
   let theme = initial;
@@ -37,6 +40,13 @@ describe('bindThemeToggle — botón sol/luna', () => {
     bindThemeToggle(button, theme);
     theme.systemChanges('light');
     expect(button.getAttribute('aria-label')).toBe('Cambiar a tema oscuro');
+  });
+
+  it('al cambiar de idioma, la etiqueta cambia de idioma', () => {
+    const button = document.createElement('button');
+    bindThemeToggle(button, fakeTheme('dark'));
+    setLang('en', null);
+    expect(button.getAttribute('aria-label')).toBe('Switch to light theme');
   });
 
   it('sin theme.js cargado falla de forma visible', () => {
