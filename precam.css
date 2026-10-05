@@ -614,6 +614,11 @@ kbd {
 .setup:has(input[name="webcam-size"][value="m"]:checked) .stage-mock-cam { width: 30%; }
 .setup:has(input[name="webcam-size"][value="l"]:checked) .stage-mock-cam { width: 40%; }
 
+/* sin cámara: la maqueta no dibuja el recuadro (CAM-BUG-0019) */
+.setup:has(input[name="webcam-style"][value="none"]:checked) .stage-mock-cam {
+  display: none;
+}
+
 /* cutout style changes */
 .setup:has(input[name="webcam-style"][value="cutout"]:checked) .stage-mock-cam {
   background: none;
