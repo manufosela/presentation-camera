@@ -2,49 +2,45 @@
 
 > 🇬🇧 [Read in English](./README.md)
 
-**Demo en vivo**: https://manufosela.dev/presentation-camera/
+**Pruébala**: https://manufosela.dev/presentation-camera/
 
-Web app estática que superpone tu **webcam** sobre una **presentación embebida**. Pensada para grabar o impartir clases mostrando las diapositivas y tu cara al mismo tiempo, estilo *talking head*.
+Pon tu **cámara encima de cualquier presentación** y presenta o graba con tus slides y tu cara en pantalla a la vez. Todo funciona **en tu navegador**: no hay servidor, ni cuenta, y no se sube nada.
 
-La webcam puede dibujarse con marco rectangular o **recortada sin fondo** usando segmentación de persona en el navegador (TensorFlow.js + BodyPix).
+## Qué puedes hacer
 
-## Qué hace
+- **Presentar cualquier slide**: una URL pública (Genially, Google Slides, Canva, un reveal.js publicado…; siempre que esa web permita incrustarla), un **fichero `.html` local** o una **carpeta local** exportada de reveal.js/impress (con su `index.html` y sus recursos).
+- **Guardar varias presentaciones** y cambiar entre ellas con `1`–`9`.
+- **Colocar tu cámara** en cualquier esquina y en tres tamaños, con **marco**, **recortada** sin fondo o **con un fondo virtual** (tus propias imágenes, guardadas para la próxima vez). O elegir **Sin cámara** para grabar solo las slides y tu voz.
+- **Grabar toda la sesión** (slides, cámara, micrófono y sonido de la pestaña) en un `.webm` que se descarga al parar. Los controles de la app se ocultan para no salir en el vídeo.
+- **Leer tus notas** en una ventana aparte, el panel de control, que nunca sale en la grabación.
+- **Tema claro u oscuro** e interfaz en **español o inglés**.
+- **Instalarla como app** (PWA); la interfaz funciona sin conexión.
 
-Tú pones una presentación (una URL pública o un fichero local) y tu webcam; la app
-superpone tu cara sobre las diapositivas, te deja grabar todo a disco y funciona
-enteramente en el navegador — instalable como app.
+## Cómo empezar
 
-## Características
-
-- **Fuentes de presentación**:
-  - Cualquier presentación accesible vía **HTTPS** (Genially, Google Slides, Canva, reveal.js/slides.to publicados…), embebida a pantalla completa.
-  - Un **`.html` local autocontenido** (un solo fichero).
-  - Una **carpeta HTML local** (`index.html` + assets relativos), p. ej. un export de reveal.js/impress (navegadores Chromium).
-  - Varias fuentes a la vez, alternables con `1`–`9`, más una ventana de **panel de control** aparte.
-  - **Auto-normalización de URLs de Google Slides**: si pegas una URL `/edit`, se reescribe a `/preview` para que no quede en blanco.
-- **Webcam superpuesta**: marco redondeado o **recorte sin fondo** (TensorFlow.js + BodyPix); las 4 esquinas; tamaño S/M/L; selector de cámara.
-- **Grabación**: captura toda la sesión (slides + cara) a un `.webm`, con **grabación automática al Go live** (desactivable), micrófono + audio de sistema, escritura a disco mientras grabas, y una estimación de espacio/tiempo antes de empezar.
-- **PWA instalable**: añádela a tu escritorio; la interfaz funciona offline.
-- Cero dependencias en runtime: librerías y fuentes servidas localmente desde `vendor/`.
-
-## Cómo se usa
-
-1. Abre la app (la demo de arriba, o instálala).
-2. **Añade tu presentación** en *Source slides*:
-   - Pega una URL, **o** *Cargar HTML local (un .html)*, **o** *Cargar carpeta HTML (con assets)*.
-   - **¿PPTX?** PowerPoint no se renderiza nativo en el navegador — súbelo a **Office Online** o **Google Slides** y pega *esa* URL.
-3. **Configura la cámara** en *Camera stage*: esquina, tamaño y Frame vs Cut-out.
-4. Pulsa **Go live**. Tu cara aparece sobre las diapositivas.
-5. En Zoom/Meet/Teams, **comparte solo esta pestaña/ventana**.
+1. Abre la app (la demo de arriba o la app instalada).
+2. **Añade tu presentación** en *Presentaciones*: pega una URL, o usa *Cargar HTML local (un .html)* o *Cargar carpeta HTML (con recursos)*. Queda en *Presentaciones guardadas*, así que la próxima vez solo tienes que elegirla.
+   - **¿PPTX?** Los navegadores no muestran PowerPoint: súbelo a **Office Online** o **Google Slides** y pega esa URL.
+3. **Prepara tu cámara** en *Tu cámara*: esquina, tamaño y tratamiento — *Marco*, *Recorte* (con imagen de fondo opcional) o *Sin cámara*.
+4. Pulsa **En directo**. Tu cara aparece sobre las slides.
+5. En Zoom/Meet/Teams, **comparte solo esta ventana**.
 
 ### Grabación
 
-- La grabación está **activada por defecto** al ir en directo (se desactiva con el toggle *Grabar automáticamente* del setup).
-- Al empezar, el navegador pregunta **qué capturar** → elige **"Esta pestaña" / la pestaña actual** para que la barra de "estás compartiendo" del navegador **no salga** en el vídeo.
-- Audio: tu **micrófono** más el **audio de sistema/pestaña** cuando el navegador/SO lo permiten (sin micro → graba solo vídeo).
-- Los controles de la app **se ocultan solos al grabar** para no salir en el vídeo. Pulsa **`H`** (o el botón del ojo, arriba-izquierda) para mostrarlos/ocultarlos.
-- Detén con el botón **REC** o `R` (o finaliza la sesión); el `.webm` **se descarga automáticamente**.
-- Se escribe a disco **mientras grabas** (no se acumula en RAM) y verás una **duración máxima estimada** antes de empezar.
+- La grabación empieza **al pasar a directo** (se desactiva con *Grabar automáticamente al empezar*). También puedes empezarla y pararla con **REC** o `R`.
+- El navegador pregunta **qué capturar**: elige **esta pestaña**, para que su barra de «estás compartiendo» no salga en el vídeo.
+- Audio: tu **micrófono** más el **sonido de la pestaña** si el navegador lo permite. Sin micrófono graba igualmente el vídeo.
+- Los controles de la app **se ocultan al grabar**. Pulsa `H` (o el botón del ojo, arriba a la izquierda) para mostrarlos u ocultarlos.
+- Al parar, el `.webm` **se descarga solo**. Se escribe a disco mientras grabas (no se queda en memoria); antes de empezar ves cuánto tiempo puedes grabar.
+- Se graba lo que ves: la grabación es una captura de la pestaña.
+
+### Fondo virtual
+
+Con *Recorte*, la sección *Fondo* te deja elegir *Ninguno*, una de tus imágenes o *+ Subir imagen* (PNG, JPEG o WebP, hasta 15 MB). Las imágenes se guardan en tu navegador, así que puedes volver a elegirlas sin subirlas. Usa imágenes con la proporción de tu cámara (normalmente 4:3, p. ej. 1600×1200): con otras proporciones se recortan para llenar el recuadro.
+
+### Notas y panel de control
+
+Abre el **panel de control** con `\` (o *Abrir panel de control*): una ventana aparte para tener en otro monitor. Muestra las notas de la slide actual en los decks reveal.js locales, te deja cambiar y renombrar presentaciones y nunca sale en la grabación.
 
 ### Atajos de teclado (durante la presentación)
 
@@ -54,7 +50,7 @@ enteramente en el navegador — instalable como app.
 | `B` / `.` | fundido a negro del deck (pausa de reveal.js) |
 | `S` | notas del ponente: con un deck local se muestran en el panel de control (sigue la slide actual y no sale en la grabación); con una presentación publicada abre la ventana de notas de reveal.js (si el navegador la bloquea, permítela para ese sitio) |
 | `C` / `Shift+C` | rotar la esquina de la webcam |
-| `M` | alternar marco ↔ recorte |
+| `M` | alternar marco ↔ recorte (no hace nada con *Sin cámara*) |
 | `F` | entrar / salir de pantalla completa |
 | `R` | iniciar / detener grabación |
 | `H` | ocultar / mostrar los controles |
@@ -62,69 +58,87 @@ enteramente en el navegador — instalable como app.
 | `1`–`9` | cambiar la fuente activa |
 | `Esc` | vista general del deck (reveal.js); sale de pantalla completa. Para terminar, botón de salir |
 
+Los atajos de una tecla (`C`, `M`, `R`, `F`, `H`, `S`, `\`, `1`–`9`) se pueden desactivar en el setup, algo útil si usas dictado por voz. La navegación del deck sigue funcionando.
+
+### Tema e idioma
+
+El botón sol/luna cambia entre **tema claro y oscuro** (por defecto sigue al de tu sistema). El botón **ES/EN** cambia el idioma de la interfaz (por defecto, el de tu navegador). Ambos se recuerdan y se aplican también al panel de control.
+
 ### Instalar como app (PWA)
 
 En Chrome/Edge, usa el icono de instalar de la barra de direcciones. Se abre en su
-propia ventana y la interfaz carga offline.
+propia ventana y la interfaz carga sin conexión.
+
+## Cómo funciona
+
+- Es una **web estática** (HTML, CSS y módulos JavaScript, sin compilación) publicada en GitHub Pages. Un service worker mantiene la interfaz disponible sin conexión.
+- **Las presentaciones** se muestran en un `iframe` bajo la cámara. Las remotas se cargan directamente desde su web. Los `.html` y las carpetas locales se guardan en tu navegador y se muestran en un **`iframe` aislado** (sandbox, con origen opaco): el código del deck no puede leer los datos de la app, tus grabaciones ni tus imágenes.
+- **La cámara** se dibuja encima de las slides. El *Recorte* te separa del fondo con segmentación de persona (TensorFlow.js + BodyPix) **en tu ordenador**; el modelo lo sirve esta misma web y solo se carga cuando eliges *Recorte*.
+- **La grabación** captura la pestaña del navegador (`getDisplayMedia`) y la codifica con `MediaRecorder`, mezclando tu micrófono. Se va escribiendo en el almacenamiento privado del navegador (OPFS) y se descarga al parar.
+- **El panel de control** es otra ventana de la misma app; ambas se comunican con un `BroadcastChannel` dentro de tu navegador.
+
+## Privacidad: todo se queda en tu navegador
+
+| Qué | Adónde va |
+|-----|-----------|
+| Cámara y micrófono | Se procesan en tu ordenador. No se envían a ningún sitio. |
+| Grabaciones | Se escriben en el almacenamiento del navegador y se descargan a tu disco. Nunca se suben. |
+| Presentaciones locales (`.html` y carpetas) | Se guardan en tu navegador (OPFS). Nunca se suben. |
+| Imágenes de fondo | Se guardan en tu navegador (OPFS). Nunca se suben. |
+| Preferencias (presentaciones guardadas, tema, idioma, cámara…) | En el `localStorage` de tu navegador. |
+| Presentaciones remotas | Tu navegador las carga directamente desde su web, como si las abrieras tú. |
+
+No hay backend, ni cuentas, ni analítica, ni cookies. Las únicas peticiones que hace la app son para cargar sus propios ficheros y las presentaciones que eliges.
 
 ## Cosas a tener en cuenta
 
-- **Contexto seguro**: la cámara solo funciona bajo `https://` o `http://localhost`.
-- La barra de **"estás compartiendo/grabando" es del navegador**, no de la app — no se puede ocultar desde una web. Capturar **la pestaña actual** la mantiene fuera de la grabación.
-- **PPTX** no tiene render fiel en el navegador → usa un visor online (Office/Google) y pega la URL.
-- Las **carpetas HTML locales** necesitan un navegador con File System Access (Chrome/Edge). En otros, usa un `.html` autocontenido.
-- Algunas presentaciones remotas rechazan embeberse (`X-Frame-Options`); Google Slides se normaliza a `/preview`.
-- Las presentaciones HTML locales y las grabaciones viven en el **almacenamiento del navegador (OPFS)**, por origen — no se comparten por el enlace.
-- La **subida a la nube** (Drive/Dropbox) está planificada y **aún no disponible**; por ahora las grabaciones se descargan a tu disco.
+- **Contexto seguro**: la cámara solo funciona con `https://` o `http://localhost`.
+- La **barra de «estás compartiendo» es del navegador** y una web no puede ocultarla; capturar **esta pestaña** la deja fuera de la grabación.
+- Un **PPTX** no se puede mostrar en un navegador: usa Office Online o Google Slides y pega esa URL.
+- Las **carpetas HTML locales** necesitan un navegador que permita elegir carpetas (Chrome o Edge). En otros, usa un `.html` autocontenido.
+- En los decks de carpeta no funcionan los ficheros que el código carga dinámicamente (p. ej. un Markdown externo); la app te avisa de qué recursos no encontró.
+- Algunas webs no se dejan incrustar (`X-Frame-Options`). Los enlaces `/edit` de Google Slides se convierten solos en `/preview`.
+- Lo que se guarda en tu navegador se queda en **ese** navegador: no se comparte por el enlace ni con otros ordenadores.
 
 ## Requisitos
 
-- Navegador moderno con soporte para `getUserMedia` (Chrome, Firefox, Safari, Edge recientes).
-- **Contexto seguro** obligatorio: la cámara solo funciona bajo `https://` o `http://localhost`.
+- Un navegador de escritorio reciente. Se recomiendan **Chrome o Edge**: en otros pueden faltar los decks de carpeta o la captura de pestaña para grabar.
+- Un contexto seguro: `https://` o `http://localhost`.
 
 ## Arranque local
 
 ```bash
-./start.sh           # arranca un servidor estático en http://localhost:8000
-./start.sh 8080      # puerto custom
+./start.sh           # servidor estático en http://localhost:8000
+./start.sh 8080      # otro puerto
+npm run fetch-model  # descarga los pesos de BodyPix que usa el Recorte (una vez)
 ```
 
-El script usa `python3 -m http.server` y busca el siguiente puerto libre si no se indica uno.
+`start.sh` usa `python3 -m http.server` y busca el siguiente puerto libre si no indicas uno. El botón **o prueba una demo** carga una presentación pública para probar la app.
 
-Una vez arrancado, abre `http://localhost:8000`, pega la URL de tu presentación y pulsa **Go live**.
+## Desarrollo
 
-## Demo
-
-Hay un botón **or try a demo** que carga una presentación pública de Genially para probarlo sin tener una propia.
-
-## Estructura
+El código son módulos ES en la raíz del repositorio, un módulo pequeño por tema, cada uno con su `*.test.js` al lado:
 
 ```
 .
-├── index.html              # Entry point
-├── precam.js               # Lógica: webcam, BodyPix, grabación, estado, UI
-├── precam.css              # Estilos (Editorial Broadcast)
-├── sources.js              # Store multi-fuente (URL / HTML local) + sync entre ventanas
-├── localStore.js           # Ficheros HTML y carpetas locales en OPFS
-├── recorder.js             # Grabación (getDisplayMedia + MediaRecorder) + estimación de espacio
-├── sw.js                   # Service worker: shell PWA + sirve bundles HTML locales
-├── manifest.webmanifest    # Manifiesto PWA
-├── icon.svg                # Icono PWA
-├── panel.html / panel.js   # Ventana del panel de control multi-fuente
-├── start.sh                # Servidor estático local
-├── *.test.js               # Tests unitarios Vitest (sources, localStore, recorder)
-├── vendor/                 # Librerías y fuentes servidas localmente
-│   ├── tf.min.js                 # TensorFlow.js 4.22.0
-│   ├── body-pix.min.js           # BodyPix 2.2.1
-│   └── fonts/                    # Fraunces variable (display)
-└── package.json
+├── index.html / precam.js / precam.css   # Ventana principal: setup y presentación (precam.js conecta los módulos)
+├── panel.html / panel.js / panel.css     # Ventana del panel de control
+├── theme.js / i18n.js / messages.js      # Tema, idioma de la interfaz y sus textos (es/en)
+├── sources.js / localStore.js            # Presentaciones guardadas y ficheros locales (OPFS)
+├── bundleRewrite.js / bundleBlobs.js     # Decks de carpeta servidos aislados
+├── webcamLoop.js / segmentationLoader.js # Dibujo de la cámara y carga diferida de BodyPix
+├── backgroundStore.js / backgroundPicker.js # Fondos virtuales
+├── recorder.js / recordingFlow.js        # Grabación
+├── sw.js / manifest.webmanifest          # PWA
+├── scripts/fetch-model.mjs               # Descarga los pesos de BodyPix (comprobados con sha256)
+└── vendor/                               # TensorFlow.js, BodyPix y fuentes, servidos localmente
 ```
-
-## Tests
 
 ```bash
-npm test            # Tests unitarios con Vitest (sources, almacenamiento local, recorder)
+npm test            # tests unitarios con Vitest
 ```
+
+Al subir a `main` se publica la web con `.github/workflows/pages.yml`, que además descarga el modelo y genera `version.json` (lo que se ve en el pie).
 
 ## Actualizar `vendor/`
 
@@ -136,16 +150,7 @@ curl -fsSL -o body-pix.min.js "https://cdn.jsdelivr.net/npm/@tensorflow-models/b
 
 BodyPix 2.x requiere TensorFlow.js `^4.10.0`. Si subes la versión de uno, verifica compatibilidad con el otro.
 
-El bundle UMD de BodyPix 2.2.x expone la API como `window["body-pix"]`. El alias a `window.bodyPix` está en un `<script>` inline justo después de cargar la librería en `index.html` — tenlo en cuenta si actualizas a una versión que cambie el wrapper UMD.
-
-## Privacidad
-
-Todo el procesamiento de vídeo ocurre **en el navegador**. La señal de la cámara
-nunca sale de tu equipo, y las **grabaciones se escriben localmente** (descarga /
-OPFS) — no se sube nada. Las presentaciones HTML locales se guardan en el OPFS del
-navegador, por origen. Las presentaciones remotas se cargan en un iframe
-directamente desde su servidor original. (La subida opcional a la nube está
-planificada y será siempre **opt-in**.)
+El bundle UMD de BodyPix 2.2.x expone la API como `window["body-pix"]`; `segmentationLoader.js` la toma de ahí al cargar los scripts bajo demanda.
 
 ## Licencia
 
