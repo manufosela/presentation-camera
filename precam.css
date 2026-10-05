@@ -614,6 +614,50 @@ kbd {
 .setup:has(input[name="webcam-size"][value="m"]:checked) .stage-mock-cam { width: 30%; }
 .setup:has(input[name="webcam-size"][value="l"]:checked) .stage-mock-cam { width: 40%; }
 
+/* fondo virtual (CAM-TSK-0061): el selector solo tiene sentido con el recorte */
+.control.background-control { display: none; }
+.setup:has(input[name="webcam-style"][value="cutout"]:checked) .control.background-control { display: block; }
+.bg-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+}
+.bg-item { position: relative; display: inline-flex; }
+.bg-choice, .bg-upload {
+  min-height: 46px;
+  padding: 0 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.bg-item .bg-choice { padding: 3px; }
+.bg-choice img { display: block; width: 64px; height: 40px; object-fit: cover; border-radius: 4px; }
+.bg-choice[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink-strong); }
+.bg-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--line-soft);
+  border-radius: 50%;
+  background: var(--bg-input);
+  color: var(--ink-muted);
+  line-height: 1;
+  cursor: pointer;
+}
+.bg-choice:focus-visible, .bg-upload:focus-visible, .bg-remove:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* sin cámara: la maqueta no dibuja el recuadro (CAM-BUG-0019) */
 .setup:has(input[name="webcam-style"][value="none"]:checked) .stage-mock-cam {
   display: none;

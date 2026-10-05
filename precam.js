@@ -14,10 +14,14 @@ import { createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
 import { createStreamSwitcher } from './streamSwitch.js';
 import { loadBodyPixLibrary } from './segmentationLoader.js';
 import { needsCanvasLoop, toggledStyle, usesCamera } from './renderMode.js';
+import { listBackgrounds, readBackground, removeBackground, saveBackground } from './backgroundStore.js';
+import { renderBackgroundPicker } from './backgroundPicker.js';
 import {
   isDebugEnabled,
+  loadBackgroundId,
   loadCameraId,
   loadSingleKeyShortcuts,
+  saveBackgroundId,
   saveCameraId,
   saveSingleKeyShortcuts,
 } from './appPrefs.js';
@@ -564,6 +568,82 @@ function toggleStyle() {
   persistState(urlInput.value.trim(), getSelectedPosition(), nextStyle);
 }
 
+// ─── Fondo virtual del recorte (CAM-TSK-0061) ────────────────
+// Las imágenes viven en OPFS (backgroundStore); la elegida se recuerda en
+// localStorage y se decodifica una vez como ImageBitmap para el renderer.
+const backgroundPicker = document.getElementById('backgroundPicker');
+const backgroundInput = document.getElementById('backgroundInput');
+let backgroundImage = null;
+let backgroundThumbs = [];
+let backgroundRefresh = 0; // solo la última actualización aplica su resultado
+
+function readBackgroundId() {
+  try { return loadBackgroundId(window.localStorage); } catch { return null; }
+}
+
+function persistBackgroundId(id) {
+  try { saveBackgroundId(window.localStorage, id); } catch { /* noop */ }
+}
+
+function reportBackgroundError(error) {
+  console.error(error);
+  showStatus(error.message || 'No se pudo usar el fondo.', true);
+}
+
+async function applyBackground(id, request) {
+  const file = id ? await readBackground(id) : null;
+  const bitmap = file ? await createImageBitmap(file) : null;
+  if (request !== backgroundRefresh) { // otra elección más reciente ya manda
+    bitmap?.close();
+    return;
+  }
+  backgroundImage?.close();
+  backgroundImage = bitmap;
+}
+
+async function refreshBackgrounds() {
+  if (!backgroundPicker) return;
+  const request = ++backgroundRefresh;
+  const list = await listBackgrounds();
+  if (request !== backgroundRefresh) return;
+  backgroundThumbs.forEach(url => URL.revokeObjectURL(url));
+  backgroundThumbs = list.map(({ file }) => URL.createObjectURL(file));
+  let selectedId = readBackgroundId();
+  if (selectedId && !list.some(({ id }) => id === selectedId)) {
+    selectedId = null; // la elegida ya no existe (p. ej. OPFS limpiado)
+    persistBackgroundId(null);
+  }
+  renderBackgroundPicker(backgroundPicker, {
+    backgrounds: list.map(({ id, name }, index) => ({ id, name, url: backgroundThumbs[index] })),
+    selectedId,
+    onSelect: id => { persistBackgroundId(id); refreshBackgrounds().catch(reportBackgroundError); },
+    onRemove: id => deleteBackground(id).catch(reportBackgroundError),
+    onUpload: () => backgroundInput?.click(),
+  });
+  await applyBackground(selectedId, request);
+}
+
+async function deleteBackground(id) {
+  await removeBackground(id);
+  if (readBackgroundId() === id) persistBackgroundId(null);
+  await refreshBackgrounds();
+}
+
+backgroundInput?.addEventListener('change', async () => {
+  const file = backgroundInput.files?.[0];
+  backgroundInput.value = '';
+  if (!file) return;
+  try {
+    const { id } = await saveBackground(file);
+    persistBackgroundId(id); // la recién subida queda elegida
+    await refreshBackgrounds();
+  } catch (error) {
+    reportBackgroundError(error);
+  }
+});
+
+refreshBackgrounds().catch(reportBackgroundError);
+
 initializeFromQueryParams().catch(error => {
   console.error(error);
   showStatus(error.message || 'No se pudo preparar la página.', true);
@@ -863,6 +943,7 @@ function ensureRenderLoop() {
     segment: segmentPerson,
     now: () => performance.now(),
     intervalMs: SEGMENTATION_INTERVAL_MS,
+    getBackground: () => backgroundImage,
   });
   firstFrameDrawn = false;
   cameraLoop.start();

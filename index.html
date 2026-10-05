@@ -315,6 +315,13 @@
               </div>
             </fieldset>
 
+            <!-- Fondo virtual: solo con el recorte (CSS lo muestra con cutout). -->
+            <fieldset class="control background-control">
+              <legend class="control-label">Background</legend>
+              <div class="bg-gallery" id="backgroundPicker"></div>
+              <input id="backgroundInput" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+            </fieldset>
+
             <fieldset class="control">
               <legend class="control-label">Size</legend>
               <div class="seg seg-size" role="radiogroup" aria-label="Webcam size">
