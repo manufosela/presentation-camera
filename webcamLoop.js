@@ -35,13 +35,24 @@ export function createFrameLoop({ step, requestFrame, cancelFrame }) {
 }
 
 /**
+ * Parte de la imagen (srcW×srcH) que cubre un recuadro dstW×dstH sin
+ * deformarse, centrada (como object-fit: cover).
+ */
+export function coverRect(srcW, srcH, dstW, dstH) {
+  const scale = Math.max(dstW / srcW, dstH / srcH);
+  const sw = dstW / scale;
+  const sh = dstH / scale;
+  return { sx: (srcW - sw) / 2, sy: (srcH - sh) / 2, sw, sh };
+}
+
+/**
  * Un frame del modo recorte: ajusta el canvas al vídeo, lanza la segmentación
  * cada `intervalMs` sin solaparlas y compone la persona con la máscara; si no
  * se detecta a nadie, dibuja la cámara completa.
  * `segment(video)` resuelve { data, mask }: data son 0/1 por píxel y mask el
  * ImageData opaco donde hay persona.
  */
-export function createCutoutRenderer({ video, canvas, segment, now, intervalMs = 50 }) {
+export function createCutoutRenderer({ video, canvas, segment, now, intervalMs = 50, getBackground = () => null }) {
   let ctx = null;
   let lastMask = null;
   let lastSegmentationAt = -Infinity;
@@ -86,6 +97,13 @@ export function createCutoutRenderer({ video, canvas, segment, now, intervalMs =
         ctx.putImageData(lastMask, 0, 0);
         ctx.globalCompositeOperation = 'source-in';
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Fondo elegido (CAM-TSK-0059): detrás de la persona, cubriendo el recuadro.
+        const background = getBackground();
+        if (background) {
+          const { sx, sy, sw, sh } = coverRect(background.width, background.height, canvas.width, canvas.height);
+          ctx.globalCompositeOperation = 'destination-over';
+          ctx.drawImage(background, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+        }
         ctx.globalCompositeOperation = 'source-over';
       }
     },
