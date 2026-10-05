@@ -1,6 +1,9 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { notesAt, notesView, parseDeckNotes } from './deckNotes.js';
+import { setLang } from './i18n.js';
+
+beforeEach(() => setLang('es', null));
 
 const deck = slides => `<!doctype html><html><body><div class="reveal"><div class="slides">${slides}</div></div></body></html>`;
 
@@ -87,5 +90,11 @@ describe('notesView — qué muestra el panel', () => {
 
   it('sin datos todavía (aún no hay presentación en marcha)', () => {
     expect(notesView(null)).toEqual({ position: '', text: 'Las notas aparecerán aquí al empezar la presentación.', empty: true });
+  });
+
+  it('en inglés', () => {
+    setLang('en', null);
+    expect(notesView({ local: true, h: 0, v: 0, text: '' })).toEqual({ position: 'Slide 1', text: 'This slide has no notes.', empty: true });
+    expect(notesView(null).text).toBe('Notes will appear here when the presentation starts.');
   });
 });

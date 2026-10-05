@@ -20,7 +20,7 @@ import { sourceIndexForKey, startPanelLink } from './linkChannel.js';
 import { notesView } from './deckNotes.js';
 import { formatVersion, loadVersion } from './appVersion.js';
 import { bindThemeToggle } from './themeToggle.js';
-import { initI18n } from './i18n.js';
+import { initI18n, onLangChange, t } from './i18n.js';
 
 const sources = createSourcesStore();
 bindThemeToggle(document.getElementById('themeBtn'));
@@ -40,12 +40,14 @@ if (isDebugEnabled(window.location.search)) {
   window.__cam = { sources, channel, binding, role: 'panel' };
 }
 
-const LINK_LABELS = { linked: 'linked to main', lost: 'main window not detected' };
+const LINK_LABELS = { linked: 'panel.linked', lost: 'panel.lost' };
+let linkState = null;
 
 function setStatus(state) {
   if (!linkStatus) return;
+  linkState = state;
   linkStatus.dataset.state = state;
-  if (linkLabel) linkLabel.textContent = LINK_LABELS[state];
+  if (linkLabel) linkLabel.textContent = t(LINK_LABELS[state]);
 }
 
 const mainLink = startPanelLink(channel, setStatus);
@@ -55,7 +57,10 @@ const mainLink = startPanelLink(channel, setStatus);
 const notesPosition = document.getElementById('notesPosition');
 const notesText = document.getElementById('notesText');
 
+let lastNotes = null;
+
 function renderNotes(update) {
+  lastNotes = update;
   const view = notesView(update);
   if (notesPosition) notesPosition.textContent = view.position;
   if (notesText) {
@@ -103,7 +108,7 @@ function addCurrent() {
   }
   if (!sources.add(url)) {
     // Lista llena: se avisa en el propio campo y se conserva lo escrito.
-    addInput.setCustomValidity(`Máximo ${MAX_SOURCES} presentaciones: quita alguna para añadir otra.`);
+    addInput.setCustomValidity(t('panel.full', { max: MAX_SOURCES }));
     addInput.reportValidity();
     addInput.addEventListener('input', () => addInput.setCustomValidity(''), { once: true });
     return;
@@ -139,7 +144,7 @@ function renderSource(item, index, activeIndex) {
 
   const name = document.createElement('span');
   name.className = 'panel-source-name';
-  name.title = 'Doble click para editar';
+  name.title = t('panel.editName');
   name.textContent = item.title || hostnameOf(item.url);
   setupInlineEdit(name, item);
 
@@ -149,7 +154,7 @@ function renderSource(item, index, activeIndex) {
   urlEl.target = '_blank';
   urlEl.rel = 'noopener noreferrer';
   urlEl.textContent = item.url;
-  urlEl.title = 'Abrir en pestaña nueva';
+  urlEl.title = t('panel.openTab');
 
   titleBlock.append(name, urlEl);
 
@@ -160,8 +165,9 @@ function renderSource(item, index, activeIndex) {
   const activateBtn = document.createElement('button');
   activateBtn.type = 'button';
   activateBtn.className = 'panel-source-btn panel-source-btn--primary';
-  activateBtn.title = isActive ? 'Activa' : 'Activar';
-  activateBtn.setAttribute('aria-label', isActive ? 'Activa' : 'Activar');
+  const activateLabel = t(isActive ? 'panel.active' : 'panel.activate');
+  activateBtn.title = activateLabel;
+  activateBtn.setAttribute('aria-label', activateLabel);
   activateBtn.innerHTML = isActive
     ? '<svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true"><circle cx="7" cy="7" r="3" fill="currentColor"/></svg>'
     : '<svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true"><circle cx="7" cy="7" r="3" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>';
@@ -170,8 +176,8 @@ function renderSource(item, index, activeIndex) {
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.className = 'panel-source-btn panel-source-btn--danger';
-  removeBtn.title = 'Quitar';
-  removeBtn.setAttribute('aria-label', 'Quitar');
+  removeBtn.title = t('panel.remove');
+  removeBtn.setAttribute('aria-label', t('panel.remove'));
   removeBtn.innerHTML = '<svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
   removeBtn.addEventListener('click', () => sources.remove(item.id));
 
@@ -239,4 +245,14 @@ window.addEventListener('beforeunload', () => {
 // módulo: este await no retrasa nada de lo anterior.
 const appVersionEl = document.getElementById('appVersion');
 const versionInfo = await loadVersion();
-if (appVersionEl) appVersionEl.textContent = formatVersion(versionInfo);
+const renderVersion = () => { if (appVersionEl) appVersionEl.textContent = formatVersion(versionInfo); };
+renderVersion();
+
+// Al cambiar de idioma se repinta lo que pinta el JS (el HTML marcado lo
+// traduce i18n.js).
+onLangChange(() => {
+  renderVersion();
+  renderNotes(lastNotes);
+  renderList(sources.snapshot());
+  if (linkState) setStatus(linkState);
+});
