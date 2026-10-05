@@ -1,7 +1,17 @@
-import { describe, expect, it } from 'vitest';
+// @vitest-environment happy-dom
+import { beforeEach, describe, expect, it } from 'vitest';
 import { removedLocalFiles, sourceLabel } from './savedSources.js';
+import { setLang } from './i18n.js';
+
+beforeEach(() => setLang('es', null));
 
 describe('sourceLabel — cómo se ve cada presentación guardada', () => {
+  it('en inglés, el tipo y el título por defecto en inglés', () => {
+    setLang('en', null);
+    expect(sourceLabel({ type: 'html', title: null, localRef: 'a' })).toEqual({ title: 'Untitled presentation', kind: 'Local HTML' });
+    expect(sourceLabel({ type: 'html', bundle: true, title: 'x', localRef: 'b' }).kind).toBe('Folder');
+  });
+
   it('HTML local de un solo fichero', () => {
     expect(sourceLabel({ type: 'html', title: 'charla', localRef: 'a' })).toEqual({ title: 'charla', kind: 'HTML local' });
   });

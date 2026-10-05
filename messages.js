@@ -135,4 +135,21 @@ export const MESSAGES = {
   'status.processing': { es: 'Procesando la señal de vídeo, puede tardar un par de segundos…', en: 'Processing the video signal, this may take a couple of seconds…' },
   'status.noPerson': { es: 'No te detecto en modo recorte: se muestra la cámara completa. Revisa la luz o el encuadre.', en: 'You are not detected in cut-out mode: showing the full camera. Check the light or framing.' },
   'status.fullscreenUnavailable': { es: 'La pantalla completa no está disponible en este navegador.', en: 'Fullscreen is not available in this browser.' },
+
+  // Lo que pinta el JS (se repinta al cambiar de idioma)
+  'rec.start': { es: 'REC', en: 'REC' },
+  'rec.stop': { es: 'Parar', en: 'Stop' },
+  'estimate.available': { es: 'Espacio para ~{duration} de grabación (calidad media, ~{rate} GB/h). A disco, el límite es tu disco real.', en: 'Room for ~{duration} of recording (medium quality, ~{rate} GB/h). On disk, the limit is your actual disk.' },
+  'estimate.unavailable': { es: 'La estimación de espacio no está disponible en este navegador.', en: 'Storage estimate is not available in this browser.' },
+  'saved.remove': { es: 'Quitar {title}', en: 'Remove {title}' },
+  'saved.untitled': { es: 'Presentación sin título', en: 'Untitled presentation' },
+  'saved.kindHtml': { es: 'HTML local', en: 'Local HTML' },
+  'saved.kindFolder': { es: 'Carpeta', en: 'Folder' },
+  'bg.none': { es: 'Ninguno', en: 'None' },
+  'bg.noneLabel': { es: 'Sin fondo', en: 'No background' },
+  'bg.choose': { es: 'Fondo {name}', en: 'Background {name}' },
+  'bg.remove': { es: 'Borrar fondo {name}', en: 'Delete background {name}' },
+  'bg.upload': { es: '+ Subir imagen', en: '+ Upload image' },
+  'cameraSelect.auto': { es: 'Automática', en: 'Automatic' },
+  'cameraSelect.numbered': { es: 'Cámara {n}', en: 'Camera {n}' },
 };

@@ -4,11 +4,12 @@
  */
 
 import { hostnameOf } from './urlUtils.js';
+import { t } from './i18n.js';
 
-/** Título y tipo legibles de una source guardada. */
+/** Título y tipo legibles de una source guardada (en el idioma actual). */
 export function sourceLabel(source) {
   if (source.type === 'html') {
-    return { title: source.title || 'Presentación sin título', kind: source.bundle ? 'Carpeta' : 'HTML local' };
+    return { title: source.title || t('saved.untitled'), kind: t(source.bundle ? 'saved.kindFolder' : 'saved.kindHtml') };
   }
   const host = hostnameOf(source.url);
   return { title: source.title || host, kind: host };

@@ -17,7 +17,7 @@ import { needsCanvasLoop, toggledStyle, usesCamera } from './renderMode.js';
 import { listBackgrounds, readBackground, removeBackground, saveBackground } from './backgroundStore.js';
 import { renderBackgroundPicker } from './backgroundPicker.js';
 import { bindThemeToggle } from './themeToggle.js';
-import { initI18n, t } from './i18n.js';
+import { initI18n, onLangChange, t } from './i18n.js';
 import {
   isDebugEnabled,
   loadBackgroundId,
@@ -372,15 +372,19 @@ function renderSavedSource(source, index, activeIndex) {
   remove.type = 'button';
   remove.className = 'saved-source-remove';
   remove.textContent = '✕';
-  remove.setAttribute('aria-label', `Quitar ${title}`);
+  remove.setAttribute('aria-label', t('saved.remove', { title }));
   remove.addEventListener('click', () => sources.remove(source.id));
 
   li.append(pick, remove);
   return li;
 }
 
-sources.subscribe(({ list, activeIndex }) => {
+function renderSavedSources(list, activeIndex) {
   savedSourcesList?.replaceChildren(...list.map((source, index) => renderSavedSource(source, index, activeIndex)));
+}
+
+sources.subscribe(({ list, activeIndex }) => {
+  renderSavedSources(list, activeIndex);
   if (savedSourcesCount) savedSourcesCount.textContent = list.length ? `(${list.length}/${MAX_SOURCES})` : '';
   if (savedSourcesEmpty) savedSourcesEmpty.hidden = list.length > 0;
 
@@ -422,7 +426,7 @@ function renderIframeStack(list, activeIndex) {
       if (allow !== null) frame.setAttribute('allow', allow);
       if (source.type === 'html') {
         // Source HTML local: el contenido vive en OPFS.
-        frame.title = source.title || 'HTML local';
+        frame.title = source.title || t('saved.kindHtml');
         iframeStack.appendChild(frame);
         // Un .html o una carpeta: blob URLs en un iframe de origin opaco.
         resolveLocalFrameSrc(frame, source);
@@ -739,10 +743,9 @@ async function updateRecordEstimate() {
       const h = Math.floor(est.maxHours);
       const m = Math.round((est.maxHours - h) * 60);
       const dur = h > 0 ? `${h} h ${m} min` : `${m} min`;
-      recordEstimate.textContent =
-        `Espacio para ~${dur} de grabación (calidad media, ~${est.gbPerHour.toFixed(1)} GB/h). A disco el límite es tu disco real.`;
+      recordEstimate.textContent = t('estimate.available', { duration: dur, rate: est.gbPerHour.toFixed(1) });
     } else {
-      recordEstimate.textContent = 'Estimación de espacio no disponible en este navegador.';
+      recordEstimate.textContent = t('estimate.unavailable');
     }
   } catch {
     recordEstimate.textContent = '';
@@ -752,7 +755,7 @@ async function updateRecordEstimate() {
 function updateRecordButton() {
   if (!recordBtn) return;
   recordBtn.classList.toggle('is-recording', recording.isRecording());
-  if (recordLabel) recordLabel.textContent = recording.isRecording() ? 'Stop' : 'REC';
+  if (recordLabel) recordLabel.textContent = t(recording.isRecording() ? 'rec.stop' : 'rec.start');
 }
 
 function toggleRecording() {
@@ -956,12 +959,12 @@ async function populateCameraSelect() {
     cameraSelect.innerHTML = '';
     const autoOption = document.createElement('option');
     autoOption.value = '';
-    autoOption.textContent = 'Automática';
+    autoOption.textContent = t('cameraSelect.auto');
     cameraSelect.appendChild(autoOption);
     cameras.forEach((cam, index) => {
       const option = document.createElement('option');
       option.value = cam.deviceId;
-      option.textContent = cam.label || `Cámara ${index + 1}`;
+      option.textContent = cam.label || t('cameraSelect.numbered', { n: index + 1 });
       cameraSelect.appendChild(option);
     });
     if (currentDeviceId && cameras.some(c => c.deviceId === currentDeviceId)) {
@@ -1251,4 +1254,22 @@ async function initializeFromQueryParams() {
 // Versión publicada en el pie. Al final del módulo: este await no retrasa nada
 // de lo anterior (manejadores, arranque de la app).
 const versionInfo = await loadVersion();
-if (appVersionEl) appVersionEl.textContent = formatVersion(versionInfo);
+const renderVersion = () => { if (appVersionEl) appVersionEl.textContent = formatVersion(versionInfo); };
+renderVersion();
+
+// Al cambiar de idioma, lo que pinta el JS se repinta (el HTML marcado lo
+// traduce i18n.js).
+onLangChange(() => {
+  updateRecordButton();
+  updateRecordEstimate();
+  renderVersion();
+  const { list, activeIndex } = sources.snapshot();
+  renderSavedSources(list, activeIndex);
+  refreshBackgrounds().catch(reportBackgroundError);
+  populateCameraSelect().catch(() => {});
+  // Título accesible de los iframes de HTML local sin título propio.
+  for (const source of list.filter(item => item.type === 'html' && !item.title)) {
+    const frame = iframeStack?.querySelector(`iframe[data-source-id="${CSS.escape(source.id)}"]`);
+    if (frame) frame.title = t('saved.kindHtml');
+  }
+});
