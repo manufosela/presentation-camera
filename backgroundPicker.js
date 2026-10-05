@@ -2,7 +2,10 @@
  * Galería de fondos del setup (CAM-TSK-0060): «Sin fondo», las imágenes
  * guardadas (miniatura + borrar) y «Subir imagen». Solo pinta y avisa: la app
  * decide qué hacer con onSelect(id | null), onRemove(id) y onUpload().
+ * Los textos salen en el idioma actual: la app la repinta al cambiarlo.
  */
+
+import { t } from './i18n.js';
 
 function button(doc, className, label) {
   const element = doc.createElement('button');
@@ -23,19 +26,19 @@ export function renderBackgroundPicker(container, { backgrounds, selectedId, onS
   const doc = container.ownerDocument;
   const items = [];
 
-  const none = choice(doc, { label: 'Sin fondo', selected: !selectedId, onClick: () => onSelect(null) });
-  none.textContent = 'Ninguno';
+  const none = choice(doc, { label: t('bg.noneLabel'), selected: !selectedId, onClick: () => onSelect(null) });
+  none.textContent = t('bg.none');
   items.push(none);
 
   for (const { id, name, url } of backgrounds) {
     const item = doc.createElement('span');
     item.className = 'bg-item';
-    const pick = choice(doc, { label: `Fondo ${name}`, selected: id === selectedId, onClick: () => onSelect(id) });
+    const pick = choice(doc, { label: t('bg.choose', { name }), selected: id === selectedId, onClick: () => onSelect(id) });
     const thumb = doc.createElement('img');
     thumb.src = url;
     thumb.alt = name;
     pick.append(thumb);
-    const remove = button(doc, 'bg-remove', `Borrar fondo ${name}`);
+    const remove = button(doc, 'bg-remove', t('bg.remove', { name }));
     remove.textContent = '×';
     remove.addEventListener('click', () => onRemove(id));
     item.append(pick, remove);
@@ -43,7 +46,7 @@ export function renderBackgroundPicker(container, { backgrounds, selectedId, onS
   }
 
   const upload = button(doc, 'bg-upload');
-  upload.textContent = '+ Subir imagen';
+  upload.textContent = t('bg.upload');
   upload.addEventListener('click', () => onUpload());
   items.push(upload);
 

@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderBackgroundPicker } from './backgroundPicker.js';
+import { setLang } from './i18n.js';
 
 const backgrounds = [
   { id: 'a.png', name: 'Playa', url: 'blob:a' },
@@ -10,6 +11,7 @@ const backgrounds = [
 let container;
 let handlers;
 beforeEach(() => {
+  setLang('es', null);
   document.body.innerHTML = '<div id="picker"></div>';
   container = document.getElementById('picker');
   handlers = { onSelect: vi.fn(), onRemove: vi.fn(), onUpload: vi.fn() };
@@ -24,6 +26,15 @@ describe('renderBackgroundPicker — galería de fondos', () => {
     expect(choices().map(c => c.getAttribute('aria-label'))).toEqual(['Sin fondo', 'Fondo Playa', 'Fondo Oficina']);
     expect(container.querySelector('img[alt="Playa"]').getAttribute('src')).toBe('blob:a');
     expect(container.querySelector('.bg-upload').textContent).toContain('Subir');
+  });
+
+  it('en inglés, sus textos y etiquetas en inglés', () => {
+    setLang('en', null);
+    render(null);
+    expect(choices().map(c => c.getAttribute('aria-label'))).toEqual(['No background', 'Background Playa', 'Background Oficina']);
+    expect(choices()[0].textContent).toBe('None');
+    expect(container.querySelector('.bg-remove').getAttribute('aria-label')).toBe('Delete background Playa');
+    expect(container.querySelector('.bg-upload').textContent).toBe('+ Upload image');
   });
 
   it('marca el elegido (Ninguno si no hay)', () => {
