@@ -47,6 +47,10 @@ const SHELL = [
   'segmentationLoader.js',
   'bundleRewrite.js',
   'bundleBlobs.js',
+  // pdf.js (vendor-dl/pdfjs) tampoco: se cachea al importar el primer PDF.
+  'pdfDeck.js',
+  'pdfRender.js',
+  'pdfImport.js',
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',

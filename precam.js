@@ -2,6 +2,7 @@ import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
 import { saveHtml, saveBundle, readBundleFiles, readLocalHtml, removeHtml, removeBundle } from './localStore.js';
 import { buildBundleBlobs, missingResourcesMessage } from './bundleBlobs.js';
+import { isPdf, pdfToDeckFile } from './pdfImport.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { removedLocalFiles, sourceLabel } from './savedSources.js';
 import { formatVersion, loadVersion } from './appVersion.js';
@@ -84,6 +85,8 @@ const openPanelBtn = document.getElementById('openPanelBtn');
 const loadLocalHtmlBtn = document.getElementById('loadLocalHtmlBtn');
 const localHtmlInput = document.getElementById('localHtmlInput');
 const loadLocalBundleBtn = document.getElementById('loadLocalBundleBtn');
+const loadPdfBtn = document.getElementById('loadPdfBtn');
+const pdfInput = document.getElementById('pdfInput');
 const autoRecordInput = document.getElementById('autoRecordInput');
 const recordBtn = document.getElementById('recordBtn');
 const recordLabel = document.getElementById('recordLabel');
@@ -222,6 +225,8 @@ openPanelBtn?.addEventListener('click', openControlPanel);
 loadLocalHtmlBtn?.addEventListener('click', () => localHtmlInput?.click());
 localHtmlInput?.addEventListener('change', handleLocalHtmlPick);
 loadLocalBundleBtn?.addEventListener('click', handleLocalBundlePick);
+loadPdfBtn?.addEventListener('click', () => pdfInput?.click());
+pdfInput?.addEventListener('change', handlePdfPick);
 helpBtn?.addEventListener('click', openOnboarding);
 onboardingClose?.addEventListener('click', () => closeOnboarding());
 onboardingDone?.addEventListener('click', () => closeOnboarding());
@@ -772,21 +777,49 @@ async function handleLocalHtmlPick(event) {
     return;
   }
   try {
-    const title = file.name.replace(/\.html?$/i, '');
-    // Mismo nombre: se reemplaza (no cuenta para el límite). Si no cabe, no
-    // guardar en OPFS para no dejar un fichero huérfano.
-    const previous = sources.findLocal({ title, bundle: false });
-    if (!previous && sources.isFull()) throw new Error(sourcesFullMessage());
-    const id = await saveHtml(file);
-    sources.addLocal({ type: 'html', title, localRef: id });
-    if (previous) {
-      forgetLocalCaches(previous.id); // mismo id: su fichero viejo lo borra la limpieza de sources
-    }
-    showStatus(t(previous ? 'status.htmlUpdated' : 'status.htmlAdded'));
+    const replaced = await storeLocalHtml(file, file.name.replace(/\.html?$/i, ''));
+    showStatus(t(replaced ? 'status.htmlUpdated' : 'status.htmlAdded'));
   } catch (error) {
     console.error(error);
     showStatus(error.message || t('status.htmlLoadFailed'), true);
   } finally {
+    event.target.value = '';
+  }
+}
+
+/** Guarda un .html como presentación local; true si reemplaza a otra del mismo nombre. */
+async function storeLocalHtml(file, title) {
+  // Mismo nombre: se reemplaza (no cuenta para el límite). Si no cabe, no
+  // guardar en OPFS para no dejar un fichero huérfano.
+  const previous = sources.findLocal({ title, bundle: false });
+  if (!previous && sources.isFull()) throw new Error(sourcesFullMessage());
+  const id = await saveHtml(file);
+  sources.addLocal({ type: 'html', title, localRef: id });
+  if (previous) {
+    forgetLocalCaches(previous.id); // mismo id: su fichero viejo lo borra la limpieza de sources
+  }
+  return Boolean(previous);
+}
+
+async function handlePdfPick(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!isPdf(file)) {
+    showStatus(t('error.notPdf'), true);
+    event.target.value = '';
+    return;
+  }
+  if (loadPdfBtn) loadPdfBtn.disabled = true;
+  try {
+    const onProgress = (done, total) => showStatus(t('status.pdfProgress', { done, total }));
+    const deck = await pdfToDeckFile(file, { onProgress });
+    const replaced = await storeLocalHtml(deck, deck.name.replace(/\.html$/i, ''));
+    showStatus(t(replaced ? 'status.pdfUpdated' : 'status.pdfAdded'));
+  } catch (error) {
+    console.error(error);
+    showStatus(error.message || t('status.pdfLoadFailed'), true);
+  } finally {
+    if (loadPdfBtn) loadPdfBtn.disabled = false;
     event.target.value = '';
   }
 }

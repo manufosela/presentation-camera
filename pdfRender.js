@@ -26,7 +26,7 @@ export function loadPdfJs(importModule = url => import(url), base = document.bas
   return pdfjsPromise;
 }
 
-const isPdf = file => file?.type === 'application/pdf' || /\.pdf$/i.test(file?.name ?? '');
+export const isPdf = file => file?.type === 'application/pdf' || /\.pdf$/i.test(file?.name ?? '');
 
 const defaultCanvas = (width, height) => Object.assign(document.createElement('canvas'), { width, height });
 
