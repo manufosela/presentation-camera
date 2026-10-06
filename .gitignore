@@ -14,8 +14,9 @@ npm-debug.log*
 # Node (por si se añade tooling)
 node_modules/
 
-# Modelo de BodyPix: lo descarga npm run fetch-model (y el workflow al publicar)
+# Modelo de BodyPix y pdf.js: los descarga npm run fetch-assets (y el workflow al publicar)
 models/
+vendor-dl/
 
 # Karajan / herramientas locales
 .kj/

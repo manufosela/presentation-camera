@@ -1015,7 +1015,7 @@ async function loadBodyPix() {
       outputStride: 16,
       multiplier: 0.75,
       quantBytes: 2,
-      // Pesos servidos desde el propio sitio (scripts/fetch-model.mjs), no desde googleapis.
+      // Pesos servidos desde el propio sitio (scripts/fetch-assets.js), no desde googleapis.
       modelUrl: new URL('models/bodypix/model-stride16.json', document.baseURI).href,
     });
   });
