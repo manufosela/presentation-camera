@@ -209,8 +209,15 @@
             </svg>
             <span data-i18n="sources.loadFolder">Cargar carpeta HTML (con assets)</span>
           </button>
+          <button id="loadPdfBtn" type="button" class="ghost-button ghost-button-wide">
+            <svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true">
+              <path d="M3 1.5h5.5l2.5 2.5v8.5h-8zM8.5 1.5v2.5h2.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
+            </svg>
+            <span data-i18n="sources.loadPdf">Cargar PDF</span>
+          </button>
+          <input id="pdfInput" type="file" accept=".pdf,application/pdf" hidden />
           <p class="panel-cta-help" data-i18n="sources.localHelp">
-            Un único .html autocontenido, o una carpeta exportada (reveal, impress, slides.to) con su index.html y sus recursos. Se guarda en tu navegador: no se sube a ningún sitio.
+            Un único .html autocontenido, una carpeta exportada (reveal, impress, slides.to) con su index.html y sus recursos, o un PDF. Se guarda en tu navegador: no se sube a ningún sitio.
           </p>
         </div>
 
