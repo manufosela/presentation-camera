@@ -50,3 +50,16 @@ export function loadSingleKeyShortcuts(storage) {
 export function saveSingleKeyShortcuts(storage, enabled) {
   storage.setItem(SINGLE_KEY_SHORTCUTS_KEY, String(enabled));
 }
+
+// Cámara en espejo: natural para quien presenta, pero la grabación (captura de
+// la pantalla) sale igual que se ve. Desactivable para grabar al derecho.
+const MIRROR_KEY = STORAGE_KEYS.mirror;
+
+/** false solo si el usuario quitó el espejo. */
+export function loadMirror(storage) {
+  return storage.getItem(MIRROR_KEY) !== 'false';
+}
+
+export function saveMirror(storage, mirrored) {
+  storage.setItem(MIRROR_KEY, String(mirrored));
+}

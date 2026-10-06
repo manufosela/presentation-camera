@@ -129,6 +129,20 @@ describe('createCutoutRenderer — un frame del modo recorte', () => {
     expect(canvas.getContext().globalCompositeOperation).toBe('source-over');
   });
 
+  it('sin espejo: el fondo se pinta tal cual, sin voltear (CAM-TSK-0079)', async () => {
+    const canvas = fakeCanvas();
+    const background = { width: 1600, height: 900 };
+    const segment = async () => ({ data: Uint8Array.from([1, 1, 0, 0]), mask: {} });
+    const renderer = createCutoutRenderer({
+      video, canvas, segment, now: () => 0, getBackground: () => background, isMirrored: () => false,
+    });
+    renderer.drawFrame();
+    await flush();
+    canvas.ops.length = 0;
+    renderer.drawFrame();
+    expect(canvas.ops).toEqual(['clear', 'mask', 'draw:source-in', 'save', 'draw:destination-over', 'restore']);
+  });
+
   it('no solapa segmentaciones ni repite antes del intervalo', async () => {
     let time = 0;
     let resolveSeg;

@@ -13,6 +13,7 @@ describe('constants — contrato entre ventanas y con el almacenamiento', () => 
       sources: 'cam.sources.v1',
       onboarded: 'cam.onboarded.v1',
       autoRecord: 'cam.autoRecord.v1',
+      mirror: 'cam.mirror.v1',
       camera: 'cam.camera.v1',
       singleKeyShortcuts: 'cam.singleKeyShortcuts.v1',
       background: 'cam.background.v1',

@@ -6,7 +6,9 @@ import {
   loadCameraId,
   saveBackgroundId,
   loadSingleKeyShortcuts,
+  loadMirror,
   saveCameraId,
+  saveMirror,
   saveSingleKeyShortcuts,
 } from './appPrefs.js';
 
@@ -76,5 +78,19 @@ describe('atajos de una tecla — desactivables (WCAG 2.1.4)', () => {
     expect(loadSingleKeyShortcuts(storage)).toBe(false);
     saveSingleKeyShortcuts(storage, true);
     expect(loadSingleKeyShortcuts(storage)).toBe(true);
+  });
+});
+
+describe('cámara en espejo (CAM-TSK-0079)', () => {
+  it('en espejo por defecto, como hasta ahora', () => {
+    expect(loadMirror(memoryStorage())).toBe(true);
+  });
+
+  it('se recuerda la elección', () => {
+    const storage = memoryStorage();
+    saveMirror(storage, false);
+    expect(loadMirror(storage)).toBe(false);
+    saveMirror(storage, true);
+    expect(loadMirror(storage)).toBe(true);
   });
 });

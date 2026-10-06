@@ -23,9 +23,11 @@ import {
   isDebugEnabled,
   loadBackgroundId,
   loadCameraId,
+  loadMirror,
   loadSingleKeyShortcuts,
   saveBackgroundId,
   saveCameraId,
+  saveMirror,
   saveSingleKeyShortcuts,
 } from './appPrefs.js';
 import { trapTabKey } from './focusTrap.js';
@@ -121,6 +123,9 @@ let autoRecordEnabled = loadAutoRecordPref();
 const singleKeyShortcutsInput = document.getElementById('singleKeyShortcutsInput');
 let singleKeyShortcuts = true;
 try { singleKeyShortcuts = loadSingleKeyShortcuts(window.localStorage); } catch { /* noop */ }
+const mirrorInput = document.getElementById('mirrorInput');
+let mirrored = true;
+try { mirrored = loadMirror(window.localStorage); } catch { /* noop */ }
 
 // localStorage puede lanzar (modo privado, almacenamiento bloqueado): la cámara
 // elegida es una comodidad, así que sin almacenamiento se usa la automática.
@@ -234,6 +239,16 @@ onboarding?.addEventListener('click', event => {
   if (event.target === onboarding) closeOnboarding(); // click en el fondo
 });
 onboarding?.addEventListener('keydown', event => trapTabKey(onboarding, event));
+webcamSection.classList.toggle('no-mirror', !mirrored);
+if (mirrorInput) {
+  mirrorInput.checked = mirrored;
+  mirrorInput.addEventListener('change', () => {
+    mirrored = mirrorInput.checked;
+    webcamSection.classList.toggle('no-mirror', !mirrored);
+    try { saveMirror(window.localStorage, mirrored); } catch { /* noop */ }
+  });
+}
+
 if (singleKeyShortcutsInput) {
   singleKeyShortcutsInput.checked = singleKeyShortcuts;
   singleKeyShortcutsInput.addEventListener('change', () => {
@@ -979,6 +994,7 @@ function ensureRenderLoop() {
     now: () => performance.now(),
     intervalMs: SEGMENTATION_INTERVAL_MS,
     getBackground: () => backgroundImage,
+    isMirrored: () => mirrored,
   });
   firstFrameDrawn = false;
   cameraLoop.start();
