@@ -35,6 +35,19 @@ export function normalizeEmbeddableUrl(url) {
       return next;
     }
   }
+  // Canva: /view, /edit, /watch (con o sin token y utm_*) → /view?embed.
+  // /view responde X-Frame-Options: deny; solo la variante ?embed se deja embeber.
+  if (url.hostname === 'www.canva.com' || url.hostname === 'canva.com') {
+    const design = url.pathname.match(/^\/design\/([\w-]+)(?:\/([\w-]+))?\/(?:view|edit|watch)\/?$/);
+    if (design) {
+      const [, designId, shareToken] = design;
+      const next = new URL(url);
+      next.pathname = ['/design', designId, shareToken, 'view'].filter(Boolean).join('/');
+      next.search = '?embed';
+      next.hash = '';
+      return next;
+    }
+  }
   return url;
 }
 

@@ -18,6 +18,27 @@ describe('sanitizePresentationUrl — solo http(s), normalizada para embeber', (
     expect(sanitizePresentationUrl(raw, BASE)).toBe(`${SLIDES}/preview`);
   });
 
+  // Canva responde X-Frame-Options: deny en /view; solo /view?embed se deja embeber.
+  const CANVA = 'https://www.canva.com/design/DAGi7rMbwQI/DL_b2qdGHZhErapcUnzRlQ';
+  it.each([
+    `${CANVA}/view`,
+    `${CANVA}/view?utm_content=DAGi7rMbwQI&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks`,
+    `${CANVA}/edit?utm_content=x`,
+    `${CANVA}/watch`,
+    `${CANVA}/view?embed`,
+  ])('Canva %s → /view?embed', raw => {
+    expect(sanitizePresentationUrl(raw, BASE)).toBe(`${CANVA}/view?embed`);
+  });
+
+  it('Canva sin token de compartir (enlace público corto) → /view?embed', () => {
+    expect(sanitizePresentationUrl('https://www.canva.com/design/DACSWFLr08k/view', BASE))
+      .toBe('https://www.canva.com/design/DACSWFLr08k/view?embed');
+  });
+
+  it('otras páginas de Canva se dejan como están', () => {
+    expect(sanitizePresentationUrl('https://www.canva.com/templates/', BASE)).toBe('https://www.canva.com/templates/');
+  });
+
   it.each(['javascript:alert(1)', 'data:text/html,<h1>x</h1>', 'file:///etc/passwd', 'ftp://x.example/'])(
     'rechaza protocolos no http(s): %s',
     raw => {
