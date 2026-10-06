@@ -170,6 +170,8 @@ export const MESSAGES = {
   'bundle.missingOne': { es: 'Al deck de la carpeta le falta 1 recurso: {names}. Puede verse incompleto.', en: 'The folder deck is missing 1 resource: {names}. It may look incomplete.' },
   'bundle.missingMany': { es: 'Al deck de la carpeta le faltan {count} recursos: {names}{rest}. Puede verse incompleto.', en: 'The folder deck is missing {count} resources: {names}{rest}. It may look incomplete.' },
   'bundle.andMore': { es: ' y {count} más', en: ' and {count} more' },
+  'error.notPdf': { es: 'El fichero no es un PDF.', en: 'The file is not a PDF.' },
+  'error.badPdf': { es: 'No se pudo leer el PDF: puede estar dañado o protegido.', en: 'Could not read the PDF: it may be damaged or protected.' },
 
   // Panel de control
   'panel.docTitle': { es: 'Control de la cámara · presentation·camera', en: 'CAM Control · presentation·camera' },
