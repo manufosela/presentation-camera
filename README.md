@@ -110,7 +110,7 @@ There is no backend, no account, no analytics and no cookies. The only requests 
 ```bash
 ./start.sh           # static server on http://localhost:8000
 ./start.sh 8080      # custom port
-npm run fetch-model  # downloads the BodyPix weights used by Cut-out (once)
+npm run fetch-assets # downloads the BodyPix weights (Cut-out) and pdf.js (PDF import), once
 ```
 
 `start.sh` uses `python3 -m http.server` and picks the next free port if none is given. The **or try a demo** button loads a public presentation to test the app.
@@ -130,7 +130,7 @@ The code is plain ES modules in the repository root, one small module per concer
 ├── backgroundStore.js / backgroundPicker.js # Virtual backgrounds
 ├── recorder.js / recordingFlow.js        # Recording
 ├── sw.js / manifest.webmanifest          # PWA
-├── scripts/fetch-model.mjs               # Downloads the BodyPix weights (checked with sha256)
+├── scripts/fetch-assets.js               # Downloads BodyPix weights and pdf.js (checked with sha256)
 └── vendor/                               # TensorFlow.js, BodyPix and fonts, served locally
 ```
 

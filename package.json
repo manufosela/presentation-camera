@@ -9,7 +9,7 @@
     "check": "node --check precam.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "fetch-model": "node scripts/fetch-model.mjs models/bodypix"
+    "fetch-assets": "node scripts/fetch-assets.js ."
   },
   "author": "@manufosela",
   "license": "MIT",

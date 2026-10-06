@@ -110,7 +110,7 @@ No hay backend, ni cuentas, ni analítica, ni cookies. Las únicas peticiones qu
 ```bash
 ./start.sh           # servidor estático en http://localhost:8000
 ./start.sh 8080      # otro puerto
-npm run fetch-model  # descarga los pesos de BodyPix que usa el Recorte (una vez)
+npm run fetch-assets # descarga los pesos de BodyPix (Recorte) y pdf.js (importar PDF), una vez
 ```
 
 `start.sh` usa `python3 -m http.server` y busca el siguiente puerto libre si no indicas uno. El botón **o prueba una demo** carga una presentación pública para probar la app.
@@ -130,7 +130,7 @@ El código son módulos ES en la raíz del repositorio, un módulo pequeño por 
 ├── backgroundStore.js / backgroundPicker.js # Fondos virtuales
 ├── recorder.js / recordingFlow.js        # Grabación
 ├── sw.js / manifest.webmanifest          # PWA
-├── scripts/fetch-model.mjs               # Descarga los pesos de BodyPix (comprobados con sha256)
+├── scripts/fetch-assets.js               # Descarga los pesos de BodyPix y pdf.js (comprobados con sha256)
 └── vendor/                               # TensorFlow.js, BodyPix y fuentes, servidos localmente
 ```
 
