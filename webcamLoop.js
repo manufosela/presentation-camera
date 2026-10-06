@@ -52,7 +52,9 @@ export function coverRect(srcW, srcH, dstW, dstH) {
  * `segment(video)` resuelve { data, mask }: data son 0/1 por píxel y mask el
  * ImageData opaco donde hay persona.
  */
-export function createCutoutRenderer({ video, canvas, segment, now, intervalMs = 50, getBackground = () => null }) {
+export function createCutoutRenderer({
+  video, canvas, segment, now, intervalMs = 50, getBackground = () => null, isMirrored = () => true,
+}) {
   let ctx = null;
   let lastMask = null;
   let lastSegmentationAt = -Infinity;
@@ -98,14 +100,16 @@ export function createCutoutRenderer({ video, canvas, segment, now, intervalMs =
         ctx.globalCompositeOperation = 'source-in';
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         // Fondo elegido (CAM-TSK-0059): detrás de la persona, cubriendo el recuadro.
-        // El canvas se muestra en espejo (CSS scaleX(-1)): el fondo se pinta
-        // volteado para que se lea al derecho en pantalla y en la grabación.
+        // Con espejo (CSS scaleX(-1)) el fondo se pinta volteado para que se
+        // lea al derecho en pantalla y en la grabación.
         const background = getBackground();
         if (background) {
           const { sx, sy, sw, sh } = coverRect(background.width, background.height, canvas.width, canvas.height);
           ctx.save();
-          ctx.translate(canvas.width, 0);
-          ctx.scale(-1, 1);
+          if (isMirrored()) {
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+          }
           ctx.globalCompositeOperation = 'destination-over';
           ctx.drawImage(background, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
           ctx.restore();

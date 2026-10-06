@@ -75,6 +75,7 @@ export const MESSAGES = {
   // Pie del setup
   'footer.secure': { es: 'La cámara solo funciona con https:// o http://localhost. El vídeo nunca sale de tu navegador.', en: 'Camera access requires https:// or http://localhost. Video never leaves your browser.' },
   'footer.autoRecord': { es: 'Grabar automáticamente al empezar', en: 'Record automatically when going live' },
+  'footer.mirror': { es: 'Cámara en espejo (quítalo para que la grabación salga al derecho)', en: 'Mirror the camera (turn it off so the recording is not flipped)' },
   'footer.singleKey': { es: 'Atajos de una tecla (C, M, R, F, H, S, \\, 1–9). Desactívalos si usas dictado por voz.', en: 'Single-key shortcuts (C, M, R, F, H, S, \\, 1–9). Turn them off if you use voice dictation.' },
   'footer.goLive': { es: 'En directo', en: 'Go live' },
 

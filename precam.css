@@ -1329,6 +1329,9 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
   border-radius: calc(var(--radius-md) - 6px);
 }
 #webcamSection.frame canvas { display: none; }
+/* Sin espejo (CAM-TSK-0079): la cámara, y por tanto la grabación, al derecho. */
+#webcamSection.no-mirror canvas,
+#webcamSection.no-mirror #webcamVideo { transform: none; }
 
 /* La cámara es solo imagen: deja pasar los clics a la presentación de debajo
    (p. ej. las flechas de reveal.js en la esquina inferior derecha). Solo su
