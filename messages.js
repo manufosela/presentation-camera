@@ -188,6 +188,10 @@ export const MESSAGES = {
   'mic.label': { es: 'Micrófono', en: 'Microphone' },
   'mic.auto': { es: 'Predeterminado', en: 'Default' },
   'mic.numbered': { es: 'Micrófono {n}', en: 'Microphone {n}' },
+  'mic.test': { es: 'Probar micrófono', en: 'Test microphone' },
+  'mic.stopTest': { es: 'Parar prueba', en: 'Stop test' },
+  'mic.level': { es: 'Nivel del micrófono', en: 'Microphone level' },
+  'mic.unavailable': { es: 'No hay micrófono o no hay permiso para usarlo.', en: 'There is no microphone or no permission to use it.' },
 
   // Textos y errores de los módulos
   'version.dev': { es: 'Versión de desarrollo (sin publicar)', en: 'Development version (unpublished)' },

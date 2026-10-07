@@ -1194,6 +1194,9 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 .toggle-row input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
 .toggle-row .select { max-width: 60%; }
 .toggle-row[hidden] { display: none; }
+.mic-test { justify-content: flex-start; }
+.mic-level { flex: 1; height: 12px; }
+.mic-level[hidden] { display: none; }
 .setup-footer .rec-dot { vertical-align: middle; color: var(--live); opacity: 1; }
 
 .more-options summary {

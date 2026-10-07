@@ -312,6 +312,11 @@
             <label for="micSelect" data-i18n="mic.label">Microphone</label>
             <select id="micSelect" class="select"></select>
           </div>
+          <!-- Probar el micrófono (CAM-TSK-0125): el medidor solo mientras se prueba -->
+          <div class="toggle-row mic-test">
+            <button id="micTestBtn" type="button" class="row-btn" aria-pressed="false" data-i18n="mic.test">Test microphone</button>
+            <meter id="micLevel" class="mic-level" min="0" max="1" value="0" aria-label="Microphone level" data-i18n-attr="aria-label:mic.level" hidden></meter>
+          </div>
           <label class="toggle-row">
             <span data-i18n="footer.mirror">Mirror my camera (also in the recording)</span>
             <input type="checkbox" id="mirrorInput" checked />
