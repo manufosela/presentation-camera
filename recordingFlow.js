@@ -21,9 +21,34 @@ export function createRecordingFlow({
   chapters = null, // { track: chapterTrack, current: () => diapositiva a la vista o null }
   countdown = async () => {}, // 3, 2, 1 antes de grabar (CAM-TSK-0099)
   getMicId = () => null, // micrófono elegido en el setup (CAM-TSK-0101)
+  review = async () => null, // diálogo de recorte: { startSec, endSec } o null = entera (CAM-TSK-0129)
+  trim = null, // trimRecording (recordingTrim.js)
 }) {
   let controller = null;
   const isRecording = () => controller !== null;
+
+  // Tras parar: se elige el recorte y se descargan el vídeo y sus capítulos.
+  // Si el recorte falla se avisa y se descarga entera: nunca se pierde.
+  async function save({ blob, type, durationMs, chapterSet }) {
+    const filename = buildRecordingFilename(now(), extFromMime(type));
+    let video = blob;
+    let chapterRange;
+    try {
+      const range = await review({ blob, durationSec: durationMs / 1000 });
+      if (range) {
+        const trimmed = await trim(blob, range);
+        video = trimmed.blob;
+        chapterRange = { fromMs: trimmed.startSec * 1000, toMs: range.endSec * 1000 };
+      }
+    } catch (error) {
+      logger.error(error);
+      showStatus(t('trim.failed'), true);
+    }
+    download(video, filename);
+    // Capítulos (CAM-TSK-0097): mismo nombre, .vtt; solo si el deck avisó de sus cambios.
+    const vtt = chapterSet?.toVtt(chapterRange);
+    if (vtt) download(new Blob([vtt], { type: 'text/vtt' }), filename.replace(/\.\w+$/, '.vtt'));
+  }
 
   async function start() {
     if (isRecording()) return;
@@ -41,14 +66,13 @@ export function createRecordingFlow({
           await countdown();
         },
         onStop: (blob, type) => {
-          const filename = buildRecordingFilename(now(), extFromMime(type));
-          download(blob, filename);
-          // Capítulos (CAM-TSK-0097): mismo nombre, .vtt; solo si el deck avisó de sus cambios.
-          const vtt = chapters?.track.finish()?.toVtt();
-          if (vtt) download(new Blob([vtt], { type: 'text/vtt' }), filename.replace(/\.\w+$/, '.vtt'));
+          // Duración y capítulos se congelan ya: el rato en el diálogo no cuenta.
+          const durationMs = controller?.elapsed() ?? 0;
+          const chapterSet = chapters?.track.finish();
           controller = null;
           onChange();
           setChromeHidden(false); // al terminar, volver a mostrar los controles
+          save({ blob, type, durationMs, chapterSet });
         },
         onError: error => {
           logger.error(error);
