@@ -73,12 +73,12 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('startScreenRecording', () => {
   it('inicia la captura y entrega un Blob al detener', async () => {
-    let blob = null;
-    const ctrl = await startScreenRecording({ withMic: false, withSystemAudio: false, onStop: b => { blob = b; } });
+    const { promise: stopped, resolve } = Promise.withResolvers();
+    const ctrl = await startScreenRecording({ withMic: false, withSystemAudio: false, onStop: resolve });
     expect(navigator.mediaDevices.getDisplayMedia).toHaveBeenCalledOnce();
     expect(ctrl.state).toBe('recording');
     ctrl.stop();
-    expect(blob).toBeInstanceOf(Blob);
+    expect(await stopped).toBeInstanceOf(Blob);
   });
 
   it('pide micrófono cuando withMic=true', async () => {
@@ -89,10 +89,10 @@ describe('startScreenRecording', () => {
 
   it('si el micrófono es denegado, graba igualmente sin romper', async () => {
     navigator.mediaDevices.getUserMedia = vi.fn(async () => { throw new Error('denegado'); });
-    let blob = null;
-    const ctrl = await startScreenRecording({ withMic: true, withSystemAudio: false, onStop: b => { blob = b; } });
+    const { promise: stopped, resolve } = Promise.withResolvers();
+    const ctrl = await startScreenRecording({ withMic: true, withSystemAudio: false, onStop: resolve });
     ctrl.stop();
-    expect(blob).toBeInstanceOf(Blob);
+    expect(await stopped).toBeInstanceOf(Blob);
   });
 
   it('lanza si getDisplayMedia no está disponible', async () => {

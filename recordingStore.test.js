@@ -74,6 +74,19 @@ describe('recordingStore — grabación en trozos confirmados (CAM-TSK-0095)', (
     expect(await sessionNames()).toEqual(['rec-1']); // terminada: se borra al empezar otra
   });
 
+  it('el WebM unido lleva su duración en la cabecera (CAM-TSK-0123)', async () => {
+    const head = [0x1a, 0x45, 0xdf, 0xa3, 0x80, 0x18, 0x53, 0x80, 0x67, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0x15, 0x49, 0xa9, 0x66, 0x87, 0x2a, 0xd7, 0xb1, 0x83, 0x0f, 0x42, 0x40];
+    const session = await store.startSession({ mimeType: 'video/webm', startedAt: Date.now() - 2000 });
+    await session.append(new Blob([new Uint8Array(head)]));
+    await session.append(new Blob([new Uint8Array([0x1f, 0x43, 0xb6, 0x75])]));
+    const video = new Uint8Array(await (await session.finish()).arrayBuffer());
+    const at = video.findIndex((byte, i) => byte === 0x44 && video[i + 1] === 0x89);
+    expect(at).toBeGreaterThan(0);
+    expect(new DataView(video.buffer, at + 3, 8).getFloat64(0)).toBeGreaterThanOrEqual(2000);
+    expect([...video.slice(-4)]).toEqual([0x1f, 0x43, 0xb6, 0x75]);
+  });
+
   it('también limpia los ficheros sueltos del formato anterior', async () => {
     const dir = await root.getDirectoryHandle('recordings', { create: true });
     const old = await (await dir.getFileHandle('rec-1.webm', { create: true })).createWritable();

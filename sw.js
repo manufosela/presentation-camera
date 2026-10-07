@@ -57,6 +57,7 @@ const SHELL = [
   'unloadGuard.js',
   'recordingStore.js',
   'recoveryNotice.js',
+  'webmDuration.js',
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',
