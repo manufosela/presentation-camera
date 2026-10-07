@@ -53,6 +53,7 @@ export const MESSAGES = {
   'setup.keyMove': { es: 'mover', en: 'move' },
   'setup.keyStyle': { es: 'estilo', en: 'style' },
   'setup.keyHide': { es: 'ocultar', en: 'hide' },
+  'setup.keyAll': { es: 'todos los atajos', en: 'all shortcuts' },
 
   // Sección 01: presentaciones
   'sources.title': { es: 'Tu presentación', en: 'Your presentation' },
@@ -97,31 +98,24 @@ export const MESSAGES = {
   'footer.pickFirst': { es: 'Elige una presentación para empezar.', en: 'Choose a presentation to start.' },
   'footer.share': { es: 'Comparte solo esta ventana en Zoom, Meet o Teams.', en: 'Share only this window in Zoom, Meet or Teams.' },
 
-  // Atajos (primeros pasos)
-  'legend.slides': { es: 'slides', en: 'slides' },
+  // Atajos (diálogo de ayuda)
+  'legend.slides': { es: 'diapositivas', en: 'slides' },
   'legend.notes': { es: 'notas', en: 'notes' },
-  'legend.corner': { es: 'esquina', en: 'corner' },
-  'legend.treatment': { es: 'tratamiento', en: 'treatment' },
+  'legend.corner': { es: 'mover la cámara de esquina', en: 'move the camera to the next corner' },
+  'legend.treatment': { es: 'con marco / recortada', en: 'framed / cut out' },
   'legend.fullscreen': { es: 'pantalla completa', en: 'fullscreen' },
   'legend.record': { es: 'grabar', en: 'record' },
   'legend.hide': { es: 'ocultar controles', en: 'hide controls' },
   'legend.panel': { es: 'panel de control', en: 'control panel' },
-  'legend.source': { es: 'cambiar de presentación', en: 'switch source' },
+  'legend.source': { es: 'cambiar de presentación', en: 'switch presentation' },
   'legend.overview': { es: 'vista general', en: 'overview' },
+  'legend.help': { es: 'esta ayuda', en: 'this help' },
 
-  // Primeros pasos
-  'onb.close': { es: 'Cerrar', en: 'Close' },
-  'onb.title': { es: 'Primeros pasos', en: 'Getting started' },
-  'onb.step1.title': { es: 'Añade tu presentación.', en: 'Add your presentation.' },
-  'onb.step1.text': { es: 'Pega una URL (Genially, Google Slides, Canva…) o usa «Cargar HTML local». ¿Tienes un PPTX? Súbelo a Office Online o Google Slides y pega su URL: los PPTX no se cargan en local.', en: 'Paste a URL (Genially, Google Slides, Canva…) or use “Load local HTML”. Got a PPTX? Upload it to Office Online or Google Slides and paste that URL: PPTX files can’t be loaded locally.' },
-  'onb.step2.title': { es: 'Coloca tu cámara.', en: 'Set up your camera.' },
-  'onb.step2.text': { es: 'Elige esquina, tamaño y, si quieres, recorta el fondo o ponte uno.', en: 'Pick a corner and a size and, if you like, cut out or replace your background.' },
-  'onb.step3.title': { es: 'Pulsa «Empezar a presentar».', en: 'Press “Start presenting”.' },
-  'onb.step3.text': { es: 'Tu cara aparece sobre las slides. Comparte solo esta ventana en Zoom/Meet/Teams.', en: 'Your face appears over the slides. Share only this window in Zoom/Meet/Teams.' },
-  'onb.step4.title': { es: 'Grabación automática.', en: 'Automatic recording.' },
-  'onb.step4.text': { es: 'Por defecto se graba al empezar (puedes desactivarlo en el setup); contrólala con R y, al detenerla, se descarga el vídeo.', en: 'By default it records when you go live (you can turn it off in the setup); control it with R and the video downloads when you stop.' },
-  'onb.shortcuts': { es: 'Atajos:', en: 'Shortcuts:' },
-  'onb.done': { es: 'Entendido', en: 'Got it' },
+  // Ayuda
+  'help.close': { es: 'Cerrar', en: 'Close' },
+  'help.title': { es: 'Ayuda', en: 'Help' },
+  'help.intro': { es: 'Elige una presentación, decide cómo apareces y empieza. Comparte solo esta ventana en Zoom, Meet o Teams.', en: 'Choose a presentation, decide how you appear and start. Share only this window in Zoom, Meet or Teams.' },
+  'help.shortcuts': { es: 'Atajos de teclado mientras presentas', en: 'Keyboard shortcuts while presenting' },
 
   // Avisos de la app (precam.js)
   'status.startFailed': { es: 'No se pudo iniciar la presentación.', en: 'Could not start the presentation.' },

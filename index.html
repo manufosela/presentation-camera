@@ -199,6 +199,7 @@
             <kbd>C</kbd> <span data-i18n="setup.keyMove">move</span>
             <kbd>M</kbd> <span data-i18n="setup.keyStyle">style</span>
             <kbd>H</kbd> <span data-i18n="setup.keyHide">hide</span>
+            <kbd>?</kbd> <span data-i18n="setup.keyAll">all shortcuts</span>
           </span>
         </p>
       </section>
@@ -317,7 +318,6 @@
           <span><span class="rec-dot" aria-hidden="true"></span> <span data-i18n="footer.autoRecord">Record when starting</span></span>
           <input type="checkbox" id="autoRecordInput" checked />
         </label>
-        <p class="record-estimate" id="recordEstimate" aria-live="polite"></p>
         <button id="startButton" type="button" class="start-button">
           <span class="start-button-tape" aria-hidden="true"></span>
           <span class="start-button-label" data-i18n="footer.goLive">Go live</span>
@@ -329,36 +329,36 @@
         </button>
         <p class="share-note" id="startHint" data-i18n="footer.pickFirst" hidden>Choose a presentation to start.</p>
         <p class="share-note" data-i18n="footer.share">Share only this window in Zoom, Meet or Teams.</p>
-        <p class="app-version" id="appVersion" aria-live="polite"></p>
       </footer>
       </aside>
       </div>
     </main>
 
-    <!-- Onboarding / primeros pasos (overlay propio, no modal nativo) -->
-    <div id="onboarding" class="onboarding" hidden>
-      <div class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
-        <button id="onboardingClose" class="onboarding-close" type="button" aria-label="Cerrar" data-i18n-attr="aria-label:onb.close">✕</button>
-        <h2 id="onboardingTitle" class="onboarding-title" data-i18n="onb.title">Primeros pasos</h2>
-        <ol class="onboarding-steps">
-          <li><strong data-i18n="onb.step1.title">Añade tu presentación.</strong> <span data-i18n="onb.step1.text"></span></li>
-          <li><strong data-i18n="onb.step2.title">Coloca tu cámara.</strong> <span data-i18n="onb.step2.text"></span></li>
-          <li><strong data-i18n="onb.step3.title">Pulsa «En directo».</strong> <span data-i18n="onb.step3.text"></span></li>
-          <li><strong data-i18n="onb.step4.title">Grabación automática.</strong> <span data-i18n="onb.step4.text"></span></li>
-        </ol>
-        <p class="onboarding-shortcuts">
-          <strong data-i18n="onb.shortcuts">Atajos:</strong>
-          <kbd>←</kbd><kbd>→</kbd> <span data-i18n="legend.slides">slides</span> · <kbd>S</kbd> <span data-i18n="legend.notes">notas</span> ·
-          <kbd>C</kbd> <span data-i18n="legend.corner">esquina</span> · <kbd>M</kbd> <span data-i18n="legend.treatment">tratamiento</span> ·
-          <kbd>F</kbd> <span data-i18n="legend.fullscreen">pantalla completa</span> · <kbd>R</kbd> <span data-i18n="legend.record">grabar</span> ·
-          <kbd>H</kbd> <span data-i18n="legend.hide">ocultar controles</span> · <kbd>\</kbd> <span data-i18n="legend.panel">panel</span> ·
-          <kbd>1</kbd>–<kbd>9</kbd> <span data-i18n="legend.source">fuente</span> · <kbd>Esc</kbd> <span data-i18n="legend.overview">vista general</span>
-        </p>
-        <button id="onboardingDone" class="start-button onboarding-done" type="button">
-          <span class="start-button-label" data-i18n="onb.done">Entendido</span>
-        </button>
-      </div>
-    </div>
+    <!-- Ayuda (CAM-TSK-0086): el único sitio con todos los atajos. <dialog>
+         modal nativo: atrapa el foco y se cierra con Esc. -->
+    <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
+      <form method="dialog" class="help-close-form">
+        <button class="help-close" type="submit" aria-label="Close" data-i18n-attr="aria-label:help.close">✕</button>
+      </form>
+      <h2 id="helpTitle" data-i18n="help.title">Help</h2>
+      <p data-i18n="help.intro">Choose a presentation, decide how you appear and start. Share only this window in Zoom, Meet or Teams.</p>
+      <h3 data-i18n="help.shortcuts">Keyboard shortcuts while presenting</h3>
+      <dl class="help-keys">
+        <div><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd data-i18n="legend.slides">slides</dd></div>
+        <div><dt><kbd>S</kbd></dt><dd data-i18n="legend.notes">notes</dd></div>
+        <div><dt><kbd>C</kbd></dt><dd data-i18n="legend.corner">corner</dd></div>
+        <div><dt><kbd>M</kbd></dt><dd data-i18n="legend.treatment">style</dd></div>
+        <div><dt><kbd>F</kbd></dt><dd data-i18n="legend.fullscreen">fullscreen</dd></div>
+        <div><dt><kbd>R</kbd></dt><dd data-i18n="legend.record">record</dd></div>
+        <div><dt><kbd>H</kbd></dt><dd data-i18n="legend.hide">hide controls</dd></div>
+        <div><dt><kbd>\</kbd></dt><dd data-i18n="legend.panel">control panel</dd></div>
+        <div><dt><kbd>1</kbd>…<kbd>9</kbd></dt><dd data-i18n="legend.source">switch presentation</dd></div>
+        <div><dt><kbd>Esc</kbd></dt><dd data-i18n="legend.overview">overview</dd></div>
+        <div><dt><kbd>?</kbd></dt><dd data-i18n="legend.help">this help</dd></div>
+      </dl>
+      <p class="help-meta" id="recordEstimate" aria-live="polite"></p>
+      <p class="help-meta app-version" id="appVersion" aria-live="polite"></p>
+    </dialog>
 
     <script type="module" src="precam.js"></script>
   </body>

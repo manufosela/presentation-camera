@@ -446,13 +446,8 @@ kbd {
   max-width: 56ch;
 }
 
-/* Versión publicada (version.json) en el pie */
-.app-version {
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  color: var(--ink-faint);
-}
+/* Versión publicada (version.json), en la ayuda */
+.app-version { font-family: var(--mono); letter-spacing: 0.04em; }
 
 /* Presentaciones guardadas: elegir la activa y quitar las que sobran */
 /* Recientes: su tecla 1–9, título y tipo, y «En uso» en la activa */
@@ -604,7 +599,7 @@ kbd {
 .setup.is-empty :is(.stage-slide, .stage-mock-cam, .stage-corners, .stage-hint) { display: none; }
 .setup.is-empty .first-steps { display: grid; }
 .setup.is-empty #panel-camera .panel-num { display: none; }
-.setup.is-empty :is(section[aria-labelledby="panel-source"], .more-options, .record-estimate) { display: none; }
+.setup.is-empty :is(section[aria-labelledby="panel-source"], .more-options) { display: none; }
 .stage-hint {
   display: flex;
   flex-wrap: wrap;
@@ -1206,76 +1201,33 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 .more-body { display: grid; padding-top: 0.25rem; }
 .open-panel-btn { display: flex; align-items: center; justify-content: space-between; margin-top: 0.5rem; }
 .share-note { font-size: 0.75rem; color: var(--ink-muted); text-align: center; }
-.record-estimate {
-  font-size: .75rem;
-  color: var(--ink-muted);
-}
-.record-estimate:empty {
-  display: none;
-}
 
-/* ─── Onboarding overlay ─────────────────────────────────────── */
-.onboarding {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
-  background: oklch(0 0 0 / .6);
-  backdrop-filter: blur(2px);
-}
-.onboarding[hidden] { display: none; }
-.onboarding-card {
-  position: relative;
-  width: 100%;
-  max-width: 560px;
+/* ─── Ayuda (CAM-TSK-0086): <dialog> modal con todos los atajos ─ */
+.help-dialog {
+  width: min(560px, calc(100% - 2rem));
   max-height: 90vh;
+  margin: auto;
+  padding: clamp(1.5rem, 4vw, 2rem);
   overflow-y: auto;
-  padding: clamp(1.5rem, 4vw, 2.2rem);
   background: var(--bg-raised);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-high);
   color: var(--ink-body);
+  line-height: 1.5;
 }
-.onboarding-title {
-  font-family: var(--serif);
-  font-size: 1.5rem;
-  color: var(--ink-strong);
-  margin-bottom: 1rem;
-}
-.onboarding-steps {
-  display: grid;
-  gap: .75rem;
-  padding-left: 1.2rem;
-  margin-bottom: 1.1rem;
-}
-.onboarding-steps li { line-height: 1.5; }
-.onboarding-steps strong { color: var(--ink-strong); }
-.onboarding-shortcuts {
-  font-size: .82rem;
-  color: var(--ink-muted);
-  line-height: 2;
-  margin-bottom: 1.4rem;
-}
-.onboarding-close {
-  position: absolute;
-  top: .7rem;
-  right: .8rem;
-  width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 50%;
-  color: var(--ink-muted);
-}
-.onboarding-close:hover {
-  background: oklch(1 0 0 / .08);
-  color: var(--ink-strong);
-}
-.onboarding-done {
-  width: 100%;
-  justify-content: center;
-}
+.help-dialog::backdrop { background: oklch(0 0 0 / .6); backdrop-filter: blur(2px); }
+.help-dialog h2 { font-family: var(--serif); font-size: 1.5rem; color: var(--ink-strong); margin-bottom: 0.5rem; }
+.help-dialog h3 { margin: 1.25rem 0 0.5rem; font-size: 1rem; color: var(--ink-strong); }
+.help-close-form { position: absolute; top: 0.5rem; right: 0.5rem; }
+.help-close { width: 44px; height: 44px; border-radius: 50%; color: var(--ink-muted); }
+.help-close:hover { background: var(--bg-elevated); color: var(--ink-strong); }
+.help-close:focus-visible { outline: 2px solid var(--focus-ring); }
+.help-keys { display: grid; gap: 0.4rem; }
+.help-keys > div { display: grid; grid-template-columns: 7rem 1fr; align-items: center; gap: 0.75rem; }
+.help-keys dt { display: flex; gap: 0.25rem; }
+.help-meta { margin-top: 0.75rem; font-size: 0.8rem; color: var(--ink-muted); }
+.help-meta:empty { display: none; }
 
 /* ─── Ocultar controles durante la grabación ─────────────────── */
 /* Con body.chrome-hidden se ocultan los controles de la app para que no salgan

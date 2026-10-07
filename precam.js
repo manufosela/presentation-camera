@@ -34,7 +34,6 @@ import {
   saveMirror,
   saveSingleKeyShortcuts,
 } from './appPrefs.js';
-import { trapTabKey } from './focusTrap.js';
 import { deriveSourceTitle, hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { STORAGE_KEYS, SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startMainLink } from './linkChannel.js';
@@ -97,12 +96,9 @@ const autoRecordInput = document.getElementById('autoRecordInput');
 const recordBtn = document.getElementById('recordBtn');
 const recordLabel = document.getElementById('recordLabel');
 const recordEstimate = document.getElementById('recordEstimate');
-const onboarding = document.getElementById('onboarding');
-const onboardingClose = document.getElementById('onboardingClose');
-const onboardingDone = document.getElementById('onboardingDone');
+const helpDialog = document.getElementById('helpDialog');
 const helpBtn = document.getElementById('helpBtn');
 const showChromeBtn = document.getElementById('showChromeBtn');
-const ONBOARDED_KEY = STORAGE_KEYS.onboarded;
 let chromeHidden = false; // controles de la app ocultos (para que no salgan en la grabación)
 
 let panelWindow = null;
@@ -277,13 +273,10 @@ stageDrop.addEventListener('drop', async event => {
   else if (entry?.kind === 'file') await importLocalFile(entry.file);
   else showStatus(t('status.unsupportedFile'), true);
 });
-helpBtn?.addEventListener('click', openOnboarding);
-onboardingClose?.addEventListener('click', () => closeOnboarding());
-onboardingDone?.addEventListener('click', () => closeOnboarding());
-onboarding?.addEventListener('click', event => {
-  if (event.target === onboarding) closeOnboarding(); // click en el fondo
+helpBtn.addEventListener('click', openHelp);
+helpDialog.addEventListener('click', event => {
+  if (event.target === helpDialog) helpDialog.close(); // clic en el fondo
 });
-onboarding?.addEventListener('keydown', event => trapTabKey(onboarding, event));
 webcamSection.classList.toggle('no-mirror', !mirrored);
 if (mirrorInput) {
   mirrorInput.checked = mirrored;
@@ -559,39 +552,25 @@ function openControlPanel() {
   }
 }
 
-// Diálogo modal accesible: al abrir, el foco entra y queda atrapado; al cerrar,
-// vuelve al elemento que lo tenía.
-let focusBeforeOnboarding = null;
-
-function openOnboarding() {
-  if (!onboarding) return;
-  focusBeforeOnboarding = document.activeElement;
-  onboarding.hidden = false;
-  onboardingClose?.focus();
-}
-
-function closeOnboarding(persist = true) {
-  if (onboarding && !onboarding.hidden) {
-    onboarding.hidden = true;
-    focusBeforeOnboarding?.focus?.();
-    focusBeforeOnboarding = null;
-  }
-  if (persist) {
-    try { window.localStorage.setItem(ONBOARDED_KEY, 'true'); } catch { /* noop */ }
-  }
+// Ayuda (CAM-TSK-0086): <dialog> modal nativo; atrapa el foco, Esc lo cierra y
+// el navegador devuelve el foco a quien lo abrió.
+function openHelp() {
+  if (!helpDialog.open) helpDialog.showModal();
 }
 
 function handleGlobalShortcut(event) {
-  // Esc cierra el onboarding si está abierto (prioritario).
-  if (event.key === 'Escape' && onboarding && !onboarding.hidden) {
-    event.preventDefault();
-    closeOnboarding();
-    return;
-  }
+  if (helpDialog.open) return; // el diálogo gestiona sus teclas (Esc)
   // Saltar si estamos escribiendo en un input/textarea.
   if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
   if (event.ctrlKey || event.metaKey || event.altKey) return;
   if (!singleKeyShortcuts) return;
+
+  // ? → ayuda con todos los atajos
+  if (event.key === '?') {
+    event.preventDefault();
+    openHelp();
+    return;
+  }
 
   // \ → abrir panel
   if (event.key === '\\') {
@@ -610,7 +589,7 @@ function handleGlobalShortcut(event) {
 
 function handleKeyboardShortcut(event) {
   if (!isPresentationActive()) return;
-  if (onboarding && !onboarding.hidden) return; // Esc cierra la ayuda (handleGlobalShortcut)
+  if (helpDialog.open) return; // Esc cierra la ayuda, no la vista general del deck
   if (event.target?.closest('input, textarea, select, [contenteditable]')) return;
   // S con un deck local: las notas se muestran en el panel (la ventana de notas
   // de reveal.js no funciona con decks servidos como blob, CAM-BUG-0013).
