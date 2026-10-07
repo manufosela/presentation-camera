@@ -8,6 +8,8 @@
  * terminar, new Blob(trozos) los une sin copiarlos a memoria.
  */
 
+import { withWebmDuration } from './webmDuration.js';
+
 const RECORDINGS_DIR = 'recordings';
 const META = 'meta.json';
 const DONE = 'done'; // marca de sesión terminada (ya descargada)
@@ -31,14 +33,21 @@ async function hasFile(dir, name) {
   }
 }
 
-/** Une los trozos de una sesión, en orden, en un único Blob del tipo dado. */
-async function joinParts(dir, type) {
+/**
+ * Une los trozos de una sesión, en orden, en un único vídeo del tipo dado, con
+ * su duración escrita. Sin durationMs, la deduce de cuándo se guardó el último
+ * trozo (sesión recuperada tras un cierre).
+ */
+async function joinParts(dir, { mimeType, startedAt }, durationMs) {
   const parts = [];
   for await (const [name, handle] of dir.entries()) {
     if (name.startsWith(PART_PREFIX)) parts.push([name, await handle.getFile()]);
   }
   parts.sort(([a], [b]) => a.localeCompare(b));
-  return new Blob(parts.map(([, file]) => file), { type });
+  const files = parts.map(([, file]) => file);
+  const video = new Blob(files, { type: mimeType });
+  if (!files.length) return video;
+  return withWebmDuration(video, durationMs ?? files.at(-1).lastModified - startedAt);
 }
 
 // Antes de grabar: fuera las sesiones ya descargadas y los ficheros sueltos del
@@ -69,8 +78,9 @@ export function createRecordingStore(getRoot = () => navigator.storage.getDirect
       const pending = [];
       for await (const [id, dir] of recordings.entries()) {
         if (dir.kind !== 'directory' || await hasFile(dir, DONE)) continue;
-        const { mimeType, startedAt } = await readMeta(dir);
-        const video = () => joinParts(dir, mimeType);
+        const meta = await readMeta(dir);
+        const { mimeType, startedAt } = meta;
+        const video = () => joinParts(dir, meta);
         const { size } = await video();
         if (!size) continue; // empezó y no llegó a guardar nada
         pending.push({
@@ -98,7 +108,7 @@ export function createRecordingStore(getRoot = () => navigator.storage.getDirect
         /** Marca la sesión como terminada y devuelve el vídeo completo. */
         async finish() {
           await writeFile(dir, DONE, '');
-          return joinParts(dir, mimeType);
+          return joinParts(dir, { mimeType, startedAt }, Date.now() - startedAt);
         },
       };
     },

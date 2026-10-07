@@ -10,6 +10,7 @@
 
 import { t } from './i18n.js';
 import { createRecordingStore } from './recordingStore.js';
+import { withWebmDuration } from './webmDuration.js';
 
 const MIME_PREFERENCES = [
   'video/webm;codecs=vp9,opus',
@@ -122,12 +123,13 @@ export async function startScreenRecording({
 
   // A disco por trozos confirmados (recuperables si se cierra); sin OPFS, en memoria.
   const type = recorder.mimeType || mimeType || 'video/webm';
+  const startedAt = Date.now(); // para escribir la duración del vídeo al parar
   const chunks = [];
   let session = null;
   let writeChain = Promise.resolve();
   if (navigator.storage?.getDirectory) {
     try {
-      session = await createRecordingStore().startSession({ mimeType: type, startedAt: Date.now() });
+      session = await createRecordingStore().startSession({ mimeType: type, startedAt });
     } catch (error) {
       console.warn('[rec] sin OPFS: la grabación va a memoria', error);
       session = null;
@@ -157,7 +159,7 @@ export async function startScreenRecording({
         onError?.(error);
       }
     } else {
-      onStop?.(new Blob(chunks, { type }), type);
+      onStop?.(await withWebmDuration(new Blob(chunks, { type }), Date.now() - startedAt), type);
     }
   });
   recorder.addEventListener('error', event => {
