@@ -52,7 +52,8 @@ export const MESSAGES = {
   'sources.pickFile': { es: 'Un archivo (HTML o PDF)', en: 'A file (HTML or PDF)' },
   'sources.pickFolder': { es: 'Una carpeta exportada (con su index.html)', en: 'An exported folder (with its index.html)' },
   'sources.localHelp': { es: 'Se guarda en tu navegador: no se sube a ningún sitio.', en: 'It is stored in your browser: nothing is uploaded.' },
-  'sources.recent': { es: 'Recientes', en: 'Recent' },  'sources.savedEmpty': { es: 'Aún no hay ninguna. Pega una URL o carga un HTML local.', en: 'None yet. Paste a URL or load a local HTML.' },
+  'sources.recent': { es: 'Recientes', en: 'Recent' },
+  'sources.inUse': { es: 'En uso', en: 'In use' },  'sources.savedEmpty': { es: 'Aún no hay ninguna. Pega una URL o carga un HTML local.', en: 'None yet. Paste a URL or load a local HTML.' },
   'sources.openPanel': { es: 'Abrir panel de control', en: 'Open control panel' },
   'sources.panelHelp': { es: 'Otra ventana del navegador con tus presentaciones en pequeño. Tenla en otro monitor y comparte solo esta en Zoom/Meet/Teams.', en: 'A separate browser window with your presentations in small. Keep it on another screen and share only this one in Zoom/Meet/Teams.' },
 

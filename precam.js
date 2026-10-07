@@ -5,7 +5,7 @@ import { buildBundleBlobs, missingResourcesMessage } from './bundleBlobs.js';
 import { pdfToDeckFile } from './pdfImport.js';
 import { fileKind } from './fileKind.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
-import { removedLocalFiles, sourceLabel } from './savedSources.js';
+import { recentKey, removedLocalFiles, sourceLabel } from './savedSources.js';
 import { createSetupPreview } from './setupPreview.js';
 import { formatVersion, loadVersion } from './appVersion.js';
 import { startScreenRecording, downloadBlob, estimateStorage } from './recorder.js';
@@ -414,13 +414,29 @@ function renderSavedSource(source, index, activeIndex) {
   pick.type = 'button';
   pick.className = 'saved-source-pick';
   pick.setAttribute('aria-pressed', String(index === activeIndex));
+  const key = recentKey(index);
+  if (key) {
+    const keyEl = document.createElement('kbd');
+    keyEl.textContent = key;
+    keyEl.setAttribute('aria-hidden', 'true'); // su tecla 1–9 (atajo de una tecla)
+    pick.append(keyEl);
+  }
+  const text = document.createElement('span');
+  text.className = 'saved-source-text';
   const titleEl = document.createElement('span');
   titleEl.className = 'saved-source-title';
   titleEl.textContent = title;
   const kindEl = document.createElement('span');
   kindEl.className = 'saved-source-kind';
   kindEl.textContent = kind;
-  pick.append(titleEl, kindEl);
+  text.append(titleEl, kindEl);
+  pick.append(text);
+  if (index === activeIndex) {
+    const inUse = document.createElement('span');
+    inUse.className = 'saved-source-in-use';
+    inUse.textContent = t('sources.inUse');
+    pick.append(inUse);
+  }
   pick.addEventListener('click', () => sources.setActive(index));
 
   const remove = document.createElement('button');

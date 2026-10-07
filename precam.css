@@ -455,34 +455,32 @@ kbd {
 }
 
 /* Presentaciones guardadas: elegir la activa y quitar las que sobran */
-.saved-sources { display: grid; gap: 0.5rem; padding-top: 0.25rem; }
-.saved-sources-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
+/* Recientes: su tecla 1–9, título y tipo, y «En uso» en la activa */
+.saved-sources { display: grid; gap: 0.35rem; }
+.saved-sources-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .saved-sources-list:empty { display: none; }
-.saved-source { display: flex; align-items: center; gap: 0.35rem; }
+.saved-source { display: flex; align-items: center; gap: 0.25rem; }
 .saved-source-pick {
   flex: 1;
   display: flex;
-  align-items: baseline;
-  gap: 0.6rem;
+  align-items: center;
+  gap: 0.75rem;
   min-width: 0;
-  padding: 0.5rem 0.8rem;
-  border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  color: var(--ink-strong);
+  min-height: 44px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 10px;
+  color: var(--ink-body);
   text-align: left;
 }
-.saved-source-pick[aria-pressed="true"] { border-color: var(--accent); }
-.saved-source-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.saved-source-kind {
-  margin-left: auto;
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  color: var(--ink-muted);
-  white-space: nowrap;
-}
+.saved-source-pick:hover { background: var(--bg-elevated); }
+.saved-source-pick[aria-pressed="true"] { background: var(--accent-soft); }
+.saved-source-text { flex: 1; min-width: 0; display: grid; }
+.saved-source-title { color: var(--ink-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.saved-source-kind { font-size: 0.75rem; color: var(--ink-muted); white-space: nowrap; }
+.saved-source-in-use { font-size: 0.75rem; color: var(--accent); white-space: nowrap; }
 .saved-source-remove {
-  width: 30px; height: 30px;
-  border-radius: 999px;
+  width: 44px; height: 44px;
+  border-radius: 10px;
   color: var(--ink-muted);
 }
 .saved-source-remove:hover { color: var(--accent); }
