@@ -111,6 +111,43 @@ describe('startScreenRecording', () => {
     }
   });
 
+  it('beforeStart se espera tras aceptar la captura y antes de empezar a grabar (CAM-TSK-0099)', async () => {
+    const order = [];
+    const RecorderSpy = class extends FakeRecorder { start() { order.push('start'); super.start(); } };
+    vi.stubGlobal('MediaRecorder', RecorderSpy);
+    const ctrl = await startScreenRecording({
+      withMic: false,
+      withSystemAudio: false,
+      beforeStart: async () => {
+        expect(navigator.mediaDevices.getDisplayMedia).toHaveBeenCalledOnce();
+        order.push('cuenta atrás');
+      },
+    });
+    expect(order).toEqual(['cuenta atrás', 'start']);
+    ctrl.stop();
+  });
+
+  it('si se deja de compartir durante la cuenta atrás, no graba y suelta captura y micrófono', async () => {
+    const mic = track('audio');
+    navigator.mediaDevices.getUserMedia = vi.fn(async () => new FakeStream([mic]));
+    await expect(startScreenRecording({
+      withMic: true,
+      withSystemAudio: false,
+      beforeStart: async () => { displayTracks[0].readyState = 'ended'; },
+    })).rejects.toThrow();
+    expect(displayTracks[0].stop).toHaveBeenCalled();
+    expect(mic.stop).toHaveBeenCalled();
+  });
+
+  it('si la cuenta atrás falla, también suelta lo capturado', async () => {
+    await expect(startScreenRecording({
+      withMic: false,
+      withSystemAudio: false,
+      beforeStart: async () => { throw new Error('fallo'); },
+    })).rejects.toThrow('fallo');
+    expect(displayTracks[0].stop).toHaveBeenCalled();
+  });
+
   it('pide micrófono cuando withMic=true', async () => {
     const ctrl = await startScreenRecording({ withMic: true, withSystemAudio: false });
     expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledOnce();

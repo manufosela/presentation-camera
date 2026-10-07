@@ -86,6 +86,7 @@ export async function startScreenRecording({
   withSystemAudio = true,
   onStop,
   onError,
+  beforeStart = async () => {}, // tras aceptar la captura, antes de grabar (cuenta atrás)
 } = {}) {
   if (!navigator.mediaDevices?.getDisplayMedia) {
     throw new Error(t('error.noScreenCapture'));
@@ -153,11 +154,14 @@ export async function startScreenRecording({
       chunks.push(event.data);
     }
   });
-  recorder.addEventListener('stop', async () => {
+  const releaseInputs = () => {
     for (const s of [displayStream, micStream]) {
       s?.getTracks().forEach(track => track.stop());
     }
     audioCtx?.close?.();
+  };
+  recorder.addEventListener('stop', async () => {
+    releaseInputs();
     if (session) {
       try {
         await writeChain;
@@ -178,6 +182,18 @@ export async function startScreenRecording({
     if (recorder.state !== 'inactive') recorder.stop();
   });
 
+  // Cuenta atrás: si falla o se deja de compartir mientras tanto, no se graba y
+  // se suelta todo lo capturado (micrófono incluido).
+  try {
+    await beforeStart();
+  } catch (error) {
+    releaseInputs();
+    throw error;
+  }
+  if (displayStream.getVideoTracks()[0]?.readyState === 'ended') {
+    releaseInputs();
+    throw new Error(t('recording.notStarted'));
+  }
   recorder.start(SLICE_MS);
   clock.start();
 

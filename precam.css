@@ -1212,6 +1212,23 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 .open-panel-btn { display: flex; align-items: center; justify-content: space-between; margin-top: 0.5rem; }
 .share-note { font-size: 0.75rem; color: var(--ink-muted); text-align: center; }
 
+/* ─── Cuenta atrás antes de grabar (CAM-TSK-0099) ─────────────── */
+.countdown {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  font-family: var(--serif);
+  font-size: clamp(6rem, 22vw, 16rem);
+  font-weight: 600;
+  color: oklch(0.98 0.01 80);
+  text-shadow: 0 6px 40px oklch(0 0 0 / .6);
+  background: oklch(0 0 0 / .35);
+  pointer-events: none;
+}
+.countdown[hidden] { display: none; }
+
 /* ─── Ayuda (CAM-TSK-0086): <dialog> modal con todos los atajos ─ */
 .help-dialog {
   width: min(560px, calc(100% - 2rem));

@@ -19,16 +19,25 @@ export function createRecordingFlow({
   onChange,
   logger = console,
   chapters = null, // { track: chapterTrack, current: () => diapositiva a la vista o null }
+  countdown = async () => {}, // 3, 2, 1 antes de grabar (CAM-TSK-0099)
 }) {
   let controller = null;
   const isRecording = () => controller !== null;
 
   async function start() {
     if (isRecording()) return;
+    let chromeHiddenByStart = false;
     try {
       controller = await startRecording({
         withMic: true,
         withSystemAudio: true,
+        // Aceptada la captura: fuera controles y avisos, cuenta atrás y a grabar.
+        beforeStart: async () => {
+          chromeHiddenByStart = true;
+          setChromeHidden(true);
+          showStatus('');
+          await countdown();
+        },
         onStop: (blob, type) => {
           const filename = buildRecordingFilename(now(), extFromMime(type));
           download(blob, filename);
@@ -45,13 +54,12 @@ export function createRecordingFlow({
         },
       });
       chapters?.track.start(chapters.current());
-      onChange();
-      setChromeHidden(true); // ocultar controles para que no salgan en la grabación
-      showStatus(''); // ningún aviso encima de lo que se graba
+      onChange(); // controles y avisos ya se ocultaron en beforeStart
     } catch (error) {
       // El usuario canceló el selector de captura u otro fallo: seguimos sin grabar.
       logger.warn('Grabación no iniciada', error);
       controller = null;
+      if (chromeHiddenByStart) setChromeHidden(false); // falló tras la cuenta atrás
       onChange();
       showStatus(t('recording.notStarted'), false);
     }
