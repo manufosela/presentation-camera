@@ -46,6 +46,11 @@
         <span class="end-button-label" id="recordLabel">REC</span>
         <kbd class="kbd-hint">r</kbd>
       </button>
+      <!-- Pausar / reanudar (CAM-TSK-0098): solo mientras se graba -->
+      <button id="pauseBtn" class="end-button end-button-ghost" type="button" hidden aria-pressed="false" title="Pause / resume (P)" data-i18n-attr="title:rec.pauseTitle">
+        <span class="end-button-label" id="pauseLabel">Pause</span>
+        <kbd class="kbd-hint">p</kbd>
+      </button>
       <button
         id="fullscreenBtn"
         class="end-button end-button-ghost"
@@ -357,6 +362,7 @@
         <div><dt><kbd>M</kbd></dt><dd data-i18n="legend.treatment">style</dd></div>
         <div><dt><kbd>F</kbd></dt><dd data-i18n="legend.fullscreen">fullscreen</dd></div>
         <div><dt><kbd>R</kbd></dt><dd data-i18n="legend.record">record</dd></div>
+        <div><dt><kbd>P</kbd></dt><dd data-i18n="legend.pause">pause / resume recording</dd></div>
         <div><dt><kbd>H</kbd></dt><dd data-i18n="legend.hide">hide controls</dd></div>
         <div><dt><kbd>\</kbd></dt><dd data-i18n="legend.panel">control panel</dd></div>
         <div><dt><kbd>1</kbd>…<kbd>9</kbd></dt><dd data-i18n="legend.source">switch presentation</dd></div>

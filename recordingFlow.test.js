@@ -13,7 +13,14 @@ function setup({ startFails = false, chapters } = {}) {
   const startRecording = vi.fn(async opts => {
     if (startFails) throw new Error('cancelado');
     options = opts;
-    return { stop: () => options.onStop(new Blob(['vídeo']), 'video/webm') };
+    let paused = false;
+    return {
+      stop: () => options.onStop(new Blob(['vídeo']), 'video/webm'),
+      pause: () => { paused = true; },
+      resume: () => { paused = false; },
+      get paused() { return paused; },
+      elapsed: () => 1234,
+    };
   });
   const flow = createRecordingFlow({
     startRecording,
@@ -63,6 +70,21 @@ describe('createRecordingFlow — grabar la sesión', () => {
     await flow.start();
     flow.stop();
     expect(calls.downloads).toEqual([expect.stringMatching(/\.webm$/)]);
+  });
+
+  it('pausa y reanuda la grabación en curso y avisa del cambio (CAM-TSK-0098)', async () => {
+    const { flow, calls } = setup();
+    expect(flow.togglePause()).toBe(false); // sin grabar no hay nada que pausar
+    await flow.start();
+    flow.togglePause();
+    expect(flow.isPaused()).toBe(true);
+    expect(flow.elapsed()).toBe(1234);
+    flow.togglePause();
+    expect(flow.isPaused()).toBe(false);
+    expect(calls.changes).toBe(3); // empezar, pausar, reanudar
+    flow.stop();
+    expect(flow.isPaused()).toBe(false);
+    expect(flow.elapsed()).toBe(0);
   });
 
   it('si se cancela el selector, sigue sin grabar y lo dice (sin tono de error)', async () => {

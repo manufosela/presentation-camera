@@ -61,10 +61,25 @@ export function createRecordingFlow({
     controller?.stop(); // dispara onStop → descarga
   }
 
+  const isPaused = () => controller?.paused ?? false;
+
+  /** Pausa o reanuda (CAM-TSK-0098); false si no hay grabación en curso. */
+  function togglePause() {
+    if (!isRecording()) return false;
+    if (isPaused()) controller.resume();
+    else controller.pause();
+    onChange();
+    return true;
+  }
+
   return {
     start,
     stop,
     toggle: () => (isRecording() ? stop() : start()),
+    togglePause,
     isRecording,
+    isPaused,
+    /** Milisegundos grabados, sin pausas (capítulos). */
+    elapsed: () => controller?.elapsed() ?? 0,
   };
 }

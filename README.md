@@ -57,6 +57,7 @@ Open the **control panel** with `\` (or from *More options*): a separate window 
 | `M` | toggle framed ↔ cut-out (does nothing with *No camera*) |
 | `F` | enter / exit fullscreen |
 | `R` | start / stop recording |
+| `P` | pause / resume recording (the pause is left out of the video) |
 | `H` | hide / show the app controls |
 | `\` | open the control panel |
 | `1`–`9` | switch active source |
