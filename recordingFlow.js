@@ -20,6 +20,7 @@ export function createRecordingFlow({
   logger = console,
   chapters = null, // { track: chapterTrack, current: () => diapositiva a la vista o null }
   countdown = async () => {}, // 3, 2, 1 antes de grabar (CAM-TSK-0099)
+  getMicId = () => null, // micrófono elegido en el setup (CAM-TSK-0101)
 }) {
   let controller = null;
   const isRecording = () => controller !== null;
@@ -30,6 +31,7 @@ export function createRecordingFlow({
     try {
       controller = await startRecording({
         withMic: true,
+        micDeviceId: getMicId(),
         withSystemAudio: true,
         // Aceptada la captura: fuera controles y avisos, cuenta atrás y a grabar.
         beforeStart: async () => {

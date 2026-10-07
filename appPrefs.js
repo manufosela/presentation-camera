@@ -26,6 +26,18 @@ export function saveCameraId(storage, deviceId) {
   else storage.removeItem(CAMERA_KEY);
 }
 
+// Micrófono elegido (CAM-TSK-0101); null = el predeterminado del sistema.
+const MIC_KEY = STORAGE_KEYS.mic;
+
+export function loadMicId(storage) {
+  return storage.getItem(MIC_KEY);
+}
+
+export function saveMicId(storage, deviceId) {
+  if (deviceId) storage.setItem(MIC_KEY, deviceId);
+  else storage.removeItem(MIC_KEY);
+}
+
 // Fondo elegido para el recorte (id de backgroundStore); null = sin fondo.
 const BACKGROUND_KEY = STORAGE_KEYS.background;
 

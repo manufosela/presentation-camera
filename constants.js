@@ -16,6 +16,7 @@ export const STORAGE_KEYS = Object.freeze({
   onboarded: 'cam.onboarded.v1',
   autoRecord: 'cam.autoRecord.v1',
   mirror: 'cam.mirror.v1',
+  mic: 'cam.mic.v1',
   camera: 'cam.camera.v1',
   singleKeyShortcuts: 'cam.singleKeyShortcuts.v1',
   background: 'cam.background.v1',

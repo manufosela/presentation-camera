@@ -67,6 +67,23 @@ export async function estimateStorage(bitrateMbps = 6) {
   };
 }
 
+// Errores que significan «ese micrófono ya no existe» (desenchufado).
+const DEVICE_GONE = new Set(['OverconstrainedError', 'NotFoundError']);
+
+// El micrófono elegido; solo si ya no existe, el predeterminado. Si está ocupado
+// o sin permiso no se cambia a otro a escondidas: se graba sin micrófono.
+async function requestMic(deviceId) {
+  if (deviceId) {
+    try {
+      return await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: deviceId } } });
+    } catch (error) {
+      if (!DEVICE_GONE.has(error?.name)) throw error;
+      console.warn('[rec] el micrófono elegido ya no está, uso el predeterminado', error);
+    }
+  }
+  return navigator.mediaDevices.getUserMedia({ audio: true });
+}
+
 // Cada cuánto entrega MediaRecorder un trozo; cada trozo se guarda confirmado
 // en disco (recordingStore.js), así que es lo máximo que se pierde si se cierra.
 const SLICE_MS = 5000;
@@ -83,6 +100,7 @@ const SLICE_MS = 5000;
  */
 export async function startScreenRecording({
   withMic = true,
+  micDeviceId = null, // el elegido en el setup (CAM-TSK-0101); null = predeterminado
   withSystemAudio = true,
   onStop,
   onError,
@@ -106,7 +124,7 @@ export async function startScreenRecording({
   }
   if (withMic) {
     try {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStream = await requestMic(micDeviceId);
       audioInputs.push(micStream);
     } catch {
       // Sin permiso de micrófono: grabamos sin su pista, sin romper.
