@@ -12,7 +12,10 @@ import {
   saveMicId,
   saveMirror,
   saveSingleKeyShortcuts,
+  loadCaptionPrefs,
+  saveCaptionPrefs,
 } from './appPrefs.js';
+import { STORAGE_KEYS } from './constants.js';
 
 function memoryStorage() {
   const map = new Map();
@@ -94,6 +97,36 @@ describe('micrófono elegido (CAM-TSK-0101)', () => {
     expect(loadMicId(storage)).toBe('mic-1');
     saveMicId(storage, null);
     expect(loadMicId(storage)).toBeNull();
+  });
+});
+
+describe('subtítulos (CAM-TSK-0113)', () => {
+  it('por defecto: apagados, hablo en el idioma de la interfaz y sin traducir', () => {
+    expect(loadCaptionPrefs(memoryStorage(), 'en')).toEqual({ enabled: false, spoken: 'en', translateTo: null });
+  });
+
+  it('se recuerdan validadas', () => {
+    const storage = memoryStorage();
+    saveCaptionPrefs(storage, { enabled: true, spoken: 'es', translateTo: 'en' });
+    expect(loadCaptionPrefs(storage, 'en')).toEqual({ enabled: true, spoken: 'es', translateTo: 'en' });
+  });
+
+  it('valores desconocidos o rotos vuelven al valor por defecto, campo a campo', () => {
+    const storage = memoryStorage();
+    storage.setItem(STORAGE_KEYS.captions, JSON.stringify({ enabled: 'sí', spoken: 'fr', translateTo: 'de' }));
+    expect(loadCaptionPrefs(storage, 'es')).toEqual({ enabled: false, spoken: 'es', translateTo: null });
+    storage.setItem(STORAGE_KEYS.captions, '{roto');
+    expect(loadCaptionPrefs(storage, 'es')).toEqual({ enabled: false, spoken: 'es', translateTo: null });
+  });
+
+  it('traducir al mismo idioma en que hablo es no traducir', () => {
+    const storage = memoryStorage();
+    saveCaptionPrefs(storage, { enabled: true, spoken: 'es', translateTo: 'es' });
+    expect(loadCaptionPrefs(storage, 'es').translateTo).toBeNull();
+  });
+
+  it('guardar algo no válido es un error, no se guarda en silencio', () => {
+    expect(() => saveCaptionPrefs(memoryStorage(), { enabled: true, spoken: 'fr', translateTo: null })).toThrow(/idioma/);
   });
 });
 
