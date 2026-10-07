@@ -18,6 +18,7 @@ import { hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startPanelLink } from './linkChannel.js';
 import { notesView } from './deckNotes.js';
+import { CAPTIONS_CLEAR, createTranscript, parseCaptionsMessage } from './captionsPanel.js';
 import { formatVersion, loadVersion } from './appVersion.js';
 import { bindThemeToggle } from './themeToggle.js';
 import { initI18n, onLangChange, t } from './i18n.js';
@@ -75,6 +76,21 @@ channel.addEventListener('message', event => {
   if (event.data?.type === 'notes:update') renderNotes(event.data);
 });
 channel.postMessage({ type: 'notes:request' });
+
+// Transcripción de los subtítulos (CAM-TSK-0119): validada antes de pintarla.
+const transcriptSection = document.getElementById('transcriptSection');
+const transcript = createTranscript(document.getElementById('transcriptList'));
+channel.addEventListener('message', event => {
+  if (event.data?.type === CAPTIONS_CLEAR) {
+    transcript.clear();
+    transcriptSection.hidden = true;
+    return;
+  }
+  const line = parseCaptionsMessage(event.data);
+  if (!line) return;
+  transcript.add(line);
+  transcriptSection.hidden = false;
+});
 
 // Mientras no haya sincronizado con la principal (o vencido el timeout),
 // deshabilitamos el input add para no pisar la lista de la otra ventana.
