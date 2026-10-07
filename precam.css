@@ -307,7 +307,7 @@ kbd {
 
 .panel {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .panel-header {
@@ -318,19 +318,21 @@ kbd {
 }
 .panel-num {
   font-family: var(--mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
-  color: var(--accent);
+  font-size: 0.75rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 .panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   font-family: var(--serif);
-  font-weight: 500;
-  font-style: italic;
-  font-size: clamp(1.25rem, 2vw, 1.6rem);
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  font-size: 1.25rem;
   color: var(--ink-strong);
-  font-variation-settings: "opsz" 40;
 }
 .panel-rule {
   display: block;
@@ -339,49 +341,69 @@ kbd {
   margin-bottom: 4px;
 }
 
-/* ─── URL field ─────────────────────────────────────────────── */
+/* ─── Tu presentación (CAM-TSK-0083) ───────────────────────── */
 
-.url-field {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.6rem 0.9rem;
-  background: var(--bg-input);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-md);
-  transition: border-color .2s var(--ease-soft),
-              box-shadow .2s var(--ease-soft),
-              background .2s var(--ease-soft);
-}
-.url-field:focus-within {
-  border-color: var(--accent-line);
-  background: oklch(0.13 0.014 60);
-  box-shadow: 0 0 0 4px var(--accent-soft);
-}
-.url-label {
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  padding-right: 0.9rem;
-  border-right: 1px solid var(--line-soft);
-}
+.link-row { display: flex; gap: 0.5rem; }
 .url-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  padding: 0.6rem 0;
-  width: 100%;
-  font-size: clamp(0.95rem, 1.2vw, 1.05rem);
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-input);
   color: var(--ink-strong);
-  letter-spacing: -0.005em;
+  font-size: 0.875rem;
 }
-.url-input::placeholder {
-  color: var(--ink-faint);
-  font-style: italic;
+.url-input::placeholder { color: var(--ink-faint); }
+.url-input:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+
+.row-btn {
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--bg-raised);
+  color: var(--ink-body);
+  font-size: 0.875rem;
+  text-align: left;
 }
+.row-btn:hover { border-color: var(--line-bright); color: var(--ink-strong); }
+.row-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+.upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 52px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  color: var(--ink-body);
+  font-size: 0.875rem;
+}
+.upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+.upload-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.upload-btn:disabled { opacity: .6; cursor: progress; }
+/* Menú del botón de subir: popover nativo anclado debajo del botón */
+.upload-menu {
+  position-anchor: --upload;
+  inset: auto;
+  top: anchor(bottom);
+  left: anchor(left);
+  width: anchor-size(width);
+  margin: 0.35rem 0 0;
+  padding: 0.35rem;
+  display: none;
+  gap: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  color: var(--ink-body);
+  box-shadow: var(--shadow-mid);
+}
+.upload-menu:popover-open { display: grid; }
+.upload-btn { anchor-name: --upload; }
 
 .ghost-button {
   display: inline-flex;
@@ -404,6 +426,7 @@ kbd {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
+.panel > .ghost-button { justify-self: start; }
 .ghost-button-wide {
   width: 100%;
   justify-content: flex-start;
@@ -467,19 +490,6 @@ kbd {
 .saved-source-remove:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
-}
-
-@media (max-width: 640px) {
-  .url-field {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-  .url-label {
-    border-right: none;
-    border-bottom: 1px solid var(--line-soft);
-    padding: 0 0 0.4rem 0;
-  }
-  .ghost-button { justify-self: start; }
 }
 
 /* ─── Vista previa 16:9 (CAM-TSK-0082) ─────────────────────── */

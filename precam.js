@@ -2,7 +2,8 @@ import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
 import { saveHtml, saveBundle, readBundleFiles, readLocalHtml, removeHtml, removeBundle } from './localStore.js';
 import { buildBundleBlobs, missingResourcesMessage } from './bundleBlobs.js';
-import { isPdf, pdfToDeckFile } from './pdfImport.js';
+import { pdfToDeckFile } from './pdfImport.js';
+import { fileKind } from './fileKind.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { removedLocalFiles, sourceLabel } from './savedSources.js';
 import { createSetupPreview } from './setupPreview.js';
@@ -85,11 +86,10 @@ const liveTime = document.getElementById('liveTime');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const topActions = document.getElementById('topActions');
 const openPanelBtn = document.getElementById('openPanelBtn');
-const loadLocalHtmlBtn = document.getElementById('loadLocalHtmlBtn');
-const localHtmlInput = document.getElementById('localHtmlInput');
-const loadLocalBundleBtn = document.getElementById('loadLocalBundleBtn');
-const loadPdfBtn = document.getElementById('loadPdfBtn');
-const pdfInput = document.getElementById('pdfInput');
+const linkForm = document.getElementById('linkForm');
+const uploadBtn = document.getElementById('uploadBtn');
+const uploadMenu = document.getElementById('uploadMenu');
+const fileInput = document.getElementById('fileInput');
 const autoRecordInput = document.getElementById('autoRecordInput');
 const recordBtn = document.getElementById('recordBtn');
 const recordLabel = document.getElementById('recordLabel');
@@ -228,11 +228,26 @@ cameraSelect?.addEventListener('change', async event => {
 homeButton.addEventListener('click', returnToSetup);
 fullscreenBtn?.addEventListener('click', toggleFullscreen);
 openPanelBtn?.addEventListener('click', openControlPanel);
-loadLocalHtmlBtn?.addEventListener('click', () => localHtmlInput?.click());
-localHtmlInput?.addEventListener('change', handleLocalHtmlPick);
-loadLocalBundleBtn?.addEventListener('click', handleLocalBundlePick);
-loadPdfBtn?.addEventListener('click', () => pdfInput?.click());
-pdfInput?.addEventListener('change', handlePdfPick);
+document.getElementById('pickFileBtn').addEventListener('click', () => {
+  uploadMenu.hidePopover();
+  fileInput.click();
+});
+document.getElementById('pickFolderBtn').addEventListener('click', () => {
+  uploadMenu.hidePopover();
+  handleLocalBundlePick();
+});
+fileInput.addEventListener('change', handleLocalFilePick);
+// «Usar»: el enlace queda como presentación activa (y se ve en la vista previa).
+linkForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const url = sanitizePresentationUrl(urlInput.value.trim(), window.location.href);
+  if (!url) {
+    showStatus(t('status.urlInvalid'), true);
+    urlInput.focus();
+    return;
+  }
+  if (!sources.add(url, deriveSourceTitle(url))) showStatus(sourcesFullMessage(), true);
+});
 helpBtn?.addEventListener('click', openOnboarding);
 onboardingClose?.addEventListener('click', () => closeOnboarding());
 onboardingDone?.addEventListener('click', () => closeOnboarding());
@@ -803,22 +818,29 @@ function toggleRecording() {
   recording.toggle();
 }
 
-async function handleLocalHtmlPick(event) {
+// Botón único «Subir archivo» (CAM-TSK-0083): el tipo se detecta y el fichero
+// sigue el mismo camino que antes tenía su propio botón.
+async function handleLocalFilePick(event) {
   const file = event.target.files?.[0];
+  event.target.value = '';
+  await importLocalFile(file);
+}
+
+async function importLocalFile(file) {
   if (!file) return;
-  if (!/\.html?$/i.test(file.name)) {
-    showStatus(t('status.pickHtml'), true);
-    event.target.value = '';
-    return;
-  }
+  const kind = fileKind(file);
+  if (kind === 'pdf') await importPdf(file);
+  else if (kind === 'html') await importHtml(file);
+  else showStatus(t('status.unsupportedFile'), true);
+}
+
+async function importHtml(file) {
   try {
     const replaced = await storeLocalHtml(file, file.name.replace(/\.html?$/i, ''));
     showStatus(t(replaced ? 'status.htmlUpdated' : 'status.htmlAdded'));
   } catch (error) {
     console.error(error);
     showStatus(error.message || t('status.htmlLoadFailed'), true);
-  } finally {
-    event.target.value = '';
   }
 }
 
@@ -836,15 +858,8 @@ async function storeLocalHtml(file, title) {
   return Boolean(previous);
 }
 
-async function handlePdfPick(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  if (!isPdf(file)) {
-    showStatus(t('error.notPdf'), true);
-    event.target.value = '';
-    return;
-  }
-  if (loadPdfBtn) loadPdfBtn.disabled = true;
+async function importPdf(file) {
+  uploadBtn.disabled = true;
   try {
     const onProgress = (done, total) => showStatus(t('status.pdfProgress', { done, total }));
     const deck = await pdfToDeckFile(file, { onProgress });
@@ -854,8 +869,7 @@ async function handlePdfPick(event) {
     console.error(error);
     showStatus(error.message || t('status.pdfLoadFailed'), true);
   } finally {
-    if (loadPdfBtn) loadPdfBtn.disabled = false;
-    event.target.value = '';
+    uploadBtn.disabled = false;
   }
 }
 

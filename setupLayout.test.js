@@ -43,6 +43,22 @@ describe('setup en una pantalla', () => {
     expect(setup.querySelector('.setup-stage [data-i18n="setup.cornerHint"]')).not.toBeNull();
   });
 
+  it('«Tu presentación»: enlace con Usar, un único botón de subir con su menú y Recientes (CAM-TSK-0083)', () => {
+    const panel = setup.querySelector('.setup-panel');
+    const form = panel.querySelector('form#linkForm');
+    expect(form.querySelector('input#url[type="url"]').labels[0].getAttribute('data-i18n')).toBe('sources.linkLabel');
+    expect(form.querySelector('button[type="submit"]').getAttribute('data-i18n')).toBe('sources.use');
+    const upload = panel.querySelector('#uploadBtn');
+    const menu = panel.querySelector(`#${upload.getAttribute('popovertarget')}`);
+    expect(menu.hasAttribute('popover')).toBe(true);
+    expect([...menu.querySelectorAll('button')].map(b => b.id)).toEqual(['pickFileBtn', 'pickFolderBtn']);
+    expect(panel.querySelector('input#fileInput[type="file"]').getAttribute('accept')).toContain('.pdf');
+    for (const old of ['loadLocalHtmlBtn', 'loadLocalBundleBtn', 'loadPdfBtn', 'localHtmlInput', 'pdfInput']) {
+      expect(doc.getElementById(old)).toBeNull();
+    }
+    expect(panel.querySelector('[data-i18n="sources.recent"]')).not.toBeNull();
+  });
+
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
     expect(setup.querySelector(selector)).toBeNull();
   });
