@@ -2,7 +2,7 @@
 
 > 🇬🇧 [Read in English](./README.md)
 
-**Pruébala**: https://manufosela.dev/presentation-camera/
+**Pruébala**: https://onsli.de
 
 Pon tu **cámara encima de cualquier presentación** y presenta o graba con tus slides y tu cara en pantalla a la vez. Todo funciona **en tu navegador**: no hay servidor, ni cuenta, y no se sube nada.
 
