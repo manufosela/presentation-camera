@@ -218,20 +218,6 @@
           <ol class="saved-sources-list" id="savedSources" aria-labelledby="savedSourcesTitle"></ol>
           <p class="panel-cta-help" id="savedSourcesEmpty" data-i18n="sources.savedEmpty">Aún no hay ninguna. Pega una URL o carga un HTML local.</p>
         </div>
-
-        <div class="panel-cta">
-          <button id="openPanelBtn" type="button" class="ghost-button ghost-button-wide">
-            <svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true">
-              <rect x="1.5" y="2.5" width="11" height="9" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/>
-              <path d="M5 5h5M5 7h3M5 9h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-            </svg>
-            <span data-i18n="sources.openPanel">Open control panel</span>
-            <kbd class="kbd-hint">\</kbd>
-          </button>
-          <p class="panel-cta-help" data-i18n="sources.panelHelp">
-            Otra ventana del navegador con tus presentaciones en pequeño. Mantenla en otro monitor y comparte solo ésta en Zoom/Meet/Teams.
-          </p>
-        </div>
       </section>
 
       <section class="panel" aria-labelledby="panel-camera">
@@ -282,30 +268,39 @@
               </div>
             </fieldset>
 
-            <fieldset class="control control-source" id="cameraFieldset" hidden>
-              <legend class="control-label" data-i18n="camera.lens">Lens</legend>
-              <div class="select-wrap">
-                <select id="cameraSelect" class="select" aria-label="Seleccionar cámara" data-i18n-attr="aria-label:camera.select"></select>
-                <svg class="select-chevron" viewBox="0 0 10 10" width="10" height="10" aria-hidden="true">
-                  <path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-            </fieldset>
           </div>
       </section>
 
+      <!-- Opciones avanzadas, plegadas (CAM-TSK-0090) -->
+      <details class="more-options">
+        <summary>
+          <span data-i18n="more.title">More options</span>
+          <span class="more-hint" data-i18n="more.hint">Camera, mirror, shortcuts, panel</span>
+        </summary>
+        <div class="more-body">
+          <div class="toggle-row" id="cameraFieldset" hidden>
+            <label for="cameraSelect" data-i18n="camera.lens">Camera</label>
+            <select id="cameraSelect" class="select"></select>
+          </div>
+          <label class="toggle-row">
+            <span data-i18n="footer.mirror">Mirror my camera (also in the recording)</span>
+            <input type="checkbox" id="mirrorInput" checked />
+          </label>
+          <label class="toggle-row">
+            <span data-i18n="footer.singleKey">Single-key shortcuts (turn them off if you dictate by voice)</span>
+            <input type="checkbox" id="singleKeyShortcutsInput" checked />
+          </label>
+          <button id="openPanelBtn" type="button" class="row-btn open-panel-btn">
+            <span data-i18n="sources.openPanel">Open the control panel in another window</span>
+            <kbd>\</kbd>
+          </button>
+        </div>
+      </details>
+
       <footer class="setup-footer">
-        <label class="record-toggle">
+        <label class="toggle-row">
+          <span><span class="rec-dot" aria-hidden="true"></span> <span data-i18n="footer.autoRecord">Record when starting</span></span>
           <input type="checkbox" id="autoRecordInput" checked />
-          <span data-i18n="footer.autoRecord">Grabar automáticamente al empezar</span>
-        </label>
-        <label class="record-toggle">
-          <input type="checkbox" id="mirrorInput" checked />
-          <span data-i18n="footer.mirror">Cámara en espejo (quítalo para que la grabación salga al derecho)</span>
-        </label>
-        <label class="record-toggle">
-          <input type="checkbox" id="singleKeyShortcutsInput" checked />
-          <span data-i18n="footer.singleKey">Atajos de una tecla (C, M, R, F, H, S, \, 1–9). Desactívalos si usas dictado por voz.</span>
         </label>
         <p class="record-estimate" id="recordEstimate" aria-live="polite"></p>
         <button id="startButton" type="button" class="start-button">
@@ -317,6 +312,7 @@
             </svg>
           </span>
         </button>
+        <p class="share-note" data-i18n="footer.share">Share only this window in Zoom, Meet or Teams.</p>
         <p class="app-version" id="appVersion" aria-live="polite"></p>
       </footer>
       </aside>
