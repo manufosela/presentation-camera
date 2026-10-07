@@ -112,6 +112,12 @@ export const MESSAGES = {
   'legend.overview': { es: 'vista general', en: 'overview' },
   'legend.help': { es: 'esta ayuda', en: 'this help' },
 
+  // Grabación sin terminar (CAM-TSK-0122)
+  'recover.text': { es: 'Tienes una grabación sin terminar del {date} ({size}). Se cerró el navegador antes de pararla.', en: 'You have an unfinished recording from {date} ({size}). The browser closed before it was stopped.' },
+  'recover.label': { es: 'Grabación sin terminar', en: 'Unfinished recording' },
+  'recover.download': { es: 'Descargar', en: 'Download' },
+  'recover.discard': { es: 'Descartar', en: 'Discard' },
+
   // Ayuda
   'help.close': { es: 'Cerrar', en: 'Close' },
   'help.title': { es: 'Ayuda', en: 'Help' },

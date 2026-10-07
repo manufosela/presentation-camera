@@ -51,10 +51,39 @@ async function removeFinished(recordings) {
   for (const name of finished) await recordings.removeEntry(name, { recursive: true });
 }
 
+async function readMeta(dir) {
+  const file = await (await dir.getFileHandle(META)).getFile();
+  return JSON.parse(await file.text());
+}
+
 export function createRecordingStore(getRoot = () => navigator.storage.getDirectory()) {
+  const recordingsDir = async () => (await getRoot()).getDirectoryHandle(RECORDINGS_DIR, { create: true });
+
   return {
+    /**
+     * Sesiones que quedaron a medias (navegador cerrado o colgado), con su vídeo
+     * para descargarlo. Al abrir la app no hay ninguna grabación en curso.
+     */
+    async pendingSessions() {
+      const recordings = await recordingsDir();
+      const pending = [];
+      for await (const [id, dir] of recordings.entries()) {
+        if (dir.kind !== 'directory' || await hasFile(dir, DONE)) continue;
+        const { mimeType, startedAt } = await readMeta(dir);
+        const video = () => joinParts(dir, mimeType);
+        const { size } = await video();
+        if (!size) continue; // empezó y no llegó a guardar nada
+        pending.push({
+          id, mimeType, startedAt, size, video,
+          markDone: () => writeFile(dir, DONE, ''), // se borra al empezar otra grabación
+          discard: () => recordings.removeEntry(id, { recursive: true }),
+        });
+      }
+      return pending.toSorted((a, b) => b.startedAt - a.startedAt); // la más reciente primero
+    },
+
     async startSession({ mimeType, startedAt }) {
-      const recordings = await (await getRoot()).getDirectoryHandle(RECORDINGS_DIR, { create: true });
+      const recordings = await recordingsDir();
       await removeFinished(recordings);
       const id = `rec-${startedAt}`;
       const dir = await recordings.getDirectoryHandle(id, { create: true });
