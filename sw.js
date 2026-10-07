@@ -58,6 +58,7 @@ const SHELL = [
   'recordingStore.js',
   'recoveryNotice.js',
   'webmDuration.js',
+  'mp4Trim.js',
   'chapterTrack.js',
   'recordingClock.js',
   'countdown.js',

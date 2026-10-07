@@ -86,7 +86,9 @@ async function requestMic(deviceId) {
 
 // Cada cuánto entrega MediaRecorder un trozo; cada trozo se guarda confirmado
 // en disco (recordingStore.js), así que es lo máximo que se pierde si se cierra.
-const SLICE_MS = 5000;
+// En MP4 cada trozo es un fragmento que abre con fotograma clave: es también
+// la precisión del recorte (mp4Trim.js).
+const SLICE_MS = 1000;
 
 /**
  * Inicia una grabación de pantalla/pestaña con audio mezclado (micrófono +
@@ -144,7 +146,8 @@ export async function startScreenRecording({
 
   const mixStream = new MediaStream(tracks);
   const mimeType = pickSupportedMimeType();
-  const recorder = new MediaRecorder(mixStream, mimeType ? { mimeType } : undefined);
+  // Un fotograma clave por segundo: el recorte corta por ahí sin recodificar (CAM-TSK-0111).
+  const recorder = new MediaRecorder(mixStream, { ...(mimeType && { mimeType }), videoKeyFrameIntervalDuration: 1000 });
 
   // A disco por trozos confirmados (recuperables si se cierra); sin OPFS, en memoria.
   const type = recorder.mimeType || mimeType || 'video/webm';
