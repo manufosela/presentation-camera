@@ -1259,6 +1259,15 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 .help-meta { margin-top: 0.75rem; font-size: 0.8rem; color: var(--ink-muted); }
 .help-meta:empty { display: none; }
 
+/* Recorte al parar la grabación (CAM-TSK-0128) */
+.trim-dialog { width: min(720px, calc(100% - 2rem)); }
+.trim-video { display: block; width: 100%; aspect-ratio: 16 / 9; margin: 0.75rem 0; background: #000; border-radius: var(--radius-lg); }
+.trim-range { display: grid; grid-template-columns: 4rem 1fr 4.5rem; align-items: center; gap: 0.75rem; min-height: 44px; }
+.trim-range input { width: 100%; accent-color: var(--accent); }
+.trim-range output { font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-strong); }
+.trim-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+.trim-actions button { min-height: 44px; width: auto; }
+
 /* ─── Ocultar controles durante la grabación ─────────────────── */
 /* Con body.chrome-hidden se ocultan los controles de la app para que no salgan
    en la grabación, avisos incluidos; la presentación y la cámara siguen visibles. */
