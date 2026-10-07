@@ -147,16 +147,44 @@
 
       <div class="setup-grid">
       <section class="setup-stage" aria-label="Preview" data-i18n-attr="aria-label:setup.stageLabel">
-        <!-- Live mock of the slide stage with chosen corner -->
-        <div class="stage-mock" aria-hidden="true">
-          <span class="stage-mock-label" data-i18n="camera.preview">preview</span>
-          <span class="stage-mock-corner" data-pos="top-left"></span>
-          <span class="stage-mock-corner" data-pos="top-right"></span>
-          <span class="stage-mock-corner" data-pos="bottom-left"></span>
-          <span class="stage-mock-corner" data-pos="bottom-right"></span>
-          <span class="stage-mock-cam"></span>
-          <span class="stage-mock-scanline"></span>
+        <!-- Vista previa: la cámara (silueta) sobre la diapositiva; las esquinas
+             son los radios de posición, en su sitio (CAM-TSK-0082). -->
+        <div class="stage-mock">
+          <span class="stage-mock-cam" aria-hidden="true">
+            <svg viewBox="0 0 100 75" aria-hidden="true">
+              <circle cx="50" cy="30" r="13" fill="currentColor"/>
+              <path d="M24 75c3-18 13-28 26-28s23 10 26 28z" fill="currentColor"/>
+            </svg>
+          </span>
+          <fieldset class="stage-corners">
+            <legend class="visually-hidden" data-i18n="camera.cornerGroup">Webcam position</legend>
+            <label class="stage-corner" data-pos="top-left">
+              <input type="radio" name="position" value="top-left" />
+              <span class="visually-hidden" data-i18n="camera.topLeft">Top left</span>
+            </label>
+            <label class="stage-corner" data-pos="top-right">
+              <input type="radio" name="position" value="top-right" />
+              <span class="visually-hidden" data-i18n="camera.topRight">Top right</span>
+            </label>
+            <label class="stage-corner" data-pos="bottom-left">
+              <input type="radio" name="position" value="bottom-left" />
+              <span class="visually-hidden" data-i18n="camera.bottomLeft">Bottom left</span>
+            </label>
+            <label class="stage-corner" data-pos="bottom-right">
+              <input type="radio" name="position" value="bottom-right" checked />
+              <span class="visually-hidden" data-i18n="camera.bottomRight">Bottom right</span>
+            </label>
+          </fieldset>
         </div>
+        <p class="stage-hint">
+          <span data-i18n="setup.cornerHint">Click a corner to place your camera.</span>
+          <span class="stage-hint-keys">
+            <span data-i18n="setup.whilePresenting">While presenting:</span>
+            <kbd>C</kbd> <span data-i18n="setup.keyMove">move</span>
+            <kbd>M</kbd> <span data-i18n="setup.keyStyle">style</span>
+            <kbd>H</kbd> <span data-i18n="setup.keyHide">hide</span>
+          </span>
+        </p>
       </section>
 
       <aside class="setup-panel" aria-label="Settings" data-i18n-attr="aria-label:setup.panelLabel">
@@ -240,32 +268,6 @@
         </header>
 
           <div class="stage-controls">
-            <fieldset class="control">
-              <legend class="control-label" data-i18n="camera.corner">Corner</legend>
-              <div class="corner-pad" role="radiogroup" aria-label="Webcam position" data-i18n-attr="aria-label:camera.cornerGroup">
-                <label class="corner-cell" data-pos="top-left">
-                  <input type="radio" name="position" value="top-left" />
-                  <span class="corner-dot" aria-hidden="true"></span>
-                  <span class="visually-hidden" data-i18n="camera.topLeft">Top left</span>
-                </label>
-                <label class="corner-cell" data-pos="top-right">
-                  <input type="radio" name="position" value="top-right" />
-                  <span class="corner-dot" aria-hidden="true"></span>
-                  <span class="visually-hidden" data-i18n="camera.topRight">Top right</span>
-                </label>
-                <label class="corner-cell" data-pos="bottom-left">
-                  <input type="radio" name="position" value="bottom-left" />
-                  <span class="corner-dot" aria-hidden="true"></span>
-                  <span class="visually-hidden" data-i18n="camera.bottomLeft">Bottom left</span>
-                </label>
-                <label class="corner-cell" data-pos="bottom-right">
-                  <input type="radio" name="position" value="bottom-right" checked />
-                  <span class="corner-dot" aria-hidden="true"></span>
-                  <span class="visually-hidden" data-i18n="camera.bottomRight">Bottom right</span>
-                </label>
-              </div>
-            </fieldset>
-
             <fieldset class="control">
               <legend class="control-label" data-i18n="camera.treatment">Treatment</legend>
               <div class="seg" role="radiogroup" aria-label="Webcam style" data-i18n-attr="aria-label:camera.styleGroup">
