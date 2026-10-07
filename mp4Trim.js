@@ -77,6 +77,8 @@ export function trimMp4(bytes, { startSec, endSec }) {
 
   const opening = fragments.findLastIndex(f => f.isSync && f.time <= startSec);
   const kept = fragments.slice(Math.max(opening, 0)).filter(f => f.time < endSec);
+  if (!kept.length) throw new Error('MP4 sin fragmentos en el rango: no se puede recortar');
+  const fragmentOf = new Map(kept.map(f => [f.moof, f]));
   const pieces = [...top.slice(0, firstMoof), ...kept.flatMap(f => (f.mdat ? [f.moof, f.mdat] : [f.moof]))];
   const out = new Uint8Array(pieces.reduce((sum, b) => sum + b.end - b.start, 0));
   const outView = new DataView(out.buffer);
@@ -84,8 +86,7 @@ export function trimMp4(bytes, { startSec, endSec }) {
   let at = 0;
   for (const piece of pieces) {
     out.set(bytes.subarray(piece.start, piece.end), at);
-    const fragment = kept.find(f => f.moof === piece);
-    for (const traf of fragment?.trafs ?? []) {
+    for (const traf of fragmentOf.get(piece)?.trafs ?? []) {
       if (!baseOf.has(traf.trackId)) baseOf.set(traf.trackId, traf.decodeTime);
       const rebased = traf.decodeTime - baseOf.get(traf.trackId);
       const where = at + traf.tfdtAt - piece.start;
@@ -94,5 +95,5 @@ export function trimMp4(bytes, { startSec, endSec }) {
     }
     at += piece.end - piece.start;
   }
-  return out;
+  return { bytes: out, startSec: kept[0].time }; // inicio real: retrocede al fotograma clave
 }

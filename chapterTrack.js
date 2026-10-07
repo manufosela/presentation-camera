@@ -30,17 +30,26 @@ export function createChapterTrack({ now = () => Date.now() } = {}) {
       if (startedAt === null || marks.at(-1)?.label === label) return;
       marks.push({ at: now() - startedAt, label });
     },
-    /** WebVTT con un capítulo por tramo, o null si no hubo ninguno. */
+    /**
+     * Cierra los capítulos (null si no hubo ninguno). Su `toVtt` da el WebVTT con
+     * un capítulo por tramo; con un rango (vídeo recortado, CAM-TSK-0127) quita
+     * los de fuera, acorta los de los bordes y los desplaza al inicio del rango.
+     */
     finish() {
       if (startedAt === null) return null;
       const end = now() - startedAt;
       startedAt = null;
       if (!marks.length) return null;
-      const cues = marks.map((mark, index) => {
-        const until = marks[index + 1]?.at ?? end;
-        return `${index + 1}\n${timestamp(mark.at)} --> ${timestamp(until)}\n${mark.label}\n`;
-      });
-      return ['WEBVTT', '', ...cues].join('\n');
+      const spans = marks.map((mark, index) => ({ ...mark, until: marks[index + 1]?.at ?? end }));
+      return {
+        toVtt({ fromMs = 0, toMs = end } = {}) {
+          const cues = spans
+            .map(span => ({ ...span, at: Math.max(span.at, fromMs) - fromMs, until: Math.min(span.until, toMs) - fromMs }))
+            .filter(span => span.until > span.at)
+            .map((span, index) => `${index + 1}\n${timestamp(span.at)} --> ${timestamp(span.until)}\n${span.label}\n`);
+          return cues.length ? ['WEBVTT', '', ...cues].join('\n') : null;
+        },
+      };
     },
   };
 }

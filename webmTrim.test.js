@@ -53,7 +53,9 @@ function read(bytes) {
 
 describe('trimWebm — recortar un WebM sin recodificar (CAM-TSK-0126)', () => {
   it('conserva los clusters del rango con los tiempos desde 0 y la duración nueva', () => {
-    const out = read(trimWebm(webm([true, true, true, true, true]), { startSec: 1.5, endSec: 3.2 }));
+    const trimmed = trimWebm(webm([true, true, true, true, true]), { startSec: 1.5, endSec: 3.2 });
+    expect(trimmed.startSec).toBe(1); // inicio real: el cluster con fotograma clave
+    const out = read(trimmed.bytes);
     expect(out.clusters).toEqual([
       { timecode: 0, marks: [1, 1] },
       { timecode: 1000, marks: [2, 2] },
@@ -64,7 +66,7 @@ describe('trimWebm — recortar un WebM sin recodificar (CAM-TSK-0126)', () => {
   });
 
   it('el inicio retrocede al último cluster que abre con fotograma clave de vídeo', () => {
-    const out = read(trimWebm(webm([true, true, false, false, true]), { startSec: 3.5, endSec: 99 }));
+    const out = read(trimWebm(webm([true, true, false, false, true]), { startSec: 3.5, endSec: 99 }).bytes);
     expect(out.clusters.map(c => c.marks[0])).toEqual([1, 2, 3, 4]);
   });
 
