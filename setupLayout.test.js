@@ -59,6 +59,18 @@ describe('setup en una pantalla', () => {
     expect(panel.querySelector('[data-i18n="sources.recent"]')).not.toBeNull();
   });
 
+  it('«Tu cámara»: cómo apareces, fondo y tamaño con nombres claros (CAM-TSK-0084)', () => {
+    const section = setup.querySelector('section[aria-labelledby="panel-camera"]');
+    const styles = [...section.querySelectorAll('input[name="webcam-style"]')];
+    expect(styles.map(input => input.closest('label').querySelector('[data-i18n]').getAttribute('data-i18n')))
+      .toEqual(['camera.framed', 'camera.cutout', 'camera.none']);
+    const sizes = [...section.querySelectorAll('input[name="webcam-size"]')];
+    expect(sizes.map(input => input.closest('label').querySelector('[data-i18n]').getAttribute('data-i18n')))
+      .toEqual(['camera.sizeS', 'camera.sizeM', 'camera.sizeL']);
+    expect(sizes[0].closest('fieldset').classList.contains('size-control')).toBe(true);
+    expect(section.querySelector('fieldset.background-control #backgroundPicker')).not.toBeNull();
+  });
+
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
     expect(setup.querySelector(selector)).toBeNull();
   });
