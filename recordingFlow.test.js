@@ -7,8 +7,11 @@ beforeEach(() => setLang('es', null));
 
 // Grabación falsa: startRecording resuelve un controlador cuyo stop() dispara
 // el onStop que la app le pasó, como hace recorder.js.
-function setup({ startFails = false, chapters, countdown, micId = null } = {}) {
-  const calls = { chrome: [], status: [], downloads: [], changes: 0 };
+// La descarga llega tras el diálogo de recorte (asíncrono, CAM-TSK-0129).
+const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+
+function setup({ startFails = false, chapters, countdown, micId = null, review, trim } = {}) {
+  const calls = { chrome: [], status: [], downloads: [], blobs: [], changes: 0 };
   let options = null;
   const startRecording = vi.fn(async opts => {
     if (startFails) throw new Error('cancelado');
@@ -25,7 +28,7 @@ function setup({ startFails = false, chapters, countdown, micId = null } = {}) {
   });
   const flow = createRecordingFlow({
     startRecording,
-    download: (blob, filename) => calls.downloads.push(filename),
+    download: (blob, filename) => { calls.downloads.push(filename); calls.blobs.push(blob); },
     now: () => new Date(2026, 9, 4, 22, 30, 15),
     setChromeHidden: hidden => calls.chrome.push(hidden),
     showStatus: (message, isError = false) => calls.status.push([message, isError]),
@@ -34,6 +37,8 @@ function setup({ startFails = false, chapters, countdown, micId = null } = {}) {
     chapters,
     countdown,
     getMicId: () => micId,
+    review,
+    trim,
   });
   return { flow, calls, startRecording, emitError: error => options.onError(error) };
 }
@@ -54,6 +59,7 @@ describe('createRecordingFlow — grabar la sesión', () => {
     await flow.start();
     flow.stop();
     expect(flow.isRecording()).toBe(false);
+    await settle();
     expect(calls.downloads).toEqual([expect.stringMatching(/2026-10-04.*\.webm$/)]);
     expect(calls.chrome).toEqual([true, false]);
     expect(calls.changes).toBe(2);
@@ -65,13 +71,42 @@ describe('createRecordingFlow — grabar la sesión', () => {
     await flow.start();
     expect(chapters.start).toHaveBeenCalledWith('Diapositiva 3');
     flow.stop();
+    await settle();
     expect(calls.downloads).toEqual([expect.stringMatching(/2026-10-04.*\.webm$/), expect.stringMatching(/2026-10-04.*\.vtt$/)]);
+  });
+
+  it('al parar se elige el recorte: se descargan el vídeo y los capítulos recortados (CAM-TSK-0129)', async () => {
+    const toVtt = vi.fn(() => 'WEBVTT\n');
+    const trimmed = new Blob(['recortado']);
+    const review = vi.fn(async () => ({ startSec: 2.5, endSec: 9 }));
+    const trim = vi.fn(async () => ({ blob: trimmed, startSec: 2 }));
+    const { flow, calls } = setup({ review, trim, chapters: { track: { start() {}, finish: () => ({ toVtt }) }, current: () => 'Diapositiva 1' } });
+    await flow.start();
+    flow.stop();
+    expect(calls.chrome).toEqual([true, false]); // los controles vuelven antes del diálogo
+    await settle();
+    expect(review).toHaveBeenCalledWith({ blob: expect.any(Blob), durationSec: 1.234 });
+    expect(trim).toHaveBeenCalledWith(expect.any(Blob), { startSec: 2.5, endSec: 9 });
+    expect(calls.blobs[0]).toBe(trimmed);
+    expect(toVtt).toHaveBeenCalledWith({ fromMs: 2000, toMs: 9000 });
+    expect(calls.downloads).toHaveLength(2);
+  });
+
+  it('si el recorte falla, lo avisa y descarga la grabación entera: nunca se pierde', async () => {
+    const trim = vi.fn(async () => { throw new Error('formato raro'); });
+    const { flow, calls } = setup({ review: async () => ({ startSec: 1, endSec: 2 }), trim });
+    await flow.start();
+    flow.stop();
+    await settle();
+    expect(calls.status.at(-1)).toEqual(['No se pudo recortar: se descarga entera.', true]);
+    expect(await calls.blobs[0].text()).toBe('vídeo');
   });
 
   it('sin capítulos (el deck no avisó) solo se descarga el vídeo', async () => {
     const { flow, calls } = setup({ chapters: { track: { start() {}, finish: () => null }, current: () => null } });
     await flow.start();
     flow.stop();
+    await settle();
     expect(calls.downloads).toEqual([expect.stringMatching(/\.webm$/)]);
   });
 
@@ -142,9 +177,10 @@ describe('createRecordingFlow — grabar la sesión', () => {
     expect(flow.isRecording()).toBe(false);
   });
 
-  it('parar sin grabar no hace nada', () => {
+  it('parar sin grabar no hace nada', async () => {
     const { flow, calls } = setup();
     flow.stop();
+    await settle();
     expect(calls.downloads).toEqual([]);
   });
 
