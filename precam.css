@@ -1259,6 +1259,12 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 .help-meta { margin-top: 0.75rem; font-size: 0.8rem; color: var(--ink-muted); }
 .help-meta:empty { display: none; }
 
+/* Tinta sobre la diapositiva (CAM-TSK-0130): encima del deck y la cámara, debajo
+   de los controles; solo recibe el puntero con el láser o el dibujo activos. */
+.ink-layer { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; }
+.ink-layer[data-mode="laser"] { pointer-events: auto; cursor: none; }
+.ink-layer[data-mode="draw"] { pointer-events: auto; cursor: crosshair; touch-action: none; }
+
 /* Recorte al parar la grabación (CAM-TSK-0128) */
 .trim-dialog { width: min(720px, calc(100% - 2rem)); }
 .trim-video { display: block; width: 100%; aspect-ratio: 16 / 9; margin: 0.75rem 0; background: #000; border-radius: var(--radius-lg); }

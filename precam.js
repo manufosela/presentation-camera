@@ -17,6 +17,7 @@ import { renderRecoveryNotice } from './recoveryNotice.js';
 import { createRecordingFlow } from './recordingFlow.js';
 import { trimRecording } from './recordingTrim.js';
 import { openTrimDialog } from './trimDialog.js';
+import { createInkLayer, nextInkMode } from './inkLayer.js';
 import { createChapterTrack } from './chapterTrack.js';
 import { runCountdown } from './countdown.js';
 import { renderDeviceSelect } from './deviceSelect.js';
@@ -140,6 +141,23 @@ const recording = createRecordingFlow({
   review: ({ blob, durationSec }) => openTrimDialog({ dialog: document.getElementById('trimDialog'), blob, durationSec }),
   trim: trimRecording,
 });
+// Tinta sobre la diapositiva (CAM-TSK-0130): láser (L) y dibujo (D); Esc la apaga.
+const inkCanvas = document.getElementById('inkLayer');
+const ink = createInkLayer({ canvas: inkCanvas });
+function setInkMode(mode) {
+  ink.setMode(mode);
+  inkCanvas.dataset.mode = mode; // con un modo activo recibe el puntero (ver CSS)
+}
+const fitInk = () => ink.resize(window.innerWidth, window.innerHeight);
+fitInk();
+window.addEventListener('resize', fitInk);
+inkCanvas.addEventListener('pointerdown', event => {
+  inkCanvas.setPointerCapture(event.pointerId);
+  ink.pointerDown(event.clientX, event.clientY);
+});
+inkCanvas.addEventListener('pointermove', event => ink.pointerMove(event.clientX, event.clientY));
+inkCanvas.addEventListener('pointerup', () => ink.pointerUp());
+
 const AUTO_RECORD_KEY = STORAGE_KEYS.autoRecord;
 let autoRecordEnabled = loadAutoRecordPref();
 
@@ -669,6 +687,14 @@ function handleKeyboardShortcut(event) {
   if (singleKeyShortcuts && plainS && sources.getActive()?.type === 'html') {
     event.preventDefault();
     openControlPanel();
+    return;
+  }
+  // L / D: láser y dibujo (atajos de una tecla); Esc apaga la tinta antes que ser del deck.
+  const plainKey = !event.ctrlKey && !event.metaKey && !event.altKey;
+  const inkMode = plainKey && (singleKeyShortcuts || event.key === 'Escape') ? nextInkMode(ink.mode(), event.key) : null;
+  if (inkMode) {
+    event.preventDefault();
+    setInkMode(inkMode);
     return;
   }
   // Las teclas de navegación son del deck (reveal.js), no de la app: siguen
@@ -1335,6 +1361,7 @@ function returnToSetup() {
   recording.stop(); // si había grabación en curso, se detiene y se descarga
   updateRecordButton();
   setChromeHidden(false); // restaurar controles al salir
+  setInkMode('off');
   stopWebcam();
   stopLiveBadge();
   presentationActive = false;

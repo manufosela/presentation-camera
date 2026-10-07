@@ -10,6 +10,16 @@ const LASER_COLOR = '255 45 45';
 const DOT_RADIUS = 7;
 const PEN = { color: 'rgb(255 214 0)', width: 4 };
 
+const MODE_KEYS = new Map([['l', 'laser'], ['d', 'draw']]);
+
+/** Modo tras pulsar la tecla (L láser, D dibujo, Esc apaga), o null si la tecla no es de la tinta. */
+export function nextInkMode(current, key) {
+  if (key === 'Escape') return current === 'off' ? null : 'off';
+  const mode = MODE_KEYS.get(key.toLowerCase());
+  if (!mode) return null;
+  return current === mode ? 'off' : mode;
+}
+
 /** Los puntos de la estela que aún no se han desvanecido. */
 export const trailAt = (points, now, maxAgeMs = LASER_TRAIL_MS) => points.filter(point => now - point.t <= maxAgeMs);
 
