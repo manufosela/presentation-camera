@@ -60,7 +60,7 @@ describe('createRecordingFlow — grabar la sesión', () => {
   });
 
   it('con capítulos: los arranca con la diapositiva actual y al parar descarga también el .vtt (CAM-TSK-0097)', async () => {
-    const chapters = { start: vi.fn(), finish: vi.fn(() => 'WEBVTT\n') };
+    const chapters = { start: vi.fn(), finish: vi.fn(() => ({ toVtt: () => 'WEBVTT\n' })) };
     const { flow, calls } = setup({ chapters: { track: chapters, current: () => 'Diapositiva 3' } });
     await flow.start();
     expect(chapters.start).toHaveBeenCalledWith('Diapositiva 3');

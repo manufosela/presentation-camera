@@ -44,7 +44,7 @@ export function createRecordingFlow({
           const filename = buildRecordingFilename(now(), extFromMime(type));
           download(blob, filename);
           // Capítulos (CAM-TSK-0097): mismo nombre, .vtt; solo si el deck avisó de sus cambios.
-          const vtt = chapters?.track.finish();
+          const vtt = chapters?.track.finish()?.toVtt();
           if (vtt) download(new Blob([vtt], { type: 'text/vtt' }), filename.replace(/\.\w+$/, '.vtt'));
           controller = null;
           onChange();

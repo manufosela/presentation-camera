@@ -51,7 +51,8 @@ describe('trimMp4 — recortar un MP4 fragmentado sin recodificar (CAM-TSK-0111)
   const allSync = [SYNC, SYNC, SYNC, SYNC, SYNC];
 
   it('conserva cabeceras y los fragmentos entre inicio y fin, con los tiempos desde 0', () => {
-    const out = trimMp4(mp4(allSync), { startSec: 1.5, endSec: 3.2 });
+    const { bytes: out, startSec } = trimMp4(mp4(allSync), { startSec: 1.5, endSec: 3.2 });
+    expect(startSec).toBe(1); // inicio real: el fragmento con fotograma clave
     expect(String.fromCharCode(...out.subarray(4, 8))).toBe('ftyp');
     expect(fragmentsOf(out)).toEqual([
       { mdat: 1, decodeTimes: [0, 0] },
@@ -61,13 +62,14 @@ describe('trimMp4 — recortar un MP4 fragmentado sin recodificar (CAM-TSK-0111)
   });
 
   it('el inicio retrocede al último fragmento que empieza en fotograma clave', () => {
-    const out = trimMp4(mp4([SYNC, SYNC, NON_SYNC, NON_SYNC, SYNC]), { startSec: 3.5, endSec: 99 });
-    expect(fragmentsOf(out).map(f => f.mdat)).toEqual([1, 2, 3, 4]);
+    const { bytes, startSec } = trimMp4(mp4([SYNC, SYNC, NON_SYNC, NON_SYNC, SYNC]), { startSec: 3.5, endSec: 99 });
+    expect(fragmentsOf(bytes).map(f => f.mdat)).toEqual([1, 2, 3, 4]);
+    expect(startSec).toBe(1);
   });
 
   it('de 0 al final sale igual', () => {
     const original = mp4(allSync);
-    expect(trimMp4(original, { startSec: 0, endSec: 5 })).toEqual(original);
+    expect(trimMp4(original, { startSec: 0, endSec: 5 })).toEqual({ bytes: original, startSec: 0 });
   });
 
   it('si no es un MP4 fragmentado lo dice en vez de devolver algo roto', () => {

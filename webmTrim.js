@@ -116,5 +116,5 @@ export function trimWebm(bytes, { startSec, endSec }) {
   const out = new Uint8Array(pieces.reduce((sum, piece) => sum + piece.length, 0));
   let at = 0;
   for (const piece of pieces) { out.set(piece, at); at += piece.length; }
-  return out;
+  return { bytes: out, startSec: (base * scale) / 1e9 }; // inicio real: retrocede al fotograma clave
 }
