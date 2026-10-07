@@ -2,7 +2,7 @@
 
 > 🇪🇸 [Léeme en español](./README.es.md)
 
-**Live demo**: https://manufosela.dev/presentation-camera/
+**Live demo**: https://onsli.de
 
 Put your **webcam on top of any presentation** and present or record with your slides and your face on screen at the same time. Everything runs **in your browser**: there is no server, no account and nothing is uploaded.
 
