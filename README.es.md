@@ -57,6 +57,7 @@ Abre el **panel de control** con `\` (o en *Más opciones*): una ventana aparte 
 | `M` | alternar marco ↔ recorte (no hace nada con *Sin cámara*) |
 | `F` | entrar / salir de pantalla completa |
 | `R` | iniciar / detener grabación |
+| `P` | pausar / reanudar la grabación (la pausa no sale en el vídeo) |
 | `H` | ocultar / mostrar los controles |
 | `\` | abrir el panel de control |
 | `1`–`9` | cambiar la fuente activa |

@@ -111,6 +111,7 @@ export const MESSAGES = {
   'legend.source': { es: 'cambiar de presentación', en: 'switch presentation' },
   'legend.overview': { es: 'vista general', en: 'overview' },
   'legend.help': { es: 'esta ayuda', en: 'this help' },
+  'legend.pause': { es: 'pausar / reanudar la grabación', en: 'pause / resume recording' },
 
   // Capítulos de la grabación (CAM-TSK-0097)
   'chapters.slide': { es: 'Diapositiva {n}', en: 'Slide {n}' },
@@ -166,6 +167,9 @@ export const MESSAGES = {
   // Lo que pinta el JS (se repinta al cambiar de idioma)
   'rec.start': { es: 'REC', en: 'REC' },
   'rec.stop': { es: 'Parar', en: 'Stop' },
+  'rec.pause': { es: 'Pausa', en: 'Pause' },
+  'rec.resume': { es: 'Seguir', en: 'Resume' },
+  'rec.pauseTitle': { es: 'Pausar / reanudar la grabación (P)', en: 'Pause / resume recording (P)' },
   'estimate.available': { es: 'Espacio para ~{duration} de grabación (calidad media, ~{rate} GB/h). A disco, el límite es tu disco real.', en: 'Room for ~{duration} of recording (medium quality, ~{rate} GB/h). On disk, the limit is your actual disk.' },
   'estimate.unavailable': { es: 'La estimación de espacio no está disponible en este navegador.', en: 'Storage estimate is not available in this browser.' },
   'saved.remove': { es: 'Quitar {title}', en: 'Remove {title}' },

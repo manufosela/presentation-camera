@@ -58,6 +58,8 @@ class FakeRecorder {
   addEventListener(type, cb) { (this._l[type] ||= []).push(cb); }
   _emit(type, ev) { (this._l[type] || []).forEach(cb => cb(ev)); }
   start() { this.state = 'recording'; }
+  pause() { this.state = 'paused'; }
+  resume() { this.state = 'recording'; }
   stop() {
     this.state = 'inactive';
     this._emit('dataavailable', { data: { size: 10 } });
@@ -88,6 +90,25 @@ describe('startScreenRecording', () => {
     expect(ctrl.state).toBe('recording');
     ctrl.stop();
     expect(await stopped).toBeInstanceOf(Blob);
+  });
+
+  it('pausa y reanuda el MediaRecorder y no cuenta el tiempo en pausa (CAM-TSK-0098)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      const ctrl = await startScreenRecording({ withMic: false, withSystemAudio: false });
+      vi.advanceTimersByTime(2000);
+      ctrl.pause();
+      expect(ctrl.paused).toBe(true);
+      expect(ctrl.state).toBe('paused');
+      vi.advanceTimersByTime(60_000);
+      ctrl.resume();
+      vi.advanceTimersByTime(1000);
+      expect(ctrl.paused).toBe(false);
+      expect(ctrl.elapsed()).toBe(3000);
+      ctrl.stop();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('pide micrófono cuando withMic=true', async () => {

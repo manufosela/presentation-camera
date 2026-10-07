@@ -106,9 +106,10 @@ export function createRecordingStore(getRoot = () => navigator.storage.getDirect
           next += 1;
         },
         /** Marca la sesión como terminada y devuelve el vídeo completo. */
-        async finish() {
+        /** durationMs: lo grabado sin pausas; por defecto, desde el inicio. */
+        async finish(durationMs = Date.now() - startedAt) {
           await writeFile(dir, DONE, '');
-          return joinParts(dir, { mimeType, startedAt }, Date.now() - startedAt);
+          return joinParts(dir, { mimeType, startedAt }, durationMs);
         },
       };
     },

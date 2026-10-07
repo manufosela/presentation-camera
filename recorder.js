@@ -11,6 +11,7 @@
 import { t } from './i18n.js';
 import { createRecordingStore } from './recordingStore.js';
 import { withWebmDuration } from './webmDuration.js';
+import { createRecordingClock } from './recordingClock.js';
 
 // MP4 primero (CAM-TSK-0096): es lo que cualquiera sabe abrir y subir. Con AAC
 // es lo más compatible (macOS, Windows); donde Chrome no codifica AAC (Linux),
@@ -128,7 +129,8 @@ export async function startScreenRecording({
 
   // A disco por trozos confirmados (recuperables si se cierra); sin OPFS, en memoria.
   const type = recorder.mimeType || mimeType || 'video/webm';
-  const startedAt = Date.now(); // para escribir la duración del vídeo al parar
+  const startedAt = Date.now();
+  const clock = createRecordingClock(); // duración sin pausas (CAM-TSK-0098)
   const chunks = [];
   let session = null;
   let writeChain = Promise.resolve();
@@ -159,12 +161,12 @@ export async function startScreenRecording({
     if (session) {
       try {
         await writeChain;
-        onStop?.(await session.finish(), type); // une los trozos sin copiarlos al heap
+        onStop?.(await session.finish(clock.elapsed()), type); // une los trozos sin copiarlos al heap
       } catch (error) {
         onError?.(error);
       }
     } else {
-      onStop?.(await withWebmDuration(new Blob(chunks, { type }), Date.now() - startedAt), type);
+      onStop?.(await withWebmDuration(new Blob(chunks, { type }), clock.elapsed()), type);
     }
   });
   recorder.addEventListener('error', event => {
@@ -177,9 +179,25 @@ export async function startScreenRecording({
   });
 
   recorder.start(SLICE_MS);
+  clock.start();
 
   return {
-    stop() { if (recorder.state !== 'inactive') recorder.stop(); },
+    stop() {
+      clock.pause(); // la duración se fija al parar
+      if (recorder.state !== 'inactive') recorder.stop();
+    },
+    pause() {
+      if (recorder.state !== 'recording') return;
+      recorder.pause();
+      clock.pause();
+    },
+    resume() {
+      if (recorder.state !== 'paused') return;
+      recorder.resume();
+      clock.resume();
+    },
+    get paused() { return recorder.state === 'paused'; },
+    elapsed: () => clock.elapsed(),
     get state() { return recorder.state; },
     mimeType: recorder.mimeType || mimeType,
   };

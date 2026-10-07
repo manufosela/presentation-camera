@@ -99,6 +99,8 @@ const fileInput = document.getElementById('fileInput');
 const autoRecordInput = document.getElementById('autoRecordInput');
 const recordBtn = document.getElementById('recordBtn');
 const recordLabel = document.getElementById('recordLabel');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseLabel = document.getElementById('pauseLabel');
 const recordEstimate = document.getElementById('recordEstimate');
 const helpDialog = document.getElementById('helpDialog');
 const helpBtn = document.getElementById('helpBtn');
@@ -113,7 +115,8 @@ const localBlobUrls = new Map();
 // Grabación (recordingFlow.js; las funciones que recibe son declaraciones, ya
 // disponibles) y preferencia de auto-grabación al pulsar Go live (por defecto
 // activada, persistida).
-const chapterTrack = createChapterTrack();
+// Capítulos con el tiempo grabado (sin pausas), no el del reloj.
+const chapterTrack = createChapterTrack({ now: () => recording.elapsed() });
 const recording = createRecordingFlow({
   startRecording: startScreenRecording,
   download: downloadBlob,
@@ -309,6 +312,7 @@ if (autoRecordInput) {
   });
 }
 recordBtn?.addEventListener('click', toggleRecording);
+pauseBtn.addEventListener('click', () => recording.togglePause());
 showChromeBtn?.addEventListener('click', () => setChromeHidden(false));
 document.addEventListener('fullscreenchange', syncFullscreenButton);
 document.addEventListener('keydown', handleKeyboardShortcut);
@@ -637,6 +641,11 @@ function handleKeyboardShortcut(event) {
       event.preventDefault();
       toggleRecording();
       break;
+    case 'p':
+    case 'P':
+      event.preventDefault();
+      recording.togglePause();
+      break;
     case 'h':
     case 'H':
       event.preventDefault();
@@ -874,8 +883,12 @@ async function updateRecordEstimate() {
 
 function updateRecordButton() {
   if (!recordBtn) return;
-  recordBtn.classList.toggle('is-recording', recording.isRecording());
+  const paused = recording.isPaused();
+  recordBtn.classList.toggle('is-recording', recording.isRecording() && !paused);
   if (recordLabel) recordLabel.textContent = t(recording.isRecording() ? 'rec.stop' : 'rec.start');
+  pauseBtn.hidden = !recording.isRecording();
+  pauseBtn.setAttribute('aria-pressed', String(paused));
+  pauseLabel.textContent = t(paused ? 'rec.resume' : 'rec.pause');
 }
 
 function toggleRecording() {
