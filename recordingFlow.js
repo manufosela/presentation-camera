@@ -18,6 +18,7 @@ export function createRecordingFlow({
   showStatus,
   onChange,
   logger = console,
+  chapters = null, // { track: chapterTrack, current: () => diapositiva a la vista o null }
 }) {
   let controller = null;
   const isRecording = () => controller !== null;
@@ -29,7 +30,11 @@ export function createRecordingFlow({
         withMic: true,
         withSystemAudio: true,
         onStop: (blob, type) => {
-          download(blob, buildRecordingFilename(now(), extFromMime(type)));
+          const filename = buildRecordingFilename(now(), extFromMime(type));
+          download(blob, filename);
+          // Capítulos (CAM-TSK-0097): mismo nombre, .vtt; solo si el deck avisó de sus cambios.
+          const vtt = chapters?.track.finish();
+          if (vtt) download(new Blob([vtt], { type: 'text/vtt' }), filename.replace(/\.\w+$/, '.vtt'));
           controller = null;
           onChange();
           setChromeHidden(false); // al terminar, volver a mostrar los controles
@@ -39,6 +44,7 @@ export function createRecordingFlow({
           showStatus(error.message || t('error.recording'), true);
         },
       });
+      chapters?.track.start(chapters.current());
       onChange();
       setChromeHidden(true); // ocultar controles para que no salgan en la grabación
       showStatus(''); // ningún aviso encima de lo que se graba
