@@ -135,39 +135,31 @@
             </svg>
           </span>
           <span class="wordmark-text">onslide</span>
+          <span class="topbar-tagline" data-i18n="topbar.tagline">Your camera on top of your slides. Everything stays in your browser.</span>
         </div>
-        <div class="topbar-meta">
-          <span class="status-pill">
-            <span class="status-pill-dot" aria-hidden="true"></span>
-            <span data-i18n="topbar.offAir">off air</span>
-          </span>
+        <nav class="topbar-meta">
+          <button id="helpBtn" class="topbar-link" type="button" title="Help" data-i18n="topbar.help" data-i18n-attr="title:topbar.helpTitle">Help</button>
           <button id="langBtn" class="topbar-link lang-btn" type="button"></button>
           <button id="themeBtn" class="topbar-link theme-btn" type="button"></button>
-          <button id="helpBtn" class="topbar-link" type="button" title="Ayuda / primeros pasos" data-i18n="topbar.help" data-i18n-attr="title:topbar.helpTitle">
-            ayuda ?
-          </button>
-          <a class="topbar-link" href="https://github.com/manufosela/presentation-camera" target="_blank" rel="noopener" data-i18n="topbar.source">
-            source ↗
-          </a>
-        </div>
+          <a class="topbar-link" href="https://github.com/manufosela/presentation-camera" target="_blank" rel="noopener">GitHub</a>
+        </nav>
       </header>
 
-      <article class="hero">
-        <p class="hero-eyebrow">
-          <span class="rule" aria-hidden="true"></span>
-          <span data-i18n="hero.eyebrow">a tiny broadcast booth</span>
-        </p>
-        <h1 class="hero-title">
-          <span data-i18n="hero.title1">Put your face</span> <em data-i18n="hero.titleEm">on top</em><br />
-          <span data-i18n="hero.title2">of any slides.</span>
-        </h1>
-        <p class="hero-lede" data-i18n="hero.lede">
-          Embed a presentation, drop yourself into the corner,
-          cut the background if you want. Press one key to move,
-          another to vanish. Everything stays in your browser.
-        </p>
-      </article>
+      <div class="setup-grid">
+      <section class="setup-stage" aria-label="Preview" data-i18n-attr="aria-label:setup.stageLabel">
+        <!-- Live mock of the slide stage with chosen corner -->
+        <div class="stage-mock" aria-hidden="true">
+          <span class="stage-mock-label" data-i18n="camera.preview">preview</span>
+          <span class="stage-mock-corner" data-pos="top-left"></span>
+          <span class="stage-mock-corner" data-pos="top-right"></span>
+          <span class="stage-mock-corner" data-pos="bottom-left"></span>
+          <span class="stage-mock-corner" data-pos="bottom-right"></span>
+          <span class="stage-mock-cam"></span>
+          <span class="stage-mock-scanline"></span>
+        </div>
+      </section>
 
+      <aside class="setup-panel" aria-label="Settings" data-i18n-attr="aria-label:setup.panelLabel">
       <section class="panel" aria-labelledby="panel-source">
         <header class="panel-header">
           <span class="panel-num">01</span>
@@ -246,18 +238,6 @@
           <h2 class="panel-title" id="panel-camera" data-i18n="camera.title">Camera stage</h2>
           <span class="panel-rule" aria-hidden="true"></span>
         </header>
-
-        <div class="stage-row">
-          <!-- Live mock of the slide stage with chosen corner -->
-          <div class="stage-mock" aria-hidden="true">
-            <span class="stage-mock-label" data-i18n="camera.preview">preview</span>
-            <span class="stage-mock-corner" data-pos="top-left"></span>
-            <span class="stage-mock-corner" data-pos="top-right"></span>
-            <span class="stage-mock-corner" data-pos="bottom-left"></span>
-            <span class="stage-mock-corner" data-pos="bottom-right"></span>
-            <span class="stage-mock-cam"></span>
-            <span class="stage-mock-scanline"></span>
-          </div>
 
           <div class="stage-controls">
             <fieldset class="control">
@@ -373,17 +353,9 @@
               </div>
             </fieldset>
           </div>
-        </div>
       </section>
 
       <footer class="setup-footer">
-        <p class="footnote">
-          <svg viewBox="0 0 14 14" width="11" height="11" aria-hidden="true" class="footnote-icon">
-            <path d="M7 1l6 12H1z" stroke="currentColor" stroke-width="1.1" fill="none" stroke-linejoin="round"/>
-            <path d="M7 6v3M7 11v.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-          </svg>
-          <span data-i18n="footer.secure">Camera access requires https:// or http://localhost. Video never leaves your browser.</span>
-        </p>
         <label class="record-toggle">
           <input type="checkbox" id="autoRecordInput" checked />
           <span data-i18n="footer.autoRecord">Grabar automáticamente al empezar</span>
@@ -408,20 +380,8 @@
         </button>
         <p class="app-version" id="appVersion" aria-live="polite"></p>
       </footer>
-
-      <aside class="legend" aria-label="Shortcuts" data-i18n-attr="aria-label:legend.title">
-        <span class="legend-title" data-i18n="legend.title">Shortcuts</span>
-        <span class="legend-item"><kbd>←</kbd><kbd>→</kbd> <span data-i18n="legend.slides">slides</span></span>
-        <span class="legend-item"><kbd>S</kbd> <span data-i18n="legend.notes">notes</span></span>
-        <span class="legend-item"><kbd>C</kbd> <span data-i18n="legend.corner">corner</span></span>
-        <span class="legend-item"><kbd>M</kbd> <span data-i18n="legend.treatment">treatment</span></span>
-        <span class="legend-item"><kbd>F</kbd> <span data-i18n="legend.fullscreen">fullscreen</span></span>
-        <span class="legend-item"><kbd>R</kbd> <span data-i18n="legend.record">record</span></span>
-        <span class="legend-item"><kbd>H</kbd> <span data-i18n="legend.hide">hide controls</span></span>
-        <span class="legend-item"><kbd>\</kbd> <span data-i18n="legend.panel">control panel</span></span>
-        <span class="legend-item"><kbd>1</kbd>…<kbd>9</kbd> <span data-i18n="legend.source">switch source</span></span>
-        <span class="legend-item"><kbd>Esc</kbd> <span data-i18n="legend.overview">overview</span></span>
       </aside>
+      </div>
     </main>
 
     <!-- Onboarding / primeros pasos (overlay propio, no modal nativo) -->
