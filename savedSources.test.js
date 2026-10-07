@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { removedLocalFiles, sourceLabel } from './savedSources.js';
+import { recentKey, removedLocalFiles, sourceLabel } from './savedSources.js';
 import { setLang } from './i18n.js';
 
 beforeEach(() => setLang('es', null));
@@ -32,6 +32,12 @@ describe('sourceLabel — cómo se ve cada presentación guardada', () => {
 
   it('local sin título', () => {
     expect(sourceLabel({ type: 'html', title: null, localRef: 'a' }).title).toBe('Presentación sin título');
+  });
+});
+
+describe('recentKey — la tecla de cada reciente (CAM-TSK-0089)', () => {
+  it('las nueve primeras tienen su tecla 1–9; las demás, ninguna', () => {
+    expect([0, 1, 8, 9, 11].map(recentKey)).toEqual(['1', '2', '9', null, null]);
   });
 });
 

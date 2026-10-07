@@ -15,6 +15,9 @@ export function sourceLabel(source) {
   return { title: source.title || host, kind: host };
 }
 
+/** Tecla de la presentación en la posición `index` (1–9), o null más allá. */
+export const recentKey = index => (index < 9 ? String(index + 1) : null);
+
 const fileKey = s => `${s.bundle === true ? 'bundle' : 'html'}:${s.localRef}`;
 
 /**
