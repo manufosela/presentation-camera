@@ -228,6 +228,7 @@ export const MESSAGES = {
   'panel.linked': { es: 'conectado a la principal', en: 'linked to main' },
   'panel.lost': { es: 'ventana principal no encontrada', en: 'main window not detected' },
   'panel.notes': { es: 'Notas', en: 'Notes' },
+  'panel.transcript': { es: 'Transcripción', en: 'Transcript' },
   'panel.sources': { es: 'Presentaciones', en: 'Sources' },
   'panel.empty': { es: 'Aún no hay presentaciones. Añade una desde la ventana principal o pega su URL aquí abajo.', en: 'No presentations yet. Add one from the main window or paste its URL below.' },
   'panel.urlLabel': { es: 'URL de la presentación', en: 'Presentation URL' },

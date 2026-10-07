@@ -138,6 +138,19 @@
   line-height: 1.55;
   color: var(--ink-strong);
 }
+/* ─── Transcripción de los subtítulos (CAM-TSK-0119) ─────────── */
+.panel-transcript[hidden] { display: none; }
+.panel-transcript-list {
+  display: grid;
+  gap: 0.5rem;
+  max-height: 40vh;
+  overflow-y: auto;
+  padding-left: 1.25rem;
+  color: var(--ink-strong);
+  line-height: 1.45;
+}
+.transcript-translation { display: block; color: var(--ink-muted); font-style: italic; }
+
 .panel-notes-text.is-empty {
   font-size: 0.9rem;
   color: var(--ink-muted);
