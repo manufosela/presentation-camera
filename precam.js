@@ -9,6 +9,7 @@ import { recentKey, removedLocalFiles, sourceLabel } from './savedSources.js';
 import { createSetupPreview } from './setupPreview.js';
 import { applyEmptyState } from './emptyState.js';
 import { droppedEntry } from './dropImport.js';
+import { bindUnloadGuard } from './unloadGuard.js';
 import { formatVersion, loadVersion } from './appVersion.js';
 import { startScreenRecording, downloadBlob, estimateStorage } from './recorder.js';
 import { createRecordingFlow } from './recordingFlow.js';
@@ -1207,7 +1208,10 @@ function renderStep() {
   return true;
 }
 
-window.addEventListener('beforeunload', stopWebcam);
+// pagehide (no beforeunload): si al cerrar el usuario elige quedarse, la
+// cámara sigue encendida.
+window.addEventListener('pagehide', stopWebcam);
+bindUnloadGuard(window, () => recording.isRecording());
 function returnToSetup() {
   recording.stop(); // si había grabación en curso, se detiene y se descarga
   updateRecordButton();
