@@ -210,58 +210,65 @@ kbd {
 
 /* ─── Setup layout ───────────────────────────────────────────── */
 
+/* Una sola pantalla (CAM-TSK-0081): barra fina arriba y, debajo, vista previa
+   grande y panel lateral. En pantallas estrechas las columnas se apilan. */
 .setup {
-  --setup-pad: clamp(1.5rem, 4vw, 3.5rem);
-  max-width: 1180px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.setup-grid {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: clamp(1rem, 2vw, 1.75rem);
+  padding: clamp(1rem, 2vw, 1.75rem);
+  max-width: 1680px;
+  width: 100%;
   margin: 0 auto;
-  padding: var(--setup-pad);
+}
+.setup-stage {
+  flex: 999 1 560px;
+  min-width: 0;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: clamp(2.5rem, 5vw, 4rem);
-  position: relative;
+  gap: 0.9rem;
 }
-
-/* faint vertical guide line on the left */
-.setup::before {
-  content: "";
-  position: fixed;
-  top: 0; bottom: 0;
-  left: clamp(1.5rem, 4vw, 3.5rem);
-  width: 1px;
-  background: linear-gradient(to bottom,
-    transparent 0%,
-    var(--line-soft) 12%,
-    var(--line-soft) 88%,
-    transparent 100%);
-  opacity: .45;
-  pointer-events: none;
-  z-index: 0;
+.setup-panel {
+  flex: 1 1 360px;
+  max-width: 440px;
+  min-width: 0;
+  display: grid;
+  gap: 1.4rem;
+  padding: 1.5rem;
+  border-radius: 18px;
+  background: var(--bg-base);
+  border: 1px solid var(--line-soft);
 }
-
-@media (max-width: 700px) {
-  .setup::before { display: none; }
+@media (max-width: 960px) {
+  .setup-panel { max-width: none; }
 }
 
 /* ─── Topbar ────────────────────────────────────────────────── */
 
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0;
+  gap: 0.25rem 1rem;
+  padding: 0.35rem clamp(1rem, 2vw, 1.75rem);
   border-bottom: 1px solid var(--line-soft);
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.875rem;
   color: var(--ink-muted);
-  position: relative;
-  z-index: 1;
 }
 
 .wordmark {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.35rem 0.75rem;
 }
 .wordmark-mark {
   display: inline-flex;
@@ -273,102 +280,34 @@ kbd {
   background: var(--bg-raised);
 }
 .wordmark-text {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 600;
   color: var(--ink-strong);
-  font-weight: 500;
-  letter-spacing: 0.06em;
 }
+.topbar-tagline { color: var(--ink-muted); }
 .topbar-meta {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-}
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.3rem 0.7rem;
-  border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  background: var(--bg-base);
-  font-size: 0.7rem;
-}
-.status-pill-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--ink-muted);
-  box-shadow: 0 0 0 3px oklch(0.62 0.014 65 / .15);
+  gap: 0.25rem;
 }
 .topbar-link {
-  font-size: 0.72rem;
-  color: var(--ink-muted);
-  transition: color .15s var(--ease-soft);
-}
-.topbar-link:hover { color: var(--accent); }
-
-@media (max-width: 520px) {
-  .topbar-link { display: none; }
-}
-
-/* ─── Hero ──────────────────────────────────────────────────── */
-
-.hero {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: 1.5rem;
-  padding-top: 1rem;
-  max-width: 920px;
-}
-
-.hero-eyebrow {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.9rem;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 500;
-}
-.hero-eyebrow .rule {
-  display: inline-block;
-  width: 2.5rem;
-  height: 1px;
-  background: var(--accent);
-}
-
-.hero-title {
-  font-family: var(--serif);
-  font-weight: 500;
-  font-style: normal;
-  font-size: clamp(2.5rem, 6.5vw, 5.5rem);
-  line-height: 0.98;
-  letter-spacing: -0.025em;
-  color: var(--ink-strong);
-  max-width: 16ch;
-  font-variation-settings: "opsz" 96;
-}
-.hero-title em {
-  font-style: italic;
-  font-weight: 400;
-  color: var(--accent);
-  font-variation-settings: "opsz" 144;
-}
-
-.hero-lede {
-  font-size: clamp(1rem, 1.4vw, 1.125rem);
-  line-height: 1.6;
-  max-width: 56ch;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border-radius: var(--radius-sm);
   color: var(--ink-body);
+  transition: color .15s var(--ease-soft), background .15s var(--ease-soft);
 }
+.topbar-link:hover { color: var(--accent); background: var(--bg-raised); }
+.topbar-link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 
 /* ─── Panels ────────────────────────────────────────────────── */
 
 .panel {
-  position: relative;
-  z-index: 1;
   display: grid;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .panel-header {
@@ -543,22 +482,10 @@ kbd {
   .ghost-button { justify-self: start; }
 }
 
-/* ─── Camera stage row ──────────────────────────────────────── */
-
-.stage-row {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(0, 1.6fr);
-  gap: clamp(1.5rem, 3vw, 2.5rem);
-  align-items: start;
-}
-@media (max-width: 780px) {
-  .stage-row { grid-template-columns: 1fr; }
-}
-
 /* Stage mock — visualizes how the cam will sit on the slide */
 .stage-mock {
   position: relative;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   background:
     linear-gradient(135deg,
       oklch(0.22 0.015 60) 0%,
@@ -757,7 +684,7 @@ kbd {
 
 .stage-controls {
   display: grid;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .control {
@@ -929,38 +856,12 @@ kbd {
 /* ─── Footer + Start button ─────────────────────────────────── */
 
 .setup-footer {
-  position: relative;
-  z-index: 1;
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 2rem;
+  gap: 0.75rem;
   padding-top: 1rem;
   border-top: 1px solid var(--line-soft);
 }
-
-.footnote {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-size: 0.82rem;
-  color: var(--ink-muted);
-  max-width: 60ch;
-  line-height: 1.5;
-}
-.footnote-icon {
-  color: var(--accent);
-  flex-shrink: 0;
-}
-.footnote code {
-  font-family: var(--mono);
-  font-size: 0.84em;
-  padding: 0.1em 0.4em;
-  background: var(--bg-base);
-  border: 1px solid var(--line-soft);
-  border-radius: 3px;
-  color: var(--ink-body);
-}
+.setup-footer .start-button { width: 100%; justify-content: center; }
 
 .start-button {
   position: relative;
@@ -1023,34 +924,6 @@ kbd {
   pointer-events: none;
 }
 
-@media (max-width: 700px) {
-  .setup-footer { grid-template-columns: 1fr; }
-  .start-button { justify-self: start; }
-}
-
-/* ─── Shortcuts legend ──────────────────────────────────────── */
-
-.legend {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
-  padding: 1rem 0 0;
-  font-size: 0.78rem;
-  color: var(--ink-faint);
-}
-.legend-title {
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  margin-right: 0.5rem;
-}
-.legend-item { display: inline-flex; align-items: center; gap: 0.35rem; }
-.legend-item kbd { margin-right: 0.15rem; }
 
 /* ─── Toast / status ────────────────────────────────────────── */
 
