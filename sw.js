@@ -31,7 +31,6 @@ const SHELL = [
   'presence.js',
   'renderMode.js',
   'appPrefs.js',
-  'focusTrap.js',
   'urlUtils.js',
   'constants.js',
   'queryState.js',

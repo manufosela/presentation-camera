@@ -97,6 +97,17 @@ describe('setup en una pantalla', () => {
     expect(setup.querySelector('.setup-footer #startHint[data-i18n="footer.pickFirst"]')).not.toBeNull();
   });
 
+  it('ayuda: un diálogo con todos los atajos, la versión y el espacio de grabación (CAM-TSK-0086)', () => {
+    const help = doc.querySelector('dialog#helpDialog');
+    expect(help.getAttribute('aria-labelledby')).toBe('helpTitle');
+    const keys = [...help.querySelectorAll('.help-keys kbd')].map(kbd => kbd.textContent.trim());
+    for (const key of ['←', '→', 'S', 'C', 'M', 'F', 'R', 'H', '\\', '1', '9', 'Esc', '?']) expect(keys).toContain(key);
+    expect(help.querySelector('#appVersion')).not.toBeNull();
+    expect(help.querySelector('#recordEstimate')).not.toBeNull();
+    expect(doc.getElementById('onboarding')).toBeNull();
+    expect(setup.querySelector('.stage-hint [data-i18n="setup.keyAll"]')).not.toBeNull();
+  });
+
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
     expect(setup.querySelector(selector)).toBeNull();
   });
