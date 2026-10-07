@@ -88,7 +88,7 @@ export const MESSAGES = {
 
   // Más opciones (plegable)
   'more.title': { es: 'Más opciones', en: 'More options' },
-  'more.hint': { es: 'Cámara, espejo, atajos, panel', en: 'Camera, mirror, shortcuts, panel' },
+  'more.hint': { es: 'Cámara, espejo, subtítulos, atajos, panel', en: 'Camera, mirror, captions, shortcuts, panel' },
 
   // Pie del setup
   'footer.autoRecord': { es: 'Grabar al empezar', en: 'Record when starting' },
@@ -229,6 +229,12 @@ export const MESSAGES = {
   'panel.lost': { es: 'ventana principal no encontrada', en: 'main window not detected' },
   'panel.notes': { es: 'Notas', en: 'Notes' },
   'panel.transcript': { es: 'Transcripción', en: 'Transcript' },
+  'captions.title': { es: 'Subtítulos en directo', en: 'Live captions' },
+  'captions.enable': { es: 'Mostrar subtítulos de lo que digo', en: 'Show captions of what I say' },
+  'captions.spoken': { es: 'Hablo en', en: 'I speak' },
+  'captions.translate': { es: 'Traducir a', en: 'Translate to' },
+  'captions.noTranslate': { es: 'No traducir', en: "Don't translate" },
+  'captions.prepare': { es: 'Descargar el idioma (una vez)', en: 'Download the language (once)' },
   'captions.ready': { es: 'Subtítulos listos: se generan en tu ordenador, sin enviar la voz a ningún sitio.', en: 'Captions ready: made on your computer, your voice is not sent anywhere.' },
   'captions.unsupported': { es: 'Este navegador no puede subtitular en el dispositivo. Usa Chrome o Edge de escritorio.', en: "This browser can't make captions on the device. Use desktop Chrome or Edge." },
   'captions.needsDownload': { es: 'Hay que descargar el idioma una vez para usarlo sin conexión.', en: 'The language must be downloaded once to use it offline.' },

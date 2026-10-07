@@ -86,6 +86,18 @@ describe('setup en una pantalla', () => {
     expect(footer.querySelector('#mirrorInput, #singleKeyShortcutsInput')).toBeNull();
   });
 
+  it('subtítulos en «Más opciones»: activar, hablo en, traducir a, descargar y estado (CAM-TSK-0133)', () => {
+    const captions = setup.querySelector('details.more-options fieldset.captions-setup');
+    expect(captions.querySelector('legend [data-i18n="captions.title"]')).not.toBeNull();
+    for (const id of ['captionsEnabled', 'captionsSpoken', 'captionsTranslate']) {
+      expect(captions.querySelector(`label[for="${id}"], label:has(#${id})`)).not.toBeNull(); // cada control con su etiqueta
+    }
+    expect([...captions.querySelectorAll('#captionsSpoken option')].map(o => o.value)).toEqual(['es', 'en']);
+    expect([...captions.querySelectorAll('#captionsTranslate option')].map(o => o.value)).toEqual(['', 'es', 'en']);
+    expect(captions.querySelector('#captionsPrepareBtn').hasAttribute('hidden')).toBe(true);
+    expect(captions.querySelector('#captionsStatus').getAttribute('aria-live')).toBe('polite');
+  });
+
   it('primera visita: estado vacío en la vista previa y tres pasos en el panel (CAM-TSK-0085)', () => {
     const empty = setup.querySelector('.setup-stage .stage-mock .stage-empty');
     expect(empty.querySelector('h1[data-i18n="empty.title"]')).not.toBeNull();
