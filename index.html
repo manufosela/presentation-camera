@@ -385,6 +385,29 @@
       <p class="help-meta app-version" id="appVersion" aria-live="polite"></p>
     </dialog>
 
+    <!-- Recorte al parar la grabación (CAM-TSK-0128): cerrar con Esc descarga entero. -->
+    <dialog id="trimDialog" class="help-dialog trim-dialog" aria-labelledby="trimTitle">
+      <h2 id="trimTitle" data-i18n="trim.title">Your recording</h2>
+      <p data-i18n="trim.intro">Trim the start and the end if you like, then download it.</p>
+      <video class="trim-video" controls playsinline></video>
+      <form method="dialog" class="trim-form">
+        <div class="trim-range">
+          <label for="trimStart" data-i18n="trim.start">Start</label>
+          <input type="range" id="trimStart">
+          <output id="trimStartTime" for="trimStart">0:00</output>
+        </div>
+        <div class="trim-range">
+          <label for="trimEnd" data-i18n="trim.end">End</label>
+          <input type="range" id="trimEnd">
+          <output id="trimEndTime" for="trimEnd">0:00</output>
+        </div>
+        <div class="trim-actions">
+          <button type="submit" value="full" class="row-btn" data-i18n="trim.full">Download whole</button>
+          <button type="submit" value="trim" class="start-button" data-i18n="trim.download">Download</button>
+        </div>
+      </form>
+    </dialog>
+
     <script type="module" src="precam.js"></script>
   </body>
 </html>

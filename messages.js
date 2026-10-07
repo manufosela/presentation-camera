@@ -123,6 +123,12 @@ export const MESSAGES = {
   'recover.discard': { es: 'Descartar', en: 'Discard' },
 
   // Ayuda
+  'trim.title': { es: 'Tu grabación', en: 'Your recording' },
+  'trim.intro': { es: 'Recorta el principio y el final si quieres, y descárgala.', en: 'Trim the start and the end if you like, then download it.' },
+  'trim.start': { es: 'Inicio', en: 'Start' },
+  'trim.end': { es: 'Fin', en: 'End' },
+  'trim.download': { es: 'Descargar', en: 'Download' },
+  'trim.full': { es: 'Descargar entera', en: 'Download whole' },
   'help.close': { es: 'Cerrar', en: 'Close' },
   'help.title': { es: 'Ayuda', en: 'Help' },
   'help.intro': { es: 'Elige una presentación, decide cómo apareces y empieza. Comparte solo esta ventana en Zoom, Meet o Teams.', en: 'Choose a presentation, decide how you appear and start. Share only this window in Zoom, Meet or Teams.' },
