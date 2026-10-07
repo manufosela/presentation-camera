@@ -64,6 +64,7 @@ const SHELL = [
   'trimDialog.js',
   'inkLayer.js',
   'captionsRecognizer.js',
+  'captionsTranslator.js',
   'chapterTrack.js',
   'recordingClock.js',
   'countdown.js',
