@@ -62,6 +62,7 @@ const SHELL = [
   'webmTrim.js',
   'recordingTrim.js',
   'trimDialog.js',
+  'inkLayer.js',
   'chapterTrack.js',
   'recordingClock.js',
   'countdown.js',
