@@ -12,7 +12,7 @@ const HEAD_BYTES = 64 * 1024;
 const ID = Object.freeze({ EBML: 0x1a45dfa3, SEGMENT: 0x18538067, INFO: 0x1549a966, SEEK_HEAD: 0x114d9b74, VOID: 0xec, TIMECODE_SCALE: 0x2ad7b1, DURATION: 0x4489 });
 
 // Entero de longitud variable de EBML: la posición del primer 1 da su longitud.
-function readVint(bytes, pos, keepMarker) {
+export function readVint(bytes, pos, keepMarker) {
   const first = bytes[pos];
   if (!first) throw new Error(`EBML: vint no válido en ${pos}`);
   const length = Math.clz32(first) - 23;
@@ -21,16 +21,16 @@ function readVint(bytes, pos, keepMarker) {
   return { length, value };
 }
 
-const readUint = (bytes, start, end) => bytes.slice(start, end).reduce((value, byte) => value * 256 + byte, 0);
+export const readUint = (bytes, start, end) => bytes.slice(start, end).reduce((value, byte) => value * 256 + byte, 0);
 
-function readElement(bytes, start) {
+export function readElement(bytes, start) {
   const id = readVint(bytes, start, true);
   const size = readVint(bytes, start + id.length, false);
   const dataStart = start + id.length + size.length;
   return { id: id.value, start, idLength: id.length, sizeLength: size.length, dataStart, end: dataStart + size.value };
 }
 
-function encodeVint(value, preferredLength) {
+export function encodeVint(value, preferredLength) {
   const fits = length => value < 2 ** (7 * length) - 1;
   let length = preferredLength;
   while (!fits(length)) length += 1;
