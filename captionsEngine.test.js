@@ -20,7 +20,7 @@ function setup({ maxLines = 2 } = {}) {
 describe('createCaptionsEngine — subtítulos estables (CAM-TSK-0116)', () => {
   it('parado al principio; al empezar crea el reconocedor del idioma y escucha', () => {
     const { engine, createRecognizer, recognizer } = setup();
-    expect(engine.snapshot()).toEqual({ status: 'stopped', error: null, lines: [] });
+    expect(engine.snapshot()).toEqual({ status: 'stopped', error: null, translationError: null, lines: [] });
     engine.start('es');
     expect(createRecognizer).toHaveBeenCalledWith(expect.objectContaining({ lang: 'es' }));
     expect(recognizer.start).toHaveBeenCalled();
@@ -72,7 +72,7 @@ describe('createCaptionsEngine — subtítulos estables (CAM-TSK-0116)', () => {
     final('hola');
     engine.stop();
     expect(recognizer.stop).toHaveBeenCalled();
-    expect(engine.snapshot()).toEqual({ status: 'stopped', error: null, lines: [] });
+    expect(engine.snapshot()).toEqual({ status: 'stopped', error: null, translationError: null, lines: [] });
     final('tarde');
     expect(engine.snapshot().lines).toEqual([]);
   });
@@ -82,6 +82,55 @@ describe('createCaptionsEngine — subtítulos estables (CAM-TSK-0116)', () => {
     engine.start('es');
     engine.start('en');
     expect(recognizer.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it('con traductor, cada frase final se traduce en orden aunque las respuestas lleguen desordenadas (CAM-TSK-0117)', async () => {
+    const { engine, final, interim } = setup({ maxLines: 3 });
+    const pending = new Map();
+    const translator = { translate: vi.fn(text => new Promise(resolve => pending.set(text, resolve))) };
+    engine.start('es', { translator });
+    interim('ho');
+    expect(translator.translate).not.toHaveBeenCalled(); // lo provisional no se traduce
+    final('hola');
+    final('adiós');
+    await Promise.resolve();
+    expect(translator.translate.mock.calls.map(([text]) => text)).toEqual(['hola']); // de una en una
+    pending.get('hola')('hello');
+    await vi.waitFor(() => expect(translator.translate).toHaveBeenCalledTimes(2));
+    pending.get('adiós')('bye');
+    await vi.waitFor(() => expect(engine.snapshot().lines.map(line => line.translation)).toEqual(['hello', 'bye']));
+  });
+
+  it('al parar, las traducciones pendientes se descartan', async () => {
+    const { engine, final } = setup();
+    let resolve;
+    engine.start('es', { translator: { translate: () => new Promise(r => { resolve = r; }) } });
+    final('hola');
+    await Promise.resolve();
+    engine.stop();
+    engine.start('es');
+    final('otra');
+    resolve('hello');
+    await new Promise(r => setTimeout(r, 0));
+    expect(engine.snapshot().lines.map(line => line.translation ?? null)).toEqual([null]);
+  });
+
+  it('una traducción colgada de una sesión parada no bloquea la siguiente', async () => {
+    const { engine, final } = setup();
+    engine.start('es', { translator: { translate: () => new Promise(() => {}) } });
+    final('hola');
+    engine.stop();
+    engine.start('es', { translator: { translate: async text => `[en] ${text}` } });
+    final('adiós');
+    await vi.waitFor(() => expect(engine.snapshot().lines[0].translation).toBe('[en] adiós'));
+  });
+
+  it('si una traducción falla, se avisa y la frase queda sin traducir', async () => {
+    const { engine, final } = setup();
+    engine.start('es', { translator: { translate: async () => { throw new Error('modelo caído'); } } });
+    final('hola');
+    await vi.waitFor(() => expect(engine.snapshot().translationError).toBe('modelo caído'));
+    expect(engine.snapshot().lines[0]).toMatchObject({ text: 'hola', translation: null });
   });
 
   it('si el reconocedor no puede crearse, queda en error y no escucha', () => {
