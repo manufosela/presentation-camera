@@ -48,6 +48,32 @@ describe('recordingStore — grabación en trozos confirmados (CAM-TSK-0095)', (
     expect(await sessionNames()).toEqual(['rec-2000', 'rec-3000']);
   });
 
+  it('lista las sesiones que quedaron a medias, con su vídeo, para recuperarlas (CAM-TSK-0122)', async () => {
+    const done = await store.startSession({ mimeType: 'video/webm', startedAt: 1000 });
+    await done.append(new Blob(['x']));
+    await done.finish();
+    const cut = await store.startSession({ mimeType: 'video/mp4', startedAt: 2000 });
+    await cut.append(new Blob(['par']));
+    await cut.append(new Blob(['cial']));
+    const [pending, ...rest] = await store.pendingSessions();
+    expect(rest).toEqual([]);
+    expect(pending).toMatchObject({ id: 'rec-2000', mimeType: 'video/mp4', startedAt: 2000, size: 7 });
+    expect(await text(await pending.video())).toBe('parcial');
+  });
+
+  it('una sesión recuperada se marca como terminada o se descarta', async () => {
+    for (const startedAt of [1, 2]) {
+      const session = await store.startSession({ mimeType: 'video/webm', startedAt });
+      await session.append(new Blob(['z']));
+    }
+    const [b, a] = await store.pendingSessions(); // la más reciente primero
+    expect([b.startedAt, a.startedAt]).toEqual([2, 1]);
+    await a.markDone();
+    await b.discard();
+    expect(await store.pendingSessions()).toEqual([]);
+    expect(await sessionNames()).toEqual(['rec-1']); // terminada: se borra al empezar otra
+  });
+
   it('también limpia los ficheros sueltos del formato anterior', async () => {
     const dir = await root.getDirectoryHandle('recordings', { create: true });
     const old = await (await dir.getFileHandle('rec-1.webm', { create: true })).createWritable();

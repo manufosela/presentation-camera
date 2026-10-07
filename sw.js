@@ -56,6 +56,7 @@ const SHELL = [
   'dropImport.js',
   'unloadGuard.js',
   'recordingStore.js',
+  'recoveryNotice.js',
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',

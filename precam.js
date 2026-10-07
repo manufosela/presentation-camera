@@ -11,7 +11,9 @@ import { applyEmptyState } from './emptyState.js';
 import { droppedEntry } from './dropImport.js';
 import { bindUnloadGuard } from './unloadGuard.js';
 import { formatVersion, loadVersion } from './appVersion.js';
-import { startScreenRecording, downloadBlob, estimateStorage } from './recorder.js';
+import { startScreenRecording, downloadBlob, estimateStorage, buildRecordingFilename, extFromMime } from './recorder.js';
+import { createRecordingStore } from './recordingStore.js';
+import { renderRecoveryNotice } from './recoveryNotice.js';
 import { createRecordingFlow } from './recordingFlow.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
@@ -732,6 +734,42 @@ initializeFromQueryParams().catch(error => {
 
 updateRecordEstimate();
 
+// ─── Grabación sin terminar al abrir (CAM-TSK-0122) ───────────
+// Si el navegador se cerró grabando, lo guardado se ofrece para descargarlo.
+const recoveryNoticeEl = document.getElementById('recoveryNotice');
+let pendingRecordings = [];
+
+function renderRecovery() {
+  renderRecoveryNotice(recoveryNoticeEl, pendingRecordings, {
+    onDownload: session => recoverRecording(session, true),
+    onDiscard: session => recoverRecording(session, false),
+  });
+}
+
+async function recoverRecording(session, download) {
+  try {
+    if (download) {
+      const name = buildRecordingFilename(new Date(session.startedAt), extFromMime(session.mimeType));
+      downloadBlob(await session.video(), name);
+      await session.markDone(); // se borra al empezar la próxima grabación (la descarga lee de OPFS)
+    } else {
+      await session.discard();
+    }
+    pendingRecordings = pendingRecordings.filter(item => item !== session);
+    renderRecovery();
+  } catch (error) {
+    console.error(error);
+    showStatus(error.message || t('error.recording'), true);
+  }
+}
+
+if (navigator.storage?.getDirectory) {
+  createRecordingStore().pendingSessions().then(sessions => {
+    pendingRecordings = sessions;
+    renderRecovery();
+  }).catch(error => console.warn('[rec] no se pudieron buscar grabaciones sin terminar', error));
+}
+
 // Registro del Service Worker (PWA) — solo en contexto seguro.
 if ('serviceWorker' in navigator && window.isSecureContext) {
   navigator.serviceWorker.register('sw.js').catch(error => {
@@ -1379,6 +1417,7 @@ renderVersion();
 onLangChange(() => {
   updateRecordButton();
   updateRecordEstimate();
+  renderRecovery();
   renderVersion();
   const { list, activeIndex } = sources.snapshot();
   renderSavedSources(list, activeIndex);
