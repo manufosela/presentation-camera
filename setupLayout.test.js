@@ -30,6 +30,19 @@ describe('setup en una pantalla', () => {
     expect(panel.getAttribute('data-i18n-attr')).toBe('aria-label:setup.panelLabel');
   });
 
+  it('las cuatro esquinas se eligen en la propia vista previa (CAM-TSK-0082)', () => {
+    const stage = setup.querySelector('.setup-stage .stage-mock');
+    const corners = [...stage.querySelectorAll('input[type="radio"][name="position"]')];
+    expect(corners.map(input => input.value)).toEqual(['top-left', 'top-right', 'bottom-left', 'bottom-right']);
+    for (const input of corners) {
+      expect(input.closest('label').querySelector('[data-i18n]').textContent.trim()).not.toBe('');
+    }
+    expect(stage.querySelector('fieldset legend[data-i18n="camera.cornerGroup"]')).not.toBeNull();
+    expect(setup.querySelectorAll('input[name="position"]')).toHaveLength(4);
+    expect(setup.querySelector('.corner-pad')).toBeNull();
+    expect(setup.querySelector('.setup-stage [data-i18n="setup.cornerHint"]')).not.toBeNull();
+  });
+
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
     expect(setup.querySelector(selector)).toBeNull();
   });

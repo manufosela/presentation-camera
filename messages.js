@@ -35,6 +35,11 @@ export const MESSAGES = {
   'topbar.helpTitle': { es: 'Ayuda y atajos de teclado', en: 'Help and keyboard shortcuts' },
   'setup.stageLabel': { es: 'Vista previa', en: 'Preview' },
   'setup.panelLabel': { es: 'Configuración', en: 'Settings' },
+  'setup.cornerHint': { es: 'Pulsa una esquina para colocar tu cámara.', en: 'Click a corner to place your camera.' },
+  'setup.whilePresenting': { es: 'Mientras presentas:', en: 'While presenting:' },
+  'setup.keyMove': { es: 'mover', en: 'move' },
+  'setup.keyStyle': { es: 'estilo', en: 'style' },
+  'setup.keyHide': { es: 'ocultar', en: 'hide' },
 
   // Sección 01: presentaciones
   'sources.title': { es: 'Presentaciones', en: 'Source slides' },
@@ -50,8 +55,6 @@ export const MESSAGES = {
 
   // Sección 02: cámara
   'camera.title': { es: 'Tu cámara', en: 'Camera stage' },
-  'camera.preview': { es: 'vista previa', en: 'preview' },
-  'camera.corner': { es: 'Esquina', en: 'Corner' },
   'camera.cornerGroup': { es: 'Posición de la cámara', en: 'Webcam position' },
   'camera.topLeft': { es: 'Arriba a la izquierda', en: 'Top left' },
   'camera.topRight': { es: 'Arriba a la derecha', en: 'Top right' },
