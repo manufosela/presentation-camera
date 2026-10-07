@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { coverRect, createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
+import { BLUR_BACKGROUND_ID } from './constants.js';
 
 // requestAnimationFrame manual: los frames solo avanzan con tick().
 function fakeFrames() {
@@ -66,6 +67,7 @@ function fakeCanvas() {
     restore: () => ops.push('restore'),
     translate: (x, y) => ops.push(`translate:${x},${y}`),
     scale: (x, y) => ops.push(`scale:${x},${y}`),
+    set filter(value) { if (value !== 'none') ops.push(`filter:${value}`); },
   };
   return { width: 0, height: 0, getContext: () => ctx, ops };
 }
@@ -141,6 +143,19 @@ describe('createCutoutRenderer — un frame del modo recorte', () => {
     canvas.ops.length = 0;
     renderer.drawFrame();
     expect(canvas.ops).toEqual(['clear', 'mask', 'draw:source-in', 'save', 'draw:destination-over', 'restore']);
+  });
+
+  it('fondo desenfocado: la propia cámara, desenfocada y sin voltear, detrás de la persona (CAM-TSK-0100)', async () => {
+    const canvas = fakeCanvas();
+    const segment = async () => ({ data: Uint8Array.from([1, 1, 0, 0]), mask: {} });
+    const renderer = createCutoutRenderer({ video, canvas, segment, now: () => 0, getBackground: () => BLUR_BACKGROUND_ID });
+    renderer.drawFrame();
+    await flush();
+    canvas.ops.length = 0;
+    const draw = vi.spyOn(canvas.getContext(), 'drawImage');
+    renderer.drawFrame();
+    expect(canvas.ops).toEqual(['clear', 'mask', 'draw:source-in', 'save', 'filter:blur(12px)', 'draw:destination-over', 'restore']);
+    expect(draw).toHaveBeenLastCalledWith(video, 0, 0, 640, 480);
   });
 
   it('no solapa segmentaciones ni repite antes del intervalo', async () => {

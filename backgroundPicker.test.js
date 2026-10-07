@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderBackgroundPicker } from './backgroundPicker.js';
+import { BLUR_BACKGROUND_ID } from './constants.js';
 import { setLang } from './i18n.js';
 
 const backgrounds = [
@@ -21,9 +22,9 @@ const render = selectedId => renderBackgroundPicker(container, { backgrounds, se
 const choices = () => [...container.querySelectorAll('.bg-choice')];
 
 describe('renderBackgroundPicker — galería de fondos', () => {
-  it('muestra Ninguno, cada fondo con su miniatura y el botón de subir', () => {
+  it('muestra Ninguno, Desenfocado, cada fondo con su miniatura y el botón de subir', () => {
     render(null);
-    expect(choices().map(c => c.getAttribute('aria-label'))).toEqual(['Sin fondo', 'Fondo Playa', 'Fondo Oficina']);
+    expect(choices().map(c => c.getAttribute('aria-label'))).toEqual(['Sin fondo', 'Fondo desenfocado', 'Fondo Playa', 'Fondo Oficina']);
     expect(container.querySelector('img[alt="Playa"]').getAttribute('src')).toBe('blob:a');
     expect(container.querySelector('.bg-upload').textContent).toContain('Subir');
   });
@@ -31,7 +32,7 @@ describe('renderBackgroundPicker — galería de fondos', () => {
   it('en inglés, sus textos y etiquetas en inglés', () => {
     setLang('en', null);
     render(null);
-    expect(choices().map(c => c.getAttribute('aria-label'))).toEqual(['No background', 'Background Playa', 'Background Oficina']);
+    expect(choices().map(c => c.getAttribute('aria-label'))).toEqual(['No background', 'Blurred background', 'Background Playa', 'Background Oficina']);
     expect(choices()[0].textContent).toBe('None');
     expect(container.querySelector('.bg-remove').getAttribute('aria-label')).toBe('Delete background Playa');
     expect(container.querySelector('.bg-upload').textContent).toBe('+ Upload image');
@@ -39,16 +40,19 @@ describe('renderBackgroundPicker — galería de fondos', () => {
 
   it('marca el elegido (Ninguno si no hay)', () => {
     render(null);
-    expect(choices().map(c => c.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
+    expect(choices().map(c => c.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false', 'false']);
     render('b.jpg');
-    expect(choices().map(c => c.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'true']);
+    expect(choices().map(c => c.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'false', 'true']);
+    render(BLUR_BACKGROUND_ID);
+    expect(choices().map(c => c.getAttribute('aria-pressed'))).toEqual(['false', 'true', 'false', 'false']);
   });
 
-  it('elegir avisa con el id; Ninguno con null', () => {
+  it('elegir avisa con el id; Ninguno con null y Desenfocado con su id (CAM-TSK-0100)', () => {
     render(null);
-    choices()[2].click();
+    choices()[3].click();
     choices()[0].click();
-    expect(handlers.onSelect.mock.calls).toEqual([['b.jpg'], [null]]);
+    choices()[1].click();
+    expect(handlers.onSelect.mock.calls).toEqual([['b.jpg'], [null], [BLUR_BACKGROUND_ID]]);
   });
 
   it('borrar avisa con el id, sin elegirlo', () => {
@@ -68,7 +72,7 @@ describe('renderBackgroundPicker — galería de fondos', () => {
   it('volver a pintar sustituye la galería anterior', () => {
     render(null);
     render(null);
-    expect(choices()).toHaveLength(3);
+    expect(choices()).toHaveLength(4);
   });
 
   it('todos son botones (accesibles por teclado)', () => {

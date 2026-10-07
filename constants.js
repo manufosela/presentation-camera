@@ -7,6 +7,9 @@
 /** BroadcastChannel entre la ventana principal y el panel de control. */
 export const SYNC_CHANNEL = 'cam.sync';
 
+/** Id del fondo «Desenfocado» del recorte (CAM-TSK-0100): no es una imagen guardada. */
+export const BLUR_BACKGROUND_ID = 'blur';
+
 /** Claves de localStorage. Ya existen en los navegadores de los usuarios: no cambiarlas. */
 export const STORAGE_KEYS = Object.freeze({
   sources: 'cam.sources.v1',

@@ -178,6 +178,8 @@ export const MESSAGES = {
   'saved.kindFolder': { es: 'Carpeta', en: 'Folder' },
   'bg.none': { es: 'Ninguno', en: 'None' },
   'bg.noneLabel': { es: 'Sin fondo', en: 'No background' },
+  'bg.blur': { es: 'Desenfocado', en: 'Blurred' },
+  'bg.blurLabel': { es: 'Fondo desenfocado', en: 'Blurred background' },
   'bg.choose': { es: 'Fondo {name}', en: 'Background {name}' },
   'bg.remove': { es: 'Borrar fondo {name}', en: 'Delete background {name}' },
   'bg.upload': { es: '+ Subir imagen', en: '+ Upload image' },
