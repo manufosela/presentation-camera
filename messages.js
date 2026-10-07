@@ -96,6 +96,7 @@ export const MESSAGES = {
   'footer.singleKey': { es: 'Atajos de una tecla (desactívalos si dictas por voz)', en: 'Single-key shortcuts (turn them off if you dictate by voice)' },
   'footer.goLive': { es: 'Empezar a presentar', en: 'Start presenting' },
   'footer.pickFirst': { es: 'Elige una presentación para empezar.', en: 'Choose a presentation to start.' },
+  'footer.license': { es: 'Licencia MIT', en: 'MIT License' },
   'footer.share': { es: 'Comparte solo esta ventana en Zoom, Meet o Teams.', en: 'Share only this window in Zoom, Meet or Teams.' },
 
   // Atajos (diálogo de ayuda)

@@ -108,6 +108,14 @@ describe('setup en una pantalla', () => {
     expect(setup.querySelector('.stage-hint [data-i18n="setup.keyAll"]')).not.toBeNull();
   });
 
+  it('pie de página con autor y copyright, dentro de la rejilla (CAM-TSK-0092)', () => {
+    const footer = setup.querySelector('.setup-grid > footer.site-footer');
+    expect(footer.textContent).toContain('©');
+    const author = footer.querySelector('a[href="https://github.com/manufosela"]');
+    expect(author.textContent.trim()).toBe('manufosela');
+    expect(footer.querySelector('[data-i18n="footer.license"]')).not.toBeNull();
+  });
+
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
     expect(setup.querySelector(selector)).toBeNull();
   });
