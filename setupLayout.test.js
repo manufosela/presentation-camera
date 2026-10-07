@@ -71,6 +71,21 @@ describe('setup en una pantalla', () => {
     expect(section.querySelector('fieldset.background-control #backgroundPicker')).not.toBeNull();
   });
 
+  it('«Más opciones» plegable y pie del panel con el botón de empezar (CAM-TSK-0090)', () => {
+    const panel = setup.querySelector('.setup-panel');
+    const more = panel.querySelector('details.more-options');
+    expect(more.hasAttribute('open')).toBe(false);
+    expect(more.querySelector('summary [data-i18n="more.title"]')).not.toBeNull();
+    for (const id of ['cameraSelect', 'mirrorInput', 'singleKeyShortcutsInput', 'openPanelBtn']) {
+      expect(more.querySelector(`#${id}`)).not.toBeNull();
+    }
+    const footer = panel.querySelector('.setup-footer');
+    expect(footer.querySelector('#autoRecordInput')).not.toBeNull();
+    expect(footer.querySelector('#startButton [data-i18n="footer.goLive"]')).not.toBeNull();
+    expect(footer.querySelector('[data-i18n="footer.share"]')).not.toBeNull();
+    expect(footer.querySelector('#mirrorInput, #singleKeyShortcutsInput')).toBeNull();
+  });
+
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
     expect(setup.querySelector(selector)).toBeNull();
   });
