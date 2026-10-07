@@ -7,6 +7,7 @@ import { fileKind } from './fileKind.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { recentKey, removedLocalFiles, sourceLabel } from './savedSources.js';
 import { createSetupPreview } from './setupPreview.js';
+import { applyEmptyState } from './emptyState.js';
 import { formatVersion, loadVersion } from './appVersion.js';
 import { startScreenRecording, downloadBlob, estimateStorage } from './recorder.js';
 import { createRecordingFlow } from './recordingFlow.js';
@@ -71,6 +72,7 @@ const canvas = document.getElementById('outputCanvas');
 const video = document.getElementById('webcamVideo');
 const statusMessage = document.getElementById('statusMessage');
 const moveButton = document.getElementById('moveWebcamBtn');
+const setupEl = document.getElementById('setup');
 const startButton = document.getElementById('startButton');
 const exampleButton = document.getElementById('exampleButton');
 const styleInputs = document.querySelectorAll('input[name="webcam-style"]');
@@ -238,16 +240,25 @@ document.getElementById('pickFolderBtn').addEventListener('click', () => {
 });
 fileInput.addEventListener('change', handleLocalFilePick);
 // «Usar»: el enlace queda como presentación activa (y se ve en la vista previa).
-linkForm.addEventListener('submit', event => {
-  event.preventDefault();
-  const url = sanitizePresentationUrl(urlInput.value.trim(), window.location.href);
+// Mismo formulario en el panel y en el estado vacío de la vista previa.
+function useLinkFrom(input) {
+  const url = sanitizePresentationUrl(input.value.trim(), window.location.href);
   if (!url) {
     showStatus(t('status.urlInvalid'), true);
-    urlInput.focus();
+    input.focus();
     return;
   }
   if (!sources.add(url, deriveSourceTitle(url))) showStatus(sourcesFullMessage(), true);
+}
+linkForm.addEventListener('submit', event => {
+  event.preventDefault();
+  useLinkFrom(urlInput);
 });
+document.getElementById('emptyLinkForm').addEventListener('submit', event => {
+  event.preventDefault();
+  useLinkFrom(document.getElementById('emptyUrl'));
+});
+document.getElementById('chooseFileBtn').addEventListener('click', () => fileInput.click());
 helpBtn?.addEventListener('click', openOnboarding);
 onboardingClose?.addEventListener('click', () => closeOnboarding());
 onboardingDone?.addEventListener('click', () => closeOnboarding());
@@ -402,7 +413,6 @@ window.addEventListener('message', event => {
 // OPFS y se olvidan sus cachés.
 const savedSourcesList = document.getElementById('savedSources');
 const savedSourcesCount = document.getElementById('savedSourcesCount');
-const savedSourcesEmpty = document.getElementById('savedSourcesEmpty');
 let previousSources = sources.list();
 
 function renderSavedSource(source, index, activeIndex) {
@@ -457,7 +467,7 @@ function renderSavedSources(list, activeIndex) {
 sources.subscribe(({ list, activeIndex }) => {
   renderSavedSources(list, activeIndex);
   if (savedSourcesCount) savedSourcesCount.textContent = list.length ? `(${list.length}/${MAX_SOURCES})` : '';
-  if (savedSourcesEmpty) savedSourcesEmpty.hidden = list.length > 0;
+  applyEmptyState({ setup: setupEl, startButton, startHint: document.getElementById('startHint') }, list.length === 0);
 
   const currentIds = new Set(list.map(s => s.id));
   for (const gone of previousSources.filter(s => !currentIds.has(s.id))) forgetLocalCaches(gone.id);
@@ -551,12 +561,6 @@ function closeOnboarding(persist = true) {
   if (persist) {
     try { window.localStorage.setItem(ONBOARDED_KEY, 'true'); } catch { /* noop */ }
   }
-}
-
-function maybeShowOnboarding() {
-  let seen = false;
-  try { seen = window.localStorage.getItem(ONBOARDED_KEY) === 'true'; } catch { /* noop */ }
-  if (!seen) openOnboarding();
 }
 
 function handleGlobalShortcut(event) {
@@ -729,7 +733,6 @@ initializeFromQueryParams().catch(error => {
 });
 
 updateRecordEstimate();
-maybeShowOnboarding();
 
 // Registro del Service Worker (PWA) — solo en contexto seguro.
 if ('serviceWorker' in navigator && window.isSecureContext) {

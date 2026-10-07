@@ -150,6 +150,21 @@
         <!-- Vista previa: la cámara (silueta) sobre la diapositiva; las esquinas
              son los radios de posición, en su sitio (CAM-TSK-0082). -->
         <div class="stage-mock">
+          <!-- Primera visita: elegir presentación aquí mismo (CAM-TSK-0085) -->
+          <div class="stage-empty">
+            <h1 data-i18n="empty.title">Start with your presentation</h1>
+            <p data-i18n="empty.text">Drop a PDF, an HTML file or an exported folder here. Or paste a Genially, Google Slides or Canva link.</p>
+            <form class="link-row" id="emptyLinkForm">
+              <label class="visually-hidden" for="emptyUrl" data-i18n="sources.linkLabel">Presentation link</label>
+              <input id="emptyUrl" type="url" class="url-input" placeholder="https://…" autocomplete="off" spellcheck="false" inputmode="url" />
+              <button type="submit" class="row-btn row-btn-accent" data-i18n="empty.useLink">Use link</button>
+            </form>
+            <div class="stage-empty-actions">
+              <button id="chooseFileBtn" type="button" class="row-btn" data-i18n="empty.chooseFile">Choose file</button>
+              <button id="exampleButton" type="button" class="row-btn" data-i18n="empty.demo">Try a demo</button>
+            </div>
+            <p class="stage-empty-note" data-i18n="empty.ppt">Got a PowerPoint? Upload it to Google Slides or Office Online and paste the link here.</p>
+          </div>
           <div class="stage-slide" id="stageSlide" inert></div>
           <span class="stage-mock-cam" aria-hidden="true">
             <svg viewBox="0 0 100 75" aria-hidden="true">
@@ -189,6 +204,11 @@
       </section>
 
       <aside class="setup-panel" aria-label="Settings" data-i18n-attr="aria-label:setup.panelLabel">
+      <ol class="first-steps">
+        <li><span class="panel-num" aria-hidden="true">1</span><span><strong data-i18n="steps.one">Choose your presentation</strong><span data-i18n="steps.oneText">It is stored in your browser, nothing is uploaded.</span></span></li>
+        <li><span class="panel-num" aria-hidden="true">2</span><span><strong data-i18n="steps.two">Decide how you appear</strong><span data-i18n="steps.twoText">Framed, cut out or no camera.</span></span></li>
+        <li><span class="panel-num" aria-hidden="true">3</span><span><strong data-i18n="steps.three">Start and share this window</strong><span data-i18n="steps.threeText">In Zoom, Meet or Teams. It records itself if you leave it on.</span></span></li>
+      </ol>
       <section class="panel" aria-labelledby="panel-source">
         <h2 class="panel-title" id="panel-source"><span class="panel-num" aria-hidden="true">1</span> <span data-i18n="sources.title">Your presentation</span></h2>
         <form class="link-row" id="linkForm">
@@ -196,9 +216,6 @@
           <input id="url" type="url" class="url-input" placeholder="Paste a link (Genially, Slides, Canva…)" data-i18n-attr="placeholder:sources.linkPlaceholder" autocomplete="off" spellcheck="false" inputmode="url" />
           <button type="submit" class="row-btn" data-i18n="sources.use">Use</button>
         </form>
-        <button id="exampleButton" type="button" class="ghost-button">
-          <span data-i18n="sources.demo">or try a demo</span>
-        </button>
 
         <button id="uploadBtn" type="button" class="upload-btn" popovertarget="uploadMenu">
           <svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">
@@ -215,9 +232,7 @@
 
         <div class="saved-sources">
           <p class="control-label" id="savedSourcesTitle"><span data-i18n="sources.recent">Recent</span> <span id="savedSourcesCount"></span></p>
-          <ol class="saved-sources-list" id="savedSources" aria-labelledby="savedSourcesTitle"></ol>
-          <p class="panel-cta-help" id="savedSourcesEmpty" data-i18n="sources.savedEmpty">Aún no hay ninguna. Pega una URL o carga un HTML local.</p>
-        </div>
+          <ol class="saved-sources-list" id="savedSources" aria-labelledby="savedSourcesTitle"></ol>        </div>
       </section>
 
       <section class="panel" aria-labelledby="panel-camera">
@@ -312,6 +327,7 @@
             </svg>
           </span>
         </button>
+        <p class="share-note" id="startHint" data-i18n="footer.pickFirst" hidden>Choose a presentation to start.</p>
         <p class="share-note" data-i18n="footer.share">Share only this window in Zoom, Meet or Teams.</p>
         <p class="app-version" id="appVersion" aria-live="polite"></p>
       </footer>

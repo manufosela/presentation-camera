@@ -86,6 +86,17 @@ describe('setup en una pantalla', () => {
     expect(footer.querySelector('#mirrorInput, #singleKeyShortcutsInput')).toBeNull();
   });
 
+  it('primera visita: estado vacío en la vista previa y tres pasos en el panel (CAM-TSK-0085)', () => {
+    const empty = setup.querySelector('.setup-stage .stage-mock .stage-empty');
+    expect(empty.querySelector('h1[data-i18n="empty.title"]')).not.toBeNull();
+    expect(empty.querySelector('form#emptyLinkForm input[type="url"]').labels[0]).toBeTruthy();
+    expect(empty.querySelector('#chooseFileBtn')).not.toBeNull();
+    expect(empty.querySelector('#exampleButton')).not.toBeNull();
+    expect(empty.querySelector('[data-i18n="empty.ppt"]')).not.toBeNull();
+    expect(setup.querySelectorAll('.setup-panel ol.first-steps > li')).toHaveLength(3);
+    expect(setup.querySelector('.setup-footer #startHint[data-i18n="footer.pickFirst"]')).not.toBeNull();
+  });
+
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
     expect(setup.querySelector(selector)).toBeNull();
   });
