@@ -105,6 +105,8 @@ export const MESSAGES = {
   'legend.corner': { es: 'mover la cámara de esquina', en: 'move the camera to the next corner' },
   'legend.treatment': { es: 'con marco / recortada', en: 'framed / cut out' },
   'legend.fullscreen': { es: 'pantalla completa', en: 'fullscreen' },
+  'legend.laser': { es: 'puntero láser', en: 'laser pointer' },
+  'legend.draw': { es: 'dibujar (Esc lo borra)', en: 'draw (Esc clears it)' },
   'legend.record': { es: 'grabar', en: 'record' },
   'legend.hide': { es: 'ocultar controles', en: 'hide controls' },
   'legend.panel': { es: 'panel de control', en: 'control panel' },

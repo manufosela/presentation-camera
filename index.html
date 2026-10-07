@@ -26,6 +26,9 @@
       <div class="iframe-stack" id="iframeStack"></div>
     </section>
 
+    <!-- Tinta (CAM-TSK-0130): láser (L) y dibujo (D) sobre la diapositiva; sale en la grabación. -->
+    <canvas id="inkLayer" class="ink-layer" data-mode="off" aria-hidden="true"></canvas>
+
     <!-- Live status pill: visible only during presentation -->
     <div id="liveBadge" class="live-badge" hidden>
       <span class="live-dot" aria-hidden="true"></span>
@@ -372,6 +375,8 @@
         <div><dt><kbd>S</kbd></dt><dd data-i18n="legend.notes">notes</dd></div>
         <div><dt><kbd>C</kbd></dt><dd data-i18n="legend.corner">corner</dd></div>
         <div><dt><kbd>M</kbd></dt><dd data-i18n="legend.treatment">style</dd></div>
+        <div><dt><kbd>L</kbd></dt><dd data-i18n="legend.laser">laser pointer</dd></div>
+        <div><dt><kbd>D</kbd></dt><dd data-i18n="legend.draw">draw (Esc clears it)</dd></div>
         <div><dt><kbd>F</kbd></dt><dd data-i18n="legend.fullscreen">fullscreen</dd></div>
         <div><dt><kbd>R</kbd></dt><dd data-i18n="legend.record">record</dd></div>
         <div><dt><kbd>P</kbd></dt><dd data-i18n="legend.pause">pause / resume recording</dd></div>

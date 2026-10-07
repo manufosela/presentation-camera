@@ -1,5 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createInkLayer, trailAt } from './inkLayer.js';
+import { createInkLayer, nextInkMode, trailAt } from './inkLayer.js';
+
+describe('nextInkMode — atajos L, D y Esc (CAM-TSK-0130)', () => {
+  it('L y D encienden su modo o lo apagan; Esc apaga; lo demás no es de la tinta', () => {
+    expect(nextInkMode('off', 'l')).toBe('laser');
+    expect(nextInkMode('laser', 'L')).toBe('off');
+    expect(nextInkMode('laser', 'd')).toBe('draw');
+    expect(nextInkMode('draw', 'D')).toBe('off');
+    expect(nextInkMode('draw', 'Escape')).toBe('off');
+    expect(nextInkMode('off', 'Escape')).toBeNull(); // Esc sigue siendo del deck
+    expect(nextInkMode('laser', 'x')).toBeNull();
+  });
+});
 
 // Canvas falso: registra lo que se pinta; los frames se lanzan a mano.
 function fakeCanvas() {
