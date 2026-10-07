@@ -92,6 +92,19 @@ describe('startScreenRecording', () => {
     expect(await stopped).toBeInstanceOf(Blob);
   });
 
+  it('pide un fotograma clave por segundo, para poder recortar al segundo (CAM-TSK-0111)', async () => {
+    let options;
+    let timeslice;
+    vi.stubGlobal('MediaRecorder', class extends FakeRecorder {
+      constructor(stream, opts) { super(stream, opts); options = opts; }
+      start(ms) { timeslice = ms; super.start(); }
+    });
+    const ctrl = await startScreenRecording({ withMic: false, withSystemAudio: false });
+    expect(options).toMatchObject({ mimeType: 'video/webm;codecs=vp9,opus', videoKeyFrameIntervalDuration: 1000 });
+    expect(timeslice).toBe(1000); // cada trozo es un fragmento que abre con fotograma clave
+    ctrl.stop();
+  });
+
   it('pausa y reanuda el MediaRecorder y no cuenta el tiempo en pausa (CAM-TSK-0098)', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     try {
