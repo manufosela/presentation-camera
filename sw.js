@@ -61,6 +61,7 @@ const SHELL = [
   'chapterTrack.js',
   'recordingClock.js',
   'countdown.js',
+  'deviceSelect.js',
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',

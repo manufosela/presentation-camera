@@ -185,6 +185,9 @@ export const MESSAGES = {
   'bg.upload': { es: '+ Subir imagen', en: '+ Upload image' },
   'cameraSelect.auto': { es: 'Automática', en: 'Automatic' },
   'cameraSelect.numbered': { es: 'Cámara {n}', en: 'Camera {n}' },
+  'mic.label': { es: 'Micrófono', en: 'Microphone' },
+  'mic.auto': { es: 'Predeterminado', en: 'Default' },
+  'mic.numbered': { es: 'Micrófono {n}', en: 'Microphone {n}' },
 
   // Textos y errores de los módulos
   'version.dev': { es: 'Versión de desarrollo (sin publicar)', en: 'Development version (unpublished)' },

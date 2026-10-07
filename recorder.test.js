@@ -148,6 +148,31 @@ describe('startScreenRecording', () => {
     expect(displayTracks[0].stop).toHaveBeenCalled();
   });
 
+  it('graba con el micrófono elegido (CAM-TSK-0101)', async () => {
+    const ctrl = await startScreenRecording({ withMic: true, withSystemAudio: false, micDeviceId: 'mic-2' });
+    expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledWith({ audio: { deviceId: { exact: 'mic-2' } } });
+    ctrl.stop();
+  });
+
+  it('si el elegido ya no está, usa el predeterminado', async () => {
+    navigator.mediaDevices.getUserMedia = vi.fn(async ({ audio }) => {
+      if (audio !== true) throw new DOMException('no está', 'OverconstrainedError');
+      return new FakeStream([track('audio')]);
+    });
+    const ctrl = await startScreenRecording({ withMic: true, withSystemAudio: false, micDeviceId: 'desenchufado' });
+    expect(navigator.mediaDevices.getUserMedia.mock.calls.map(([c]) => c)).toEqual([
+      { audio: { deviceId: { exact: 'desenchufado' } } }, { audio: true },
+    ]);
+    ctrl.stop();
+  });
+
+  it('si el elegido está ocupado o sin permiso, no cambia a otro a escondidas', async () => {
+    navigator.mediaDevices.getUserMedia = vi.fn(async () => { throw new DOMException('ocupado', 'NotReadableError'); });
+    const ctrl = await startScreenRecording({ withMic: true, withSystemAudio: false, micDeviceId: 'mic-2' });
+    expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledOnce();
+    ctrl.stop();
+  });
+
   it('pide micrófono cuando withMic=true', async () => {
     const ctrl = await startScreenRecording({ withMic: true, withSystemAudio: false });
     expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledOnce();

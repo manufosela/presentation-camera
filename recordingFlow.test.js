@@ -7,7 +7,7 @@ beforeEach(() => setLang('es', null));
 
 // Grabación falsa: startRecording resuelve un controlador cuyo stop() dispara
 // el onStop que la app le pasó, como hace recorder.js.
-function setup({ startFails = false, chapters, countdown } = {}) {
+function setup({ startFails = false, chapters, countdown, micId = null } = {}) {
   const calls = { chrome: [], status: [], downloads: [], changes: 0 };
   let options = null;
   const startRecording = vi.fn(async opts => {
@@ -33,6 +33,7 @@ function setup({ startFails = false, chapters, countdown } = {}) {
     logger: { warn() {}, error() {} },
     chapters,
     countdown,
+    getMicId: () => micId,
   });
   return { flow, calls, startRecording, emitError: error => options.onError(error) };
 }
@@ -101,6 +102,12 @@ describe('createRecordingFlow — grabar la sesión', () => {
     const { flow } = setup({ startFails: true, countdown });
     await flow.start();
     expect(countdown).not.toHaveBeenCalled();
+  });
+
+  it('graba con el micrófono elegido en el setup (CAM-TSK-0101)', async () => {
+    const { flow, startRecording } = setup({ micId: 'mic-2' });
+    await flow.start();
+    expect(startRecording).toHaveBeenCalledWith(expect.objectContaining({ micDeviceId: 'mic-2' }));
   });
 
   it('pausa y reanuda la grabación en curso y avisa del cambio (CAM-TSK-0098)', async () => {

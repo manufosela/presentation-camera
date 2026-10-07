@@ -6,8 +6,10 @@ import {
   loadCameraId,
   saveBackgroundId,
   loadSingleKeyShortcuts,
+  loadMicId,
   loadMirror,
   saveCameraId,
+  saveMicId,
   saveMirror,
   saveSingleKeyShortcuts,
 } from './appPrefs.js';
@@ -78,6 +80,20 @@ describe('atajos de una tecla — desactivables (WCAG 2.1.4)', () => {
     expect(loadSingleKeyShortcuts(storage)).toBe(false);
     saveSingleKeyShortcuts(storage, true);
     expect(loadSingleKeyShortcuts(storage)).toBe(true);
+  });
+});
+
+describe('micrófono elegido (CAM-TSK-0101)', () => {
+  it('sin elegir: el automático (null)', () => {
+    expect(loadMicId(memoryStorage())).toBeNull();
+  });
+
+  it('se recuerda y null vuelve al automático', () => {
+    const storage = memoryStorage();
+    saveMicId(storage, 'mic-1');
+    expect(loadMicId(storage)).toBe('mic-1');
+    saveMicId(storage, null);
+    expect(loadMicId(storage)).toBeNull();
   });
 });
 

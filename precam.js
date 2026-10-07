@@ -17,6 +17,7 @@ import { renderRecoveryNotice } from './recoveryNotice.js';
 import { createRecordingFlow } from './recordingFlow.js';
 import { createChapterTrack } from './chapterTrack.js';
 import { runCountdown } from './countdown.js';
+import { renderDeviceSelect } from './deviceSelect.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
 import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
@@ -32,10 +33,12 @@ import {
   isDebugEnabled,
   loadBackgroundId,
   loadCameraId,
+  loadMicId,
   loadMirror,
   loadSingleKeyShortcuts,
   saveBackgroundId,
   saveCameraId,
+  saveMicId,
   saveMirror,
   saveSingleKeyShortcuts,
 } from './appPrefs.js';
@@ -87,6 +90,8 @@ const positionInputs = document.querySelectorAll('input[name="position"]');
 const homeButton = document.getElementById('homeButton');
 const cameraSelect = document.getElementById('cameraSelect');
 const cameraFieldset = document.getElementById('cameraFieldset');
+const micSelect = document.getElementById('micSelect');
+const micFieldset = document.getElementById('micFieldset');
 const toggleStyleBtn = document.getElementById('toggleStyleBtn');
 const liveBadge = document.getElementById('liveBadge');
 const liveTime = document.getElementById('liveTime');
@@ -127,6 +132,7 @@ const recording = createRecordingFlow({
   // Capítulos por diapositiva (CAM-TSK-0097): la de partida, si el deck ya la dijo.
   chapters: { track: chapterTrack, current: () => (deckSlideReported ? chapterLabel(deckSlide) : null) },
   countdown: () => runCountdown(document.getElementById('countdown'), 3),
+  getMicId: () => readMicId(),
 });
 const AUTO_RECORD_KEY = STORAGE_KEYS.autoRecord;
 let autoRecordEnabled = loadAutoRecordPref();
@@ -225,6 +231,11 @@ sizeInputs.forEach(input => {
     persistState(urlInput.value.trim(), getSelectedPosition(), currentStyle);
   });
 });
+micSelect.addEventListener('change', () => {
+  try { saveMicId(window.localStorage, micSelect.value || null); } catch { /* noop */ }
+});
+// Al enchufar o quitar una cámara o un micrófono, los selectores se actualizan.
+navigator.mediaDevices?.addEventListener?.('devicechange', () => populateCameraSelect());
 cameraSelect?.addEventListener('change', async event => {
   currentDeviceId = event.target.value || null;
   persistCameraId(currentDeviceId);
@@ -1130,29 +1141,28 @@ function ensureRenderLoop() {
   cameraLoop.start();
 }
 
+// Cámaras y micrófonos (CAM-TSK-0101): cada selector solo si hay más de uno.
 async function populateCameraSelect() {
   if (!cameraSelect || !navigator.mediaDevices?.enumerateDevices) return;
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const cameras = devices.filter(d => d.kind === 'videoinput');
-    cameraSelect.innerHTML = '';
-    const autoOption = document.createElement('option');
-    autoOption.value = '';
-    autoOption.textContent = t('cameraSelect.auto');
-    cameraSelect.appendChild(autoOption);
-    cameras.forEach((cam, index) => {
-      const option = document.createElement('option');
-      option.value = cam.deviceId;
-      option.textContent = cam.label || t('cameraSelect.numbered', { n: index + 1 });
-      cameraSelect.appendChild(option);
+    const cameras = renderDeviceSelect(cameraSelect, devices, {
+      kind: 'videoinput', selectedId: currentDeviceId,
+      autoLabel: t('cameraSelect.auto'), numberedLabel: n => t('cameraSelect.numbered', { n }),
     });
-    if (currentDeviceId && cameras.some(c => c.deviceId === currentDeviceId)) {
-      cameraSelect.value = currentDeviceId;
-    }
-    cameraFieldset.hidden = cameras.length < 2;
+    cameraFieldset.hidden = cameras < 2;
+    const mics = renderDeviceSelect(micSelect, devices, {
+      kind: 'audioinput', selectedId: readMicId(),
+      autoLabel: t('mic.auto'), numberedLabel: n => t('mic.numbered', { n }),
+    });
+    micFieldset.hidden = mics < 2;
   } catch (error) {
-    console.warn('No se pudieron listar las cámaras.', error);
+    console.warn('No se pudieron listar las cámaras y micrófonos.', error);
   }
+}
+
+function readMicId() {
+  try { return loadMicId(window.localStorage); } catch { return null; }
 }
 
 async function requestVideoStream() {
