@@ -566,6 +566,44 @@ kbd {
 .stage-corner[data-pos="bottom-left"]  { bottom: 12px; left: 12px; }
 .stage-corner[data-pos="bottom-right"] { bottom: 12px; right: 12px; }
 
+/* Estado vacío (CAM-TSK-0085): sin presentaciones, la vista previa invita a
+   elegir una; el panel muestra los tres pasos en vez de «Tu presentación». */
+.stage-empty {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 2rem;
+  text-align: center;
+}
+.stage-empty h1 {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--ink-strong);
+}
+.stage-empty p { max-width: 34rem; line-height: 1.5; color: var(--ink-body); }
+.stage-empty .link-row { width: 100%; max-width: 35rem; }
+.stage-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
+.stage-empty-note { font-size: 0.8rem; color: var(--ink-muted); }
+.row-btn-accent { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+.row-btn-accent:hover { color: var(--on-accent); background: var(--accent-deep); }
+.first-steps { display: none; list-style: none; gap: 1rem; }
+.first-steps li { display: flex; align-items: flex-start; gap: 0.75rem; }
+.first-steps li > span:last-child { display: grid; gap: 0.15rem; font-size: 0.85rem; color: var(--ink-muted); }
+.first-steps strong { font-size: 1rem; color: var(--ink-strong); }
+
+.setup.is-empty .stage-mock { border: 2px dashed var(--line); background: var(--bg-base); box-shadow: none; }
+.setup.is-empty .stage-empty { display: flex; }
+.setup.is-empty :is(.stage-slide, .stage-mock-cam, .stage-corners, .stage-hint) { display: none; }
+.setup.is-empty .first-steps { display: grid; }
+.setup.is-empty #panel-camera .panel-num { display: none; }
+.setup.is-empty :is(section[aria-labelledby="panel-source"], .more-options, .record-estimate) { display: none; }
 .stage-hint {
   display: flex;
   flex-wrap: wrap;
@@ -777,9 +815,12 @@ kbd {
 .start-button:active { transform: translateY(0); }
 .start-button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 4px; }
 .start-button:disabled {
-  opacity: .6;
-  pointer-events: none;
+  background: var(--bg-raised);
+  color: var(--ink-muted);
+  box-shadow: none;
+  cursor: not-allowed;
 }
+.start-button:disabled .start-button-tape { display: none; }
 
 
 /* ─── Toast / status ────────────────────────────────────────── */

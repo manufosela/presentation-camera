@@ -53,6 +53,7 @@ const SHELL = [
   'pdfImport.js',
   'setupPreview.js',
   'fileKind.js',
+  'emptyState.js',
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',
