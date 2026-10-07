@@ -24,4 +24,10 @@ describe('controles ocultos', () => {
     document.body.classList.add('chrome-hidden');
     expect(toastDisplay()).toBe('none');
   });
+
+  it('los subtítulos no se ocultan: son parte de lo que se graba (CAM-TSK-0118)', () => {
+    document.body.insertAdjacentHTML('beforeend', '<div id="captionsOverlay" class="captions-overlay"><p class="caption-line">hola</p></div>');
+    document.body.classList.add('chrome-hidden');
+    expect(getComputedStyle(document.getElementById('captionsOverlay')).display).not.toBe('none');
+  });
 });

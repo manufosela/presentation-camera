@@ -66,6 +66,7 @@ const SHELL = [
   'captionsRecognizer.js',
   'captionsTranslator.js',
   'captionsEngine.js',
+  'captionsOverlay.js',
   'chapterTrack.js',
   'recordingClock.js',
   'countdown.js',
