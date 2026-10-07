@@ -7,12 +7,13 @@ beforeEach(() => setLang('es', null));
 
 // Grabación falsa: startRecording resuelve un controlador cuyo stop() dispara
 // el onStop que la app le pasó, como hace recorder.js.
-function setup({ startFails = false, chapters } = {}) {
+function setup({ startFails = false, chapters, countdown } = {}) {
   const calls = { chrome: [], status: [], downloads: [], changes: 0 };
   let options = null;
   const startRecording = vi.fn(async opts => {
     if (startFails) throw new Error('cancelado');
     options = opts;
+    await opts.beforeStart?.(); // como recorder.js: tras aceptar la captura
     let paused = false;
     return {
       stop: () => options.onStop(new Blob(['vídeo']), 'video/webm'),
@@ -31,6 +32,7 @@ function setup({ startFails = false, chapters } = {}) {
     onChange: () => { calls.changes += 1; },
     logger: { warn() {}, error() {} },
     chapters,
+    countdown,
   });
   return { flow, calls, startRecording, emitError: error => options.onError(error) };
 }
@@ -70,6 +72,35 @@ describe('createRecordingFlow — grabar la sesión', () => {
     await flow.start();
     flow.stop();
     expect(calls.downloads).toEqual([expect.stringMatching(/\.webm$/)]);
+  });
+
+  it('tras aceptar la captura: oculta controles y avisos y hace la cuenta atrás antes de grabar (CAM-TSK-0099)', async () => {
+    const order = [];
+    const countdown = vi.fn(async () => order.push('cuenta atrás'));
+    const { flow, calls } = setup({ countdown });
+    await flow.start();
+    expect(countdown).toHaveBeenCalledOnce();
+    expect(calls.chrome[0]).toBe(true); // controles ocultos ya durante la cuenta atrás
+    expect(calls.status[0]).toEqual(['', false]);
+    expect(order).toEqual(['cuenta atrás']);
+  });
+
+  it('si falla tras la cuenta atrás (se dejó de compartir), vuelven los controles', async () => {
+    const { flow, calls, startRecording } = setup();
+    startRecording.mockImplementationOnce(async opts => {
+      await opts.beforeStart();
+      throw new Error('se dejó de compartir');
+    });
+    await flow.start();
+    expect(flow.isRecording()).toBe(false);
+    expect(calls.chrome).toEqual([true, false]);
+  });
+
+  it('si se cancela el selector, no hay cuenta atrás', async () => {
+    const countdown = vi.fn(async () => {});
+    const { flow } = setup({ startFails: true, countdown });
+    await flow.start();
+    expect(countdown).not.toHaveBeenCalled();
   });
 
   it('pausa y reanuda la grabación en curso y avisa del cambio (CAM-TSK-0098)', async () => {

@@ -16,6 +16,7 @@ import { createRecordingStore } from './recordingStore.js';
 import { renderRecoveryNotice } from './recoveryNotice.js';
 import { createRecordingFlow } from './recordingFlow.js';
 import { createChapterTrack } from './chapterTrack.js';
+import { runCountdown } from './countdown.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
 import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
@@ -125,6 +126,7 @@ const recording = createRecordingFlow({
   onChange: () => updateRecordButton(),
   // Capítulos por diapositiva (CAM-TSK-0097): la de partida, si el deck ya la dijo.
   chapters: { track: chapterTrack, current: () => (deckSlideReported ? chapterLabel(deckSlide) : null) },
+  countdown: () => runCountdown(document.getElementById('countdown'), 3),
 });
 const AUTO_RECORD_KEY = STORAGE_KEYS.autoRecord;
 let autoRecordEnabled = loadAutoRecordPref();

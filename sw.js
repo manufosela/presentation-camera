@@ -60,6 +60,7 @@ const SHELL = [
   'webmDuration.js',
   'chapterTrack.js',
   'recordingClock.js',
+  'countdown.js',
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',
