@@ -8,6 +8,7 @@ import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { recentKey, removedLocalFiles, sourceLabel } from './savedSources.js';
 import { createSetupPreview } from './setupPreview.js';
 import { applyEmptyState } from './emptyState.js';
+import { droppedEntry } from './dropImport.js';
 import { formatVersion, loadVersion } from './appVersion.js';
 import { startScreenRecording, downloadBlob, estimateStorage } from './recorder.js';
 import { createRecordingFlow } from './recordingFlow.js';
@@ -259,6 +260,23 @@ document.getElementById('emptyLinkForm').addEventListener('submit', event => {
   useLinkFrom(document.getElementById('emptyUrl'));
 });
 document.getElementById('chooseFileBtn').addEventListener('click', () => fileInput.click());
+
+// Soltar un HTML, un PDF o una carpeta sobre la vista previa (CAM-TSK-0091).
+const stageDrop = document.querySelector('.setup-stage .stage-mock');
+stageDrop.addEventListener('dragover', event => {
+  if (!event.dataTransfer?.types.includes('Files')) return;
+  event.preventDefault();
+  stageDrop.classList.add('is-drop-target');
+});
+stageDrop.addEventListener('dragleave', () => stageDrop.classList.remove('is-drop-target'));
+stageDrop.addEventListener('drop', async event => {
+  event.preventDefault();
+  stageDrop.classList.remove('is-drop-target');
+  const entry = await droppedEntry(event.dataTransfer);
+  if (entry?.kind === 'directory') await importBundle(entry.handle);
+  else if (entry?.kind === 'file') await importLocalFile(entry.file);
+  else showStatus(t('status.unsupportedFile'), true);
+});
 helpBtn?.addEventListener('click', openOnboarding);
 onboardingClose?.addEventListener('click', () => closeOnboarding());
 onboardingDone?.addEventListener('click', () => closeOnboarding());
@@ -903,6 +921,11 @@ async function handleLocalBundlePick() {
   } catch {
     return; // el usuario canceló el selector
   }
+  await importBundle(dirHandle);
+}
+
+// Carpeta exportada (elegida o soltada): se guarda entera en OPFS.
+async function importBundle(dirHandle) {
   try {
     const title = dirHandle.name || t('status.defaultFolderTitle');
     const previous = sources.findLocal({ title, bundle: true });
