@@ -307,7 +307,7 @@
       <details class="more-options">
         <summary>
           <span data-i18n="more.title">More options</span>
-          <span class="more-hint" data-i18n="more.hint">Camera, mirror, shortcuts, panel</span>
+          <span class="more-hint" data-i18n="more.hint">Camera, mirror, captions, shortcuts, panel</span>
         </summary>
         <div class="more-body">
           <div class="toggle-row" id="cameraFieldset" hidden>
@@ -331,6 +331,31 @@
             <span data-i18n="footer.singleKey">Single-key shortcuts (turn them off if you dictate by voice)</span>
             <input type="checkbox" id="singleKeyShortcutsInput" checked />
           </label>
+          <!-- Subtítulos en directo (CAM-TSK-0133): en el dispositivo, solo Chrome/Edge de escritorio -->
+          <fieldset class="captions-setup">
+            <legend><span data-i18n="captions.title">Live captions</span></legend>
+            <label class="toggle-row">
+              <span data-i18n="captions.enable">Show captions of what I say</span>
+              <input type="checkbox" id="captionsEnabled" />
+            </label>
+            <div class="toggle-row">
+              <label for="captionsSpoken" data-i18n="captions.spoken">I speak</label>
+              <select id="captionsSpoken" class="select">
+                <option value="es">Español</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div class="toggle-row">
+              <label for="captionsTranslate" data-i18n="captions.translate">Translate to</label>
+              <select id="captionsTranslate" class="select">
+                <option value="" data-i18n="captions.noTranslate">Don't translate</option>
+                <option value="es">Español</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <button id="captionsPrepareBtn" type="button" class="row-btn" data-i18n="captions.prepare" hidden>Download the language (once)</button>
+            <p id="captionsStatus" class="captions-status" aria-live="polite"></p>
+          </fieldset>
           <button id="openPanelBtn" type="button" class="row-btn open-panel-btn">
             <span data-i18n="sources.openPanel">Open the control panel in another window</span>
             <kbd>\</kbd>

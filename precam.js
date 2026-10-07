@@ -18,6 +18,9 @@ import { createRecordingFlow } from './recordingFlow.js';
 import { trimRecording } from './recordingTrim.js';
 import { openTrimDialog } from './trimDialog.js';
 import { createInkLayer, nextInkMode } from './inkLayer.js';
+import { createCaptionsSetup } from './captionsSetup.js';
+import { installLanguage, recognizerSupport } from './captionsRecognizer.js';
+import { createCaptionTranslator, translatorSupport } from './captionsTranslator.js';
 import { createChapterTrack } from './chapterTrack.js';
 import { runCountdown } from './countdown.js';
 import { renderDeviceSelect } from './deviceSelect.js';
@@ -32,7 +35,7 @@ import { needsCanvasLoop, toggledStyle, usesCamera } from './renderMode.js';
 import { listBackgrounds, readBackground, removeBackground, saveBackground } from './backgroundStore.js';
 import { renderBackgroundPicker } from './backgroundPicker.js';
 import { bindThemeToggle } from './themeToggle.js';
-import { initI18n, onLangChange, t } from './i18n.js';
+import { getLang, initI18n, onLangChange, t } from './i18n.js';
 import {
   isDebugEnabled,
   loadBackgroundId,
@@ -141,6 +144,24 @@ const recording = createRecordingFlow({
   review: ({ blob, durationSec }) => openTrimDialog({ dialog: document.getElementById('trimDialog'), blob, durationSec }),
   trim: trimRecording,
 });
+// Subtítulos en el setup (CAM-TSK-0133): preferencias, soporte y descarga del idioma.
+const captionsSetup = createCaptionsSetup({
+  elements: {
+    enabled: document.getElementById('captionsEnabled'),
+    spoken: document.getElementById('captionsSpoken'),
+    translateTo: document.getElementById('captionsTranslate'),
+    prepare: document.getElementById('captionsPrepareBtn'),
+    status: document.getElementById('captionsStatus'),
+  },
+  storage: window.localStorage,
+  uiLang: getLang(),
+  recognizerSupport,
+  translatorSupport,
+  installLanguage,
+  createTranslator: createCaptionTranslator,
+});
+captionsSetup.refresh();
+
 // Tinta sobre la diapositiva (CAM-TSK-0130): láser (L) y dibujo (D); Esc la apaga.
 const inkCanvas = document.getElementById('inkLayer');
 const ink = createInkLayer({ canvas: inkCanvas });
@@ -1523,6 +1544,7 @@ renderVersion();
 // Al cambiar de idioma, lo que pinta el JS se repinta (el HTML marcado lo
 // traduce i18n.js).
 onLangChange(() => {
+  captionsSetup.refresh();
   updateRecordButton();
   updateRecordEstimate();
   renderRecovery();

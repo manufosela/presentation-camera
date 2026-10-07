@@ -1265,6 +1265,12 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 .ink-layer[data-mode="laser"] { pointer-events: auto; cursor: none; }
 .ink-layer[data-mode="draw"] { pointer-events: auto; cursor: crosshair; touch-action: none; }
 
+/* Subtítulos en «Más opciones» (CAM-TSK-0133) */
+.captions-setup { display: grid; gap: 0.25rem; margin: 0.5rem 0; padding: 0.75rem 0 0; border: 0; border-top: 1px solid var(--line); }
+.captions-setup legend { padding: 0; font-weight: 600; color: var(--ink-strong); }
+.captions-status { margin: 0; font-size: 0.85rem; color: var(--ink-muted); }
+.captions-status:empty { display: none; }
+
 /* Subtítulos (CAM-TSK-0118): abajo y centrados, encima del deck y por debajo de la
    cámara (no la tapan: no llegan a las esquinas). Fondo oscuro fijo en los dos
    temas para que se lean sobre cualquier diapositiva y en la grabación. */
