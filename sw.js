@@ -51,6 +51,7 @@ const SHELL = [
   'pdfDeck.js',
   'pdfRender.js',
   'pdfImport.js',
+  'setupPreview.js',
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',

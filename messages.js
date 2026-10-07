@@ -35,6 +35,7 @@ export const MESSAGES = {
   'topbar.helpTitle': { es: 'Ayuda y atajos de teclado', en: 'Help and keyboard shortcuts' },
   'setup.stageLabel': { es: 'Vista previa', en: 'Preview' },
   'setup.panelLabel': { es: 'Configuración', en: 'Settings' },
+  'setup.previewTitle': { es: 'Vista previa: {title}', en: 'Preview: {title}' },
   'setup.cornerHint': { es: 'Pulsa una esquina para colocar tu cámara.', en: 'Click a corner to place your camera.' },
   'setup.whilePresenting': { es: 'Mientras presentas:', en: 'While presenting:' },
   'setup.keyMove': { es: 'mover', en: 'move' },

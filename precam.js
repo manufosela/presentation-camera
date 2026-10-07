@@ -5,6 +5,7 @@ import { buildBundleBlobs, missingResourcesMessage } from './bundleBlobs.js';
 import { isPdf, pdfToDeckFile } from './pdfImport.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { removedLocalFiles, sourceLabel } from './savedSources.js';
+import { createSetupPreview } from './setupPreview.js';
 import { formatVersion, loadVersion } from './appVersion.js';
 import { startScreenRecording, downloadBlob, estimateStorage } from './recorder.js';
 import { createRecordingFlow } from './recordingFlow.js';
@@ -274,6 +275,24 @@ document.addEventListener('keydown', handleGlobalShortcut);
 // para conservar su estado interno (slide actual, zoom...).
 let presentationActive = false;
 
+// ─── Vista previa del setup: la diapositiva real (CAM-TSK-0088) ───
+const setupPreview = createSetupPreview({
+  host: document.getElementById('stageSlide'),
+  appOrigin: window.location.origin,
+  resolveSrc: source => (source.type === 'html'
+    ? localIndexUrl(source)
+    : sanitizePresentationUrl(source.url, window.location.href)),
+  titleFor: source => t('setup.previewTitle', { title: sourceLabel(source).title }),
+});
+
+function refreshSetupPreview() {
+  if (presentationActive) return;
+  setupPreview.show(sources.getActive()).catch(error => {
+    console.error(error);
+    showStatus(error.message || t('status.localOpenFailed'), true);
+  });
+}
+
 sources.subscribe(({ list, activeIndex }) => {
   // En setup, reflejamos la URL activa en el input para que el botón
   // "Go live" tenga algo que arrancar.
@@ -284,8 +303,9 @@ sources.subscribe(({ list, activeIndex }) => {
     if (active?.type === 'html') urlInput.value = '';
     else if (active?.url) urlInput.value = active.url;
   }
-  // Mientras haya presentación activa, sincronizamos el stack.
+  // Mientras haya presentación activa, sincronizamos el stack; si no, la vista previa.
   if (presentationActive) renderIframeStack(list, activeIndex);
+  else refreshSetupPreview();
 });
 
 // ─── Notas del ponente ───────────────────────────────────────
@@ -894,18 +914,25 @@ async function createLocalBlobs(source) {
   return { indexUrl, urls: [indexUrl] };
 }
 
+// URL del index de una source local (cacheada; la comparten la vista previa y
+// el directo). null si su fichero ya no está en OPFS (avisa).
+async function localIndexUrl(source) {
+  let blobs = localBlobUrls.get(source.id);
+  if (!blobs) {
+    blobs = await createLocalBlobs(source);
+    if (blobs === null) {
+      showStatus(t('status.localMissing'), true);
+      return null;
+    }
+    localBlobUrls.set(source.id, blobs);
+  }
+  return blobs.indexUrl;
+}
+
 async function resolveLocalFrameSrc(frame, source) {
   try {
-    let blobs = localBlobUrls.get(source.id);
-    if (!blobs) {
-      blobs = await createLocalBlobs(source);
-      if (blobs === null) {
-        showStatus(t('status.localMissing'), true);
-        return;
-      }
-      localBlobUrls.set(source.id, blobs);
-    }
-    frame.src = blobs.indexUrl;
+    const url = await localIndexUrl(source);
+    if (url) frame.src = url;
   } catch (error) {
     console.error(error);
     showStatus(error.message || t('status.localOpenFailed'), true);
@@ -942,6 +969,7 @@ async function startPresentation(presetUrl) {
 
   showStatus(t('status.loadingPresentation'));
   presentationActive = true;
+  setupPreview.clear(); // no tener la misma presentación cargada dos veces
   renderIframeStack(sources.list(), sources.getActiveIndex());
   presentationSection.hidden = false;
   if (topActions) topActions.hidden = false;
@@ -1158,6 +1186,7 @@ function returnToSetup() {
     urls.forEach(url => URL.revokeObjectURL(url));
   }
   localBlobUrls.clear();
+  refreshSetupPreview();
   presentationSection.hidden = true;
   webcamSection.hidden = true;
   if (topActions) topActions.hidden = true;
