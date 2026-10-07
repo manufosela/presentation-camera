@@ -218,26 +218,35 @@ kbd {
   flex-direction: column;
 }
 
+/* Rejilla: en escritorio, vista previa y pie a la izquierda, panel a la derecha
+   ocupando toda la altura (el pie aprovecha el hueco bajo la vista previa y no
+   añade scroll); en pantallas estrechas, todo en una columna y el pie al final. */
 .setup-grid {
   flex: 1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
   gap: clamp(1rem, 2vw, 1.75rem);
   padding: clamp(1rem, 2vw, 1.75rem);
   max-width: 1680px;
   width: 100%;
   margin: 0 auto;
 }
+@media (min-width: 961px) {
+  .setup-grid { grid-template-columns: minmax(0, 1fr) minmax(360px, 440px); grid-template-rows: auto 1fr; }
+  .setup-panel { grid-column: 2; grid-row: 1 / span 2; }
+  .site-footer { grid-column: 1; grid-row: 2; align-self: end; }
+}
+.site-footer { font-size: 0.8rem; color: var(--ink-muted); }
+.site-footer a { color: var(--ink-body); text-decoration: underline; text-underline-offset: 2px; }
+.site-footer a:hover { color: var(--accent); }
+.site-footer a:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .setup-stage {
-  flex: 999 1 560px;
   min-width: 0;
   display: grid;
   gap: 0.9rem;
 }
 .setup-panel {
-  flex: 1 1 360px;
-  max-width: 440px;
   min-width: 0;
   display: grid;
   gap: 1.4rem;
@@ -245,9 +254,6 @@ kbd {
   border-radius: 18px;
   background: var(--bg-base);
   border: 1px solid var(--line-soft);
-}
-@media (max-width: 960px) {
-  .setup-panel { max-width: none; }
 }
 
 /* ─── Topbar ────────────────────────────────────────────────── */
