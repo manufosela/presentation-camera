@@ -22,4 +22,5 @@ export const STORAGE_KEYS = Object.freeze({
   background: 'cam.background.v1',
   theme: 'cam.theme.v1', // también en theme.js (script clásico, no puede importar)
   lang: 'cam.lang.v1',
+  captions: 'cam.captions.v1',
 });

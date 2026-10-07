@@ -20,6 +20,7 @@ describe('constants — contrato entre ventanas y con el almacenamiento', () => 
       background: 'cam.background.v1',
       theme: 'cam.theme.v1',
       lang: 'cam.lang.v1',
+      captions: 'cam.captions.v1',
     });
   });
 

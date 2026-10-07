@@ -63,6 +63,40 @@ export function saveSingleKeyShortcuts(storage, enabled) {
   storage.setItem(SINGLE_KEY_SHORTCUTS_KEY, String(enabled));
 }
 
+// Subtítulos (CAM-TSK-0113): activados, idioma en que se habla y al que traducir
+// (null = sin traducir). Se validan campo a campo: lo desconocido vuelve al valor
+// por defecto al leer y es un error al guardar.
+const CAPTIONS_KEY = STORAGE_KEYS.captions;
+export const CAPTION_LANGS = Object.freeze(['es', 'en']);
+
+function validCaptionPrefs({ enabled, spoken, translateTo }, uiLang) {
+  const lang = CAPTION_LANGS.includes(spoken) ? spoken : uiLang;
+  return {
+    enabled: enabled === true,
+    spoken: lang,
+    translateTo: CAPTION_LANGS.includes(translateTo) && translateTo !== lang ? translateTo : null,
+  };
+}
+
+/** Preferencias de subtítulos; `uiLang` es el idioma hablado por defecto. */
+export function loadCaptionPrefs(storage, uiLang) {
+  let saved = {};
+  try {
+    saved = JSON.parse(storage.getItem(CAPTIONS_KEY) ?? '{}') ?? {};
+  } catch {
+    saved = {}; // guardado roto: valores por defecto
+  }
+  return validCaptionPrefs(saved, uiLang);
+}
+
+export function saveCaptionPrefs(storage, prefs) {
+  if (!CAPTION_LANGS.includes(prefs.spoken)) throw new Error(`idioma de subtítulos no válido: ${prefs.spoken}`);
+  if (prefs.translateTo !== null && !CAPTION_LANGS.includes(prefs.translateTo)) {
+    throw new Error(`idioma de traducción no válido: ${prefs.translateTo}`);
+  }
+  storage.setItem(CAPTIONS_KEY, JSON.stringify(validCaptionPrefs(prefs, prefs.spoken)));
+}
+
 // Cámara en espejo: natural para quien presenta, pero la grabación (captura de
 // la pantalla) sale igual que se ve. Desactivable para grabar al derecho.
 const MIRROR_KEY = STORAGE_KEYS.mirror;
