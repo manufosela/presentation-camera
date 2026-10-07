@@ -1,4 +1,4 @@
-# Presentation Camera
+# onslide
 
 > 🇬🇧 [Read in English](./README.md)
 
@@ -8,7 +8,7 @@ Pon tu **cámara encima de cualquier presentación** y presenta o graba con tus 
 
 ## Qué puedes hacer
 
-- **Presentar cualquier slide**: una URL pública (Genially, Google Slides, Canva, un reveal.js publicado…; siempre que esa web permita incrustarla), un **fichero `.html` local** o una **carpeta local** exportada de reveal.js/impress (con su `index.html` y sus recursos).
+- **Presentar cualquier slide**: una URL pública (Genially, Google Slides, Canva, un reveal.js publicado…; siempre que esa web permita incrustarla), un **fichero `.html` local**, una **carpeta local** exportada de reveal.js/impress (con su `index.html` y sus recursos) o un **PDF**.
 - **Guardar varias presentaciones** y cambiar entre ellas con `1`–`9`.
 - **Colocar tu cámara** en cualquier esquina y en tres tamaños, con **marco**, **recortada** sin fondo o **con un fondo virtual** (tus propias imágenes, guardadas para la próxima vez). O elegir **Sin cámara** para grabar solo las slides y tu voz.
 - **Grabar toda la sesión** (slides, cámara, micrófono y sonido de la pestaña) en un `.webm` que se descarga al parar. Los controles de la app se ocultan para no salir en el vídeo.
@@ -18,29 +18,33 @@ Pon tu **cámara encima de cualquier presentación** y presenta o graba con tus 
 
 ## Cómo empezar
 
+Todo el setup cabe en una pantalla: a la izquierda, una **vista previa** con tu presentación real y tu cámara encima; a la derecha, el panel de configuración.
+
 1. Abre la app (la demo de arriba o la app instalada).
-2. **Añade tu presentación** en *Presentaciones*: pega una URL, o usa *Cargar HTML local (un .html)* o *Cargar carpeta HTML (con recursos)*. Queda en *Presentaciones guardadas*, así que la próxima vez solo tienes que elegirla.
-   - **¿PPTX?** Los navegadores no muestran PowerPoint: súbelo a **Office Online** o **Google Slides** y pega esa URL.
-3. **Prepara tu cámara** en *Tu cámara*: esquina, tamaño y tratamiento — *Marco*, *Recorte* (con imagen de fondo opcional) o *Sin cámara*.
-4. Pulsa **En directo**. Tu cara aparece sobre las slides.
+2. **Elige tu presentación**: pega un enlace y pulsa *Usar*, o pulsa *Subir archivo: HTML, carpeta o PDF* (también puedes **arrastrarlo** sobre la vista previa). Queda en *Recientes*, así que la próxima vez solo tienes que elegirla.
+   - **¿PowerPoint?** Los navegadores no lo muestran: súbelo a **Google Slides** u **Office Online** y pega ese enlace.
+3. **Decide cómo apareces** en *Tu cámara*: *Con marco*, *Recortada* (con imagen de fondo opcional) o *Sin cámara*, y el tamaño. **Pulsa una esquina de la vista previa** para colocar tu cámara.
+4. Pulsa **Empezar a presentar**. Tu cara aparece sobre las slides.
 5. En Zoom/Meet/Teams, **comparte solo esta ventana**.
+
+La cámara, el espejo, los atajos de una tecla y el panel de control están en *Más opciones*. *Ayuda* (o la tecla `?`) muestra todos los atajos.
 
 ### Grabación
 
-- La grabación empieza **al pasar a directo** (se desactiva con *Grabar automáticamente al empezar*). También puedes empezarla y pararla con **REC** o `R`.
+- La grabación empieza **al empezar a presentar** (se desactiva con *Grabar al empezar*). También puedes empezarla y pararla con **REC** o `R`.
 - El navegador pregunta **qué capturar**: elige **esta pestaña**, para que su barra de «estás compartiendo» no salga en el vídeo.
 - Audio: tu **micrófono** más el **sonido de la pestaña** si el navegador lo permite. Sin micrófono graba igualmente el vídeo.
 - Los controles de la app **se ocultan al grabar**. Pulsa `H` (o el botón del ojo, arriba a la izquierda) para mostrarlos u ocultarlos.
-- Al parar, el `.webm` **se descarga solo**. Se escribe a disco mientras grabas (no se queda en memoria); antes de empezar ves cuánto tiempo puedes grabar.
-- Se graba lo que ves: la grabación es una captura de la pestaña.
+- Al parar, el `.webm` **se descarga solo**. Se escribe a disco mientras grabas (no se queda en memoria); en la *Ayuda* ves cuánto tiempo puedes grabar.
+- Se graba lo que ves: la grabación es una captura de la pestaña. Si no quieres verte en espejo en el vídeo, desmarca *Verme en espejo* en *Más opciones*.
 
 ### Fondo virtual
 
-Con *Recorte*, la sección *Fondo* te deja elegir *Ninguno*, una de tus imágenes o *+ Subir imagen* (PNG, JPEG o WebP, hasta 15 MB). Las imágenes se guardan en tu navegador, así que puedes volver a elegirlas sin subirlas. Usa imágenes con la proporción de tu cámara (normalmente 4:3, p. ej. 1600×1200): con otras proporciones se recortan para llenar el recuadro.
+Con *Recortada*, la sección *Fondo* te deja elegir *Ninguno*, una de tus imágenes o *+ Subir imagen* (PNG, JPEG o WebP, hasta 15 MB). Las imágenes se guardan en tu navegador, así que puedes volver a elegirlas sin subirlas. Usa imágenes con la proporción de tu cámara (normalmente 4:3, p. ej. 1600×1200): con otras proporciones se recortan para llenar el recuadro.
 
 ### Notas y panel de control
 
-Abre el **panel de control** con `\` (o *Abrir panel de control*): una ventana aparte para tener en otro monitor. Muestra las notas de la slide actual en los decks reveal.js locales, te deja cambiar y renombrar presentaciones y nunca sale en la grabación.
+Abre el **panel de control** con `\` (o en *Más opciones*): una ventana aparte para tener en otro monitor. Muestra las notas de la slide actual en los decks reveal.js locales, te deja cambiar y renombrar presentaciones y nunca sale en la grabación.
 
 ### Atajos de teclado (durante la presentación)
 
@@ -57,8 +61,9 @@ Abre el **panel de control** con `\` (o *Abrir panel de control*): una ventana a
 | `\` | abrir el panel de control |
 | `1`–`9` | cambiar la fuente activa |
 | `Esc` | vista general del deck (reveal.js); sale de pantalla completa. Para terminar, botón de salir |
+| `?` | ayuda con todos los atajos (también en el setup) |
 
-Los atajos de una tecla (`C`, `M`, `R`, `F`, `H`, `S`, `\`, `1`–`9`) se pueden desactivar en el setup, algo útil si usas dictado por voz. La navegación del deck sigue funcionando.
+Los atajos de una tecla (`C`, `M`, `R`, `F`, `H`, `S`, `\`, `1`–`9`, `?`) se pueden desactivar en *Más opciones*, algo útil si usas dictado por voz. La navegación del deck sigue funcionando.
 
 ### Tema e idioma
 
@@ -97,7 +102,7 @@ No hay backend, ni cuentas, ni analítica, ni cookies. Las únicas peticiones qu
 - Un **PPTX** no se puede mostrar en un navegador: usa Office Online o Google Slides y pega esa URL.
 - Las **carpetas HTML locales** necesitan un navegador que permita elegir carpetas (Chrome o Edge). En otros, usa un `.html` autocontenido.
 - En los decks de carpeta no funcionan los ficheros que el código carga dinámicamente (p. ej. un Markdown externo); la app te avisa de qué recursos no encontró.
-- Algunas webs no se dejan incrustar (`X-Frame-Options`). Los enlaces `/edit` de Google Slides se convierten solos en `/preview`.
+- Algunas webs no se dejan incrustar (`X-Frame-Options`). Los enlaces `/edit` de Google Slides se convierten solos en `/preview`, y los de Canva en su versión para incrustar (`/view?embed`; el diseño tiene que estar compartido con «cualquier persona con el enlace»).
 - Lo que se guarda en tu navegador se queda en **ese** navegador: no se comparte por el enlace ni con otros ordenadores.
 
 ## Requisitos
@@ -113,7 +118,7 @@ No hay backend, ni cuentas, ni analítica, ni cookies. Las únicas peticiones qu
 npm run fetch-assets # descarga los pesos de BodyPix (Recorte) y pdf.js (importar PDF), una vez
 ```
 
-`start.sh` usa `python3 -m http.server` y busca el siguiente puerto libre si no indicas uno. El botón **o prueba una demo** carga una presentación pública para probar la app.
+`start.sh` usa `python3 -m http.server` y busca el siguiente puerto libre si no indicas uno. El botón **Probar con una demo** (en la vista previa, sin presentaciones guardadas) carga una presentación pública para probar la app.
 
 ## Desarrollo
 
@@ -124,6 +129,9 @@ El código son módulos ES en la raíz del repositorio, un módulo pequeño por 
 ├── index.html / precam.js / precam.css   # Ventana principal: setup y presentación (precam.js conecta los módulos)
 ├── panel.html / panel.js / panel.css     # Ventana del panel de control
 ├── theme.js / i18n.js / messages.js      # Tema, idioma de la interfaz y sus textos (es/en)
+├── setupPreview.js / emptyState.js       # Vista previa del setup y estado vacío de primera visita
+├── fileKind.js / dropImport.js           # Subir o soltar HTML, PDF o carpeta
+├── pdfRender.js / pdfDeck.js / pdfImport.js # PDF → presentación HTML (pdf.js bajo demanda)
 ├── sources.js / localStore.js            # Presentaciones guardadas y ficheros locales (OPFS)
 ├── bundleRewrite.js / bundleBlobs.js     # Decks de carpeta servidos aislados
 ├── webcamLoop.js / segmentationLoader.js # Dibujo de la cámara y carga diferida de BodyPix
@@ -138,7 +146,7 @@ El código son módulos ES en la raíz del repositorio, un módulo pequeño por 
 npm test            # tests unitarios con Vitest
 ```
 
-Al subir a `main` se publica la web con `.github/workflows/pages.yml`, que además descarga el modelo y genera `version.json` (lo que se ve en el pie).
+Al subir a `main` se publica la web con `.github/workflows/pages.yml`, que además descarga el modelo y genera `version.json` (la versión que se ve en la *Ayuda*).
 
 ## Actualizar `vendor/`
 

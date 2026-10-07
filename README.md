@@ -1,4 +1,4 @@
-# Presentation Camera
+# onslide
 
 > 🇪🇸 [Léeme en español](./README.es.md)
 
@@ -8,7 +8,7 @@ Put your **webcam on top of any presentation** and present or record with your s
 
 ## What you can do
 
-- **Present any slides**: a public URL (Genially, Google Slides, Canva, a published reveal.js…, as long as that site allows embedding), a **local `.html`** file or a **local folder** exported from reveal.js/impress (with its `index.html` and assets).
+- **Present any slides**: a public URL (Genially, Google Slides, Canva, a published reveal.js…, as long as that site allows embedding), a **local `.html`** file, a **local folder** exported from reveal.js/impress (with its `index.html` and assets) or a **PDF**.
 - **Keep several presentations** saved and switch between them with `1`–`9`.
 - **Place your camera** in any corner, in three sizes, as a **framed** card, as a **cut-out** without background, or **with a virtual background** (your own images, saved for next time). Or choose **No camera** to record only the slides and your voice.
 - **Record the whole session** (slides, camera, microphone and tab sound) to a `.webm` that downloads when you stop. The app controls hide themselves so they don't appear in the video.
@@ -18,29 +18,33 @@ Put your **webcam on top of any presentation** and present or record with your s
 
 ## Getting started
 
+The whole setup fits on one screen: on the left, a **preview** with your real presentation and your camera on top; on the right, the settings panel.
+
 1. Open the app (the live demo above, or the installed app).
-2. **Add your presentation** in *Source slides*: paste a URL, or use *Load local HTML (one .html)* or *Load HTML folder (with assets)*. It is saved under *Saved presentations*, so next time you just pick it.
-   - **PPTX?** Browsers can't render PowerPoint: upload it to **Office Online** or **Google Slides** and paste that URL.
-3. **Set up your camera** in *Camera stage*: corner, size and treatment — *Framed*, *Cut-out* (with an optional background image) or *No camera*.
-4. Press **Go live**. Your face appears over the slides.
+2. **Choose your presentation**: paste a link and press *Use*, or press *Upload file: HTML, folder or PDF* (you can also **drop it** on the preview). It is kept under *Recent*, so next time you just pick it.
+   - **PowerPoint?** Browsers can't render it: upload it to **Google Slides** or **Office Online** and paste that link.
+3. **Decide how you appear** in *Your camera*: *Framed*, *Cut out* (with an optional background image) or *No camera*, and the size. **Click a corner of the preview** to place your camera.
+4. Press **Start presenting**. Your face appears over the slides.
 5. In Zoom/Meet/Teams, **share only this window**.
+
+The camera device, mirroring, single-key shortcuts and the control panel live under *More options*. *Help* (or the `?` key) lists every shortcut.
 
 ### Recording
 
-- Recording starts **when you go live** (turn it off with *Record automatically when going live*). You can also start and stop it with **REC** or `R`.
+- Recording starts **when you start presenting** (turn it off with *Record when starting*). You can also start and stop it with **REC** or `R`.
 - The browser asks **what to capture**: pick **this tab**, so its "you are sharing" bar stays out of the video.
 - Audio: your **microphone** plus the **tab sound** when the browser allows it. Without a microphone it still records the video.
 - The app controls **hide while recording**. Press `H` (or the small eye button, top left) to show or hide them.
-- When you stop, the `.webm` **downloads automatically**. It is written to disk as you record (not kept in memory); before starting you see an estimate of how long you can record.
-- What you see is what is recorded: the recording is a capture of the tab.
+- When you stop, the `.webm` **downloads automatically**. It is written to disk as you record (not kept in memory); *Help* shows an estimate of how long you can record.
+- What you see is what is recorded: the recording is a capture of the tab. If you don't want to appear mirrored in the video, untick *Mirror my camera* under *More options*.
 
 ### Virtual background
 
-With *Cut-out*, the *Background* section lets you choose *None*, one of your images or *+ Upload image* (PNG, JPEG or WebP, up to 15 MB). Images are saved in your browser, so you can pick them again without uploading. Use images with your camera's proportions (usually 4:3, e.g. 1600×1200): other proportions are cropped to fill the frame.
+With *Cut out*, the *Background* section lets you choose *None*, one of your images or *+ Upload image* (PNG, JPEG or WebP, up to 15 MB). Images are saved in your browser, so you can pick them again without uploading. Use images with your camera's proportions (usually 4:3, e.g. 1600×1200): other proportions are cropped to fill the frame.
 
 ### Speaker notes and control panel
 
-Open the **control panel** with `\` (or *Open control panel*): a separate window to keep on another screen. It shows the speaker notes of the current slide for local reveal.js decks, lets you switch and rename presentations, and never appears in the recording.
+Open the **control panel** with `\` (or from *More options*): a separate window to keep on another screen. It shows the speaker notes of the current slide for local reveal.js decks, lets you switch and rename presentations, and never appears in the recording.
 
 ### Keyboard shortcuts (while presenting)
 
@@ -57,8 +61,9 @@ Open the **control panel** with `\` (or *Open control panel*): a separate window
 | `\` | open the control panel |
 | `1`–`9` | switch active source |
 | `Esc` | deck overview (reveal.js); exits fullscreen. To end the session use the exit button |
+| `?` | help with every shortcut (in the setup too) |
 
-The single-key shortcuts (`C`, `M`, `R`, `F`, `H`, `S`, `\`, `1`–`9`) can be turned off in the setup — useful if you use voice dictation. Deck navigation keeps working.
+The single-key shortcuts (`C`, `M`, `R`, `F`, `H`, `S`, `\`, `1`–`9`, `?`) can be turned off under *More options* — useful if you use voice dictation. Deck navigation keeps working.
 
 ### Theme and language
 
@@ -97,7 +102,7 @@ There is no backend, no account, no analytics and no cookies. The only requests 
 - **PPTX** cannot be rendered in a browser: use Office Online or Google Slides and embed that URL.
 - **Local HTML folders** need a browser that can pick folders (Chrome or Edge). Elsewhere, use a single self-contained `.html`.
 - In folder decks, files loaded dynamically by code (e.g. external Markdown) are not supported; the app tells you which resources it could not find.
-- Some sites refuse to be embedded (`X-Frame-Options`). Google Slides `/edit` links are turned into `/preview` automatically.
+- Some sites refuse to be embedded (`X-Frame-Options`). Google Slides `/edit` links are turned into `/preview` automatically, and Canva links into their embeddable form (`/view?embed`; the design must be shared with "anyone with the link").
 - What is stored in your browser stays in **that** browser: it is not shared through the link or with other computers.
 
 ## Requirements
@@ -113,7 +118,7 @@ There is no backend, no account, no analytics and no cookies. The only requests 
 npm run fetch-assets # downloads the BodyPix weights (Cut-out) and pdf.js (PDF import), once
 ```
 
-`start.sh` uses `python3 -m http.server` and picks the next free port if none is given. The **or try a demo** button loads a public presentation to test the app.
+`start.sh` uses `python3 -m http.server` and picks the next free port if none is given. The **Try a demo** button (in the preview, when nothing is saved yet) loads a public presentation to test the app.
 
 ## Development
 
@@ -124,6 +129,9 @@ The code is plain ES modules in the repository root, one small module per concer
 ├── index.html / precam.js / precam.css   # Main window: setup and presentation (precam.js wires the modules)
 ├── panel.html / panel.js / panel.css     # Control panel window
 ├── theme.js / i18n.js / messages.js      # Theme, interface language and its texts (es/en)
+├── setupPreview.js / emptyState.js       # Setup preview and first-visit empty state
+├── fileKind.js / dropImport.js           # Upload or drop an HTML file, a PDF or a folder
+├── pdfRender.js / pdfDeck.js / pdfImport.js # PDF → HTML presentation (pdf.js on demand)
 ├── sources.js / localStore.js            # Saved presentations and local files (OPFS)
 ├── bundleRewrite.js / bundleBlobs.js     # Folder decks served isolated
 ├── webcamLoop.js / segmentationLoader.js # Camera drawing and lazy BodyPix
@@ -138,7 +146,7 @@ The code is plain ES modules in the repository root, one small module per concer
 npm test            # Vitest unit tests
 ```
 
-Pushing to `main` publishes the site with `.github/workflows/pages.yml`, which also downloads the model and writes `version.json` (shown in the footer).
+Pushing to `main` publishes the site with `.github/workflows/pages.yml`, which also downloads the model and writes `version.json` (the version shown in *Help*).
 
 ## Refresh `vendor/`
 
