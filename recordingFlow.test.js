@@ -7,7 +7,7 @@ beforeEach(() => setLang('es', null));
 
 // Grabación falsa: startRecording resuelve un controlador cuyo stop() dispara
 // el onStop que la app le pasó, como hace recorder.js.
-function setup({ startFails = false } = {}) {
+function setup({ startFails = false, chapters } = {}) {
   const calls = { chrome: [], status: [], downloads: [], changes: 0 };
   let options = null;
   const startRecording = vi.fn(async opts => {
@@ -23,6 +23,7 @@ function setup({ startFails = false } = {}) {
     showStatus: (message, isError = false) => calls.status.push([message, isError]),
     onChange: () => { calls.changes += 1; },
     logger: { warn() {}, error() {} },
+    chapters,
   });
   return { flow, calls, startRecording, emitError: error => options.onError(error) };
 }
@@ -46,6 +47,22 @@ describe('createRecordingFlow — grabar la sesión', () => {
     expect(calls.downloads).toEqual([expect.stringMatching(/2026-10-04.*\.webm$/)]);
     expect(calls.chrome).toEqual([true, false]);
     expect(calls.changes).toBe(2);
+  });
+
+  it('con capítulos: los arranca con la diapositiva actual y al parar descarga también el .vtt (CAM-TSK-0097)', async () => {
+    const chapters = { start: vi.fn(), finish: vi.fn(() => 'WEBVTT\n') };
+    const { flow, calls } = setup({ chapters: { track: chapters, current: () => 'Diapositiva 3' } });
+    await flow.start();
+    expect(chapters.start).toHaveBeenCalledWith('Diapositiva 3');
+    flow.stop();
+    expect(calls.downloads).toEqual([expect.stringMatching(/2026-10-04.*\.webm$/), expect.stringMatching(/2026-10-04.*\.vtt$/)]);
+  });
+
+  it('sin capítulos (el deck no avisó) solo se descarga el vídeo', async () => {
+    const { flow, calls } = setup({ chapters: { track: { start() {}, finish: () => null }, current: () => null } });
+    await flow.start();
+    flow.stop();
+    expect(calls.downloads).toEqual([expect.stringMatching(/\.webm$/)]);
   });
 
   it('si se cancela el selector, sigue sin grabar y lo dice (sin tono de error)', async () => {

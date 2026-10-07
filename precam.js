@@ -15,6 +15,7 @@ import { startScreenRecording, downloadBlob, estimateStorage, buildRecordingFile
 import { createRecordingStore } from './recordingStore.js';
 import { renderRecoveryNotice } from './recoveryNotice.js';
 import { createRecordingFlow } from './recordingFlow.js';
+import { createChapterTrack } from './chapterTrack.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
 import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
@@ -112,12 +113,15 @@ const localBlobUrls = new Map();
 // Grabación (recordingFlow.js; las funciones que recibe son declaraciones, ya
 // disponibles) y preferencia de auto-grabación al pulsar Go live (por defecto
 // activada, persistida).
+const chapterTrack = createChapterTrack();
 const recording = createRecordingFlow({
   startRecording: startScreenRecording,
   download: downloadBlob,
   setChromeHidden: hidden => setChromeHidden(hidden),
   showStatus: (message, isError) => showStatus(message, isError),
   onChange: () => updateRecordButton(),
+  // Capítulos por diapositiva (CAM-TSK-0097): la de partida, si el deck ya la dijo.
+  chapters: { track: chapterTrack, current: () => (deckSlideReported ? chapterLabel(deckSlide) : null) },
 });
 const AUTO_RECORD_KEY = STORAGE_KEYS.autoRecord;
 let autoRecordEnabled = loadAutoRecordPref();
@@ -355,6 +359,9 @@ sources.subscribe(({ list, activeIndex }) => {
 // de reveal.js no funciona con decks servidos como blob (CAM-BUG-0013).
 let deckNotes = { sourceId: null, notes: [] };
 let deckSlide = { h: 0, v: 0 };
+let deckSlideReported = false; // el deck activo ha dicho en qué diapositiva está (capítulos)
+
+const chapterLabel = ({ h, v }) => t('chapters.slide', { n: v > 0 ? `${h + 1}.${v + 1}` : `${h + 1}` });
 
 function activeFrame() {
   return iframeStack?.querySelector('iframe.is-active') ?? null;
@@ -389,6 +396,7 @@ async function syncDeckNotes() {
   if (sources.getActive()?.id !== sourceId) return; // cambió mientras se leía
   deckNotes = { sourceId, notes: html ? parseDeckNotes(html) : [] };
   deckSlide = { h: 0, v: 0 };
+  deckSlideReported = false;
   sendDeckCommand(activeFrame(), { method: 'getIndices', args: [] });
   publishNotes();
 }
@@ -418,6 +426,8 @@ window.addEventListener('message', event => {
   const slide = revealSlideFromMessage(event.data);
   if (!slide) return;
   deckSlide = slide;
+  deckSlideReported = true;
+  if (recording.isRecording()) chapterTrack.mark(chapterLabel(slide));
   publishNotes();
 });
 
