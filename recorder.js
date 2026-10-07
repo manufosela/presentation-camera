@@ -12,7 +12,12 @@ import { t } from './i18n.js';
 import { createRecordingStore } from './recordingStore.js';
 import { withWebmDuration } from './webmDuration.js';
 
+// MP4 primero (CAM-TSK-0096): es lo que cualquiera sabe abrir y subir. Con AAC
+// es lo más compatible (macOS, Windows); donde Chrome no codifica AAC (Linux),
+// MP4 con Opus; si el navegador no graba MP4, WebM como antes.
 const MIME_PREFERENCES = [
+  'video/mp4;codecs=avc1,mp4a.40.2',
+  'video/mp4;codecs=avc1,opus',
   'video/webm;codecs=vp9,opus',
   'video/webm;codecs=vp8,opus',
   'video/webm',
