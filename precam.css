@@ -599,6 +599,7 @@ kbd {
 .first-steps strong { font-size: 1rem; color: var(--ink-strong); }
 
 .setup.is-empty .stage-mock { border: 2px dashed var(--line); background: var(--bg-base); box-shadow: none; }
+.stage-mock.is-drop-target { outline: 3px dashed var(--accent); outline-offset: -3px; }
 .setup.is-empty .stage-empty { display: flex; }
 .setup.is-empty :is(.stage-slide, .stage-mock-cam, .stage-corners, .stage-hint) { display: none; }
 .setup.is-empty .first-steps { display: grid; }

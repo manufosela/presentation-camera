@@ -54,6 +54,7 @@ const SHELL = [
   'setupPreview.js',
   'fileKind.js',
   'emptyState.js',
+  'dropImport.js',
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',
