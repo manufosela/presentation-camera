@@ -9,6 +9,7 @@
  */
 
 import { t } from './i18n.js';
+import { createRecordingStore } from './recordingStore.js';
 
 const MIME_PREFERENCES = [
   'video/webm;codecs=vp9,opus',
@@ -59,22 +60,9 @@ export async function estimateStorage(bitrateMbps = 6) {
   };
 }
 
-const RECORDINGS_DIR = 'recordings';
-
-async function getRecordingsDir() {
-  const root = await navigator.storage.getDirectory();
-  return root.getDirectoryHandle(RECORDINGS_DIR, { create: true });
-}
-
-// Borra grabaciones temporales previas para no acumular cuota OPFS. Se llama al
-// iniciar una nueva grabación (la última queda disponible para recuperación).
-async function cleanupOldRecordings(dir) {
-  const names = [];
-  for await (const [name] of dir.entries()) names.push(name);
-  for (const name of names) {
-    try { await dir.removeEntry(name); } catch { /* en uso o ya borrado */ }
-  }
-}
+// Cada cuánto entrega MediaRecorder un trozo; cada trozo se guarda confirmado
+// en disco (recordingStore.js), así que es lo máximo que se pierde si se cierra.
+const SLICE_MS = 5000;
 
 /**
  * Inicia una grabación de pantalla/pestaña con audio mezclado (micrófono +
@@ -131,30 +119,26 @@ export async function startScreenRecording({
   const mixStream = new MediaStream(tracks);
   const mimeType = pickSupportedMimeType();
   const recorder = new MediaRecorder(mixStream, mimeType ? { mimeType } : undefined);
-  const ext = extFromMime(mimeType);
 
-  // Intentar escritura incremental a OPFS; si no, fallback en memoria.
+  // A disco por trozos confirmados (recuperables si se cierra); sin OPFS, en memoria.
+  const type = recorder.mimeType || mimeType || 'video/webm';
   const chunks = [];
-  let opfsHandle = null;
-  let opfsDir = null;
-  let writable = null;
+  let session = null;
   let writeChain = Promise.resolve();
   if (navigator.storage?.getDirectory) {
     try {
-      opfsDir = await getRecordingsDir();
-      await cleanupOldRecordings(opfsDir);
-      opfsHandle = await opfsDir.getFileHandle(`rec-${Date.now()}.${ext}`, { create: true });
-      writable = await opfsHandle.createWritable();
-    } catch {
-      writable = null; // sin OPFS utilizable: fallback en memoria
+      session = await createRecordingStore().startSession({ mimeType: type, startedAt: Date.now() });
+    } catch (error) {
+      console.warn('[rec] sin OPFS: la grabación va a memoria', error);
+      session = null;
     }
   }
 
   recorder.addEventListener('dataavailable', event => {
     if (!event.data || !event.data.size) return;
-    if (writable) {
+    if (session) {
       writeChain = writeChain
-        .then(() => writable.write(event.data))
+        .then(() => session.append(event.data))
         .catch(error => onError?.(error));
     } else {
       chunks.push(event.data);
@@ -165,13 +149,10 @@ export async function startScreenRecording({
       s?.getTracks().forEach(track => track.stop());
     }
     audioCtx?.close?.();
-    const type = recorder.mimeType || mimeType || 'video/webm';
-    if (writable) {
+    if (session) {
       try {
         await writeChain;
-        await writable.close();
-        const file = await opfsHandle.getFile(); // referencia el contenido sin copiarlo al heap
-        onStop?.(file, type);
+        onStop?.(await session.finish(), type); // une los trozos sin copiarlos al heap
       } catch (error) {
         onError?.(error);
       }
@@ -188,7 +169,7 @@ export async function startScreenRecording({
     if (recorder.state !== 'inactive') recorder.stop();
   });
 
-  recorder.start(1000); // chunks periódicos (clave para escritura incremental futura)
+  recorder.start(SLICE_MS);
 
   return {
     stop() { if (recorder.state !== 'inactive') recorder.stop(); },
