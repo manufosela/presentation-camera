@@ -10,7 +10,7 @@
 
 export function assertTopLevel(win) {
   if (win.top !== win.self) {
-    throw new Error('Presentation Camera no se ejecuta dentro de un iframe.');
+    throw new Error('onslide no se ejecuta dentro de un iframe.');
   }
 }
 
