@@ -17,6 +17,15 @@ describe('helpers puros', () => {
     expect(pickSupportedMimeType()).toBe('video/webm;codecs=vp8,opus');
   });
 
+  it.each([
+    [['video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4;codecs=avc1,opus', 'video/webm;codecs=vp9,opus'], 'video/mp4;codecs=avc1,mp4a.40.2'],
+    [['video/mp4;codecs=avc1,opus', 'video/webm;codecs=vp9,opus'], 'video/mp4;codecs=avc1,opus'],
+    [['video/webm;codecs=vp9,opus'], 'video/webm;codecs=vp9,opus'],
+  ])('prefiere MP4 (AAC, luego Opus) y si no WebM (CAM-TSK-0096): %j → %s', (supported, expected) => {
+    vi.stubGlobal('MediaRecorder', { isTypeSupported: t => supported.includes(t) });
+    expect(pickSupportedMimeType()).toBe(expected);
+  });
+
   it('pickSupportedMimeType devuelve "" si nada es soportado', () => {
     vi.stubGlobal('MediaRecorder', { isTypeSupported: () => false });
     expect(pickSupportedMimeType()).toBe('');
