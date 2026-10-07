@@ -62,6 +62,7 @@ const SHELL = [
   'recordingClock.js',
   'countdown.js',
   'deviceSelect.js',
+  'micTest.js',
   'recordingFlow.js',
   'backgroundStore.js',
   'backgroundPicker.js',

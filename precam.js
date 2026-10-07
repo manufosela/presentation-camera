@@ -18,6 +18,7 @@ import { createRecordingFlow } from './recordingFlow.js';
 import { createChapterTrack } from './chapterTrack.js';
 import { runCountdown } from './countdown.js';
 import { renderDeviceSelect } from './deviceSelect.js';
+import { createMicTester } from './micTest.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
 import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
@@ -233,7 +234,43 @@ sizeInputs.forEach(input => {
 });
 micSelect.addEventListener('change', () => {
   try { saveMicId(window.localStorage, micSelect.value || null); } catch { /* noop */ }
+  if (micTester.isRunning()) startMicTest(); // probar el recién elegido
 });
+
+// ─── Probar el micrófono (CAM-TSK-0125) ───────────────────────
+const micTestBtn = document.getElementById('micTestBtn');
+const micLevel = document.getElementById('micLevel');
+const micTester = createMicTester({ onLevel: level => { micLevel.value = level; } });
+
+function renderMicTest() {
+  const running = micTester.isRunning();
+  micTestBtn.textContent = t(running ? 'mic.stopTest' : 'mic.test');
+  micTestBtn.setAttribute('aria-pressed', String(running));
+  micLevel.hidden = !running;
+  if (!running) micLevel.value = 0;
+}
+
+async function startMicTest() {
+  try {
+    await micTester.start(readMicId());
+  } catch (error) {
+    console.warn('[mic] no se pudo probar el micrófono', error);
+    showStatus(t('mic.unavailable'), true);
+  }
+  renderMicTest();
+}
+
+function stopMicTest() {
+  micTester.stop();
+  renderMicTest();
+}
+
+micTestBtn.addEventListener('click', () => (micTester.isRunning() ? stopMicTest() : startMicTest()));
+// Al plegar «Más opciones», al empezar a presentar o al salir, se suelta el micrófono.
+document.querySelector('.more-options').addEventListener('toggle', event => {
+  if (!event.target.open) stopMicTest();
+});
+window.addEventListener('pagehide', () => micTester.stop());
 // Al enchufar o quitar una cámara o un micrófono, los selectores se actualizan.
 navigator.mediaDevices?.addEventListener?.('devicechange', () => populateCameraSelect());
 cameraSelect?.addEventListener('change', async event => {
@@ -1082,6 +1119,7 @@ async function startPresentation(presetUrl) {
 
   showStatus(t('status.loadingPresentation'));
   presentationActive = true;
+  stopMicTest(); // la grabación abre el micrófono por su cuenta
   setupPreview.clear(); // no tener la misma presentación cargada dos veces
   renderIframeStack(sources.list(), sources.getActiveIndex());
   presentationSection.hidden = false;
@@ -1456,6 +1494,7 @@ onLangChange(() => {
   updateRecordButton();
   updateRecordEstimate();
   renderRecovery();
+  renderMicTest();
   renderVersion();
   const { list, activeIndex } = sources.snapshot();
   renderSavedSources(list, activeIndex);
