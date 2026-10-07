@@ -19,7 +19,10 @@ import { trimRecording } from './recordingTrim.js';
 import { openTrimDialog } from './trimDialog.js';
 import { createInkLayer, nextInkMode } from './inkLayer.js';
 import { createCaptionsSetup } from './captionsSetup.js';
-import { installLanguage, recognizerSupport } from './captionsRecognizer.js';
+import { createRecognizer, installLanguage, recognizerSupport } from './captionsRecognizer.js';
+import { createCaptionsEngine } from './captionsEngine.js';
+import { createCaptionsSession } from './captionsSession.js';
+import { renderCaptions } from './captionsOverlay.js';
 import { createCaptionTranslator, translatorSupport } from './captionsTranslator.js';
 import { createChapterTrack } from './chapterTrack.js';
 import { runCountdown } from './countdown.js';
@@ -161,6 +164,22 @@ const captionsSetup = createCaptionsSetup({
   createTranslator: createCaptionTranslator,
 });
 captionsSetup.refresh();
+
+// Subtítulos al presentar (CAM-TSK-0121): en pantalla (salen en la grabación) y
+// la transcripción al panel. Arrancan solos si están activados; T los alterna.
+const captionsOverlay = document.getElementById('captionsOverlay');
+const captions = createCaptionsSession({
+  createEngine: onChange => createCaptionsEngine({ createRecognizer, onChange }),
+  createTranslator: (from, to) => createCaptionTranslator(from, to),
+  render: (snapshot, options) => renderCaptions(captionsOverlay, snapshot, options),
+  publish: message => syncChannel.postMessage(message),
+  onError: code => showStatus(code === 'translator-unavailable' ? t('captions.translatorNotReady') : t('captions.stopped', { code }), true),
+});
+const runCaptions = action => Promise.resolve(action).catch(error => console.error(error));
+const startCaptionsIfEnabled = () => {
+  const prefs = captionsSetup.prefs();
+  if (prefs.enabled) runCaptions(captions.start(prefs));
+};
 
 // Tinta sobre la diapositiva (CAM-TSK-0130): láser (L) y dibujo (D); Esc la apaga.
 const inkCanvas = document.getElementById('inkLayer');
@@ -748,6 +767,11 @@ function handleKeyboardShortcut(event) {
       event.preventDefault();
       recording.togglePause();
       break;
+    case 't':
+    case 'T':
+      event.preventDefault();
+      runCaptions(captions.toggle(captionsSetup.prefs()));
+      break;
     case 'h':
     case 'H':
       event.preventDefault();
@@ -1185,6 +1209,7 @@ async function startPresentation(presetUrl) {
   // para que el navegador permita getDisplayMedia. Si el usuario cancela el
   // selector, recordingFlow lo gestiona y la presentación continúa.
   if (autoRecordEnabled) await recording.start();
+  startCaptionsIfEnabled();
   if (!usesCamera(currentStyle)) return; // sin cámara: ni permiso ni recuadro
   await startWebcam().catch(error => {
     console.error(error);
@@ -1383,6 +1408,7 @@ function returnToSetup() {
   updateRecordButton();
   setChromeHidden(false); // restaurar controles al salir
   setInkMode('off');
+  captions.stop();
   stopWebcam();
   stopLiveBadge();
   presentationActive = false;
