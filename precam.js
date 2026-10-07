@@ -40,7 +40,7 @@ import {
   saveSingleKeyShortcuts,
 } from './appPrefs.js';
 import { deriveSourceTitle, hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
-import { STORAGE_KEYS, SYNC_CHANNEL } from './constants.js';
+import { BLUR_BACKGROUND_ID, STORAGE_KEYS, SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startMainLink } from './linkChannel.js';
 import {
   buildQuery,
@@ -678,6 +678,7 @@ function toggleStyle() {
 const backgroundPicker = document.getElementById('backgroundPicker');
 const backgroundInput = document.getElementById('backgroundInput');
 let backgroundImage = null;
+let backgroundBlur = false; // fondo «Desenfocado» elegido (CAM-TSK-0100)
 let backgroundThumbs = [];
 let backgroundRefresh = 0; // solo la última actualización aplica su resultado
 
@@ -695,7 +696,8 @@ function reportBackgroundError(error) {
 }
 
 async function applyBackground(id, request) {
-  const file = id ? await readBackground(id) : null;
+  const blur = id === BLUR_BACKGROUND_ID; // desenfocado: no hay imagen que leer
+  const file = id && !blur ? await readBackground(id) : null;
   const bitmap = file ? await createImageBitmap(file) : null;
   if (request !== backgroundRefresh) { // otra elección más reciente ya manda
     bitmap?.close();
@@ -703,6 +705,7 @@ async function applyBackground(id, request) {
   }
   backgroundImage?.close();
   backgroundImage = bitmap;
+  backgroundBlur = blur;
 }
 
 async function refreshBackgrounds() {
@@ -713,7 +716,7 @@ async function refreshBackgrounds() {
   backgroundThumbs.forEach(url => URL.revokeObjectURL(url));
   backgroundThumbs = list.map(({ file }) => URL.createObjectURL(file));
   let selectedId = readBackgroundId();
-  if (selectedId && !list.some(({ id }) => id === selectedId)) {
+  if (selectedId && selectedId !== BLUR_BACKGROUND_ID && !list.some(({ id }) => id === selectedId)) {
     selectedId = null; // la elegida ya no existe (p. ej. OPFS limpiado)
     persistBackgroundId(null);
   }
@@ -1120,7 +1123,7 @@ function ensureRenderLoop() {
     segment: segmentPerson,
     now: () => performance.now(),
     intervalMs: SEGMENTATION_INTERVAL_MS,
-    getBackground: () => backgroundImage,
+    getBackground: () => (backgroundBlur ? BLUR_BACKGROUND_ID : backgroundImage),
     isMirrored: () => mirrored,
   });
   firstFrameDrawn = false;

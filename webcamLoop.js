@@ -5,6 +5,7 @@
  */
 
 import { createPresenceTracker, personCoverage } from './presence.js';
+import { BLUR_BACKGROUND_ID } from './constants.js';
 
 /**
  * Ciclo de requestAnimationFrame: llama a `step()` en cada frame mientras
@@ -103,7 +104,15 @@ export function createCutoutRenderer({
         // Con espejo (CSS scaleX(-1)) el fondo se pinta volteado para que se
         // lea al derecho en pantalla y en la grabación.
         const background = getBackground();
-        if (background) {
+        if (background === BLUR_BACKGROUND_ID) {
+          // Desenfocado (CAM-TSK-0100): la propia cámara, borrosa. Es la misma
+          // imagen que la persona, así que no se voltea.
+          ctx.save();
+          ctx.filter = 'blur(12px)';
+          ctx.globalCompositeOperation = 'destination-over';
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          ctx.restore();
+        } else if (background) {
           const { sx, sy, sw, sh } = coverRect(background.width, background.height, canvas.width, canvas.height);
           ctx.save();
           if (isMirrored()) {

@@ -6,6 +6,7 @@
  */
 
 import { t } from './i18n.js';
+import { BLUR_BACKGROUND_ID } from './constants.js';
 
 function button(doc, className, label) {
   const element = doc.createElement('button');
@@ -29,6 +30,11 @@ export function renderBackgroundPicker(container, { backgrounds, selectedId, onS
   const none = choice(doc, { label: t('bg.noneLabel'), selected: !selectedId, onClick: () => onSelect(null) });
   none.textContent = t('bg.none');
   items.push(none);
+
+  // Desenfocado (CAM-TSK-0100): el propio fondo de la cámara, borroso.
+  const blur = choice(doc, { label: t('bg.blurLabel'), selected: selectedId === BLUR_BACKGROUND_ID, onClick: () => onSelect(BLUR_BACKGROUND_ID) });
+  blur.textContent = t('bg.blur');
+  items.push(blur);
 
   for (const { id, name, url } of backgrounds) {
     const item = doc.createElement('span');
