@@ -1,6 +1,6 @@
 {
-  "name": "Presentation Camera",
-  "short_name": "PresCamera",
+  "name": "onslide",
+  "short_name": "onslide",
   "description": "Superpone tu webcam sobre una presentación y graba la sesión, todo en el navegador.",
   "lang": "es",
   "id": "./",

@@ -1,5 +1,5 @@
 /**
- * Service Worker de Presentation Camera (PWA).
+ * Service Worker de onslide (PWA).
  *
  * Cachea el "shell" same-origin para arranque rápido y uso offline del setup.
  * Reglas:

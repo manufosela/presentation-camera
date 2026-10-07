@@ -10,7 +10,7 @@ export const MESSAGES = {
   'lang.switchLabel': { es: 'Switch to English', en: 'Cambiar a español' },
 
   // Documento
-  'doc.title': { es: 'Presentation Camera — tú, encima de tus slides', en: 'Presentation Camera — yourself, on top of any slides' },
+  'doc.title': { es: 'onslide — tu cámara encima de tus diapositivas', en: 'onslide — your camera on top of your slides' },
   'doc.description': { es: 'Superpón tu cámara sobre cualquier presentación. Para docentes, streamers y cualquiera harto de los collages de Zoom.', en: 'Overlay your webcam on top of any embedded presentation. Built for teachers, streamers and anyone tired of awkward Zoom collages.' },
 
   // Controles durante la presentación
@@ -180,7 +180,7 @@ export const MESSAGES = {
   'error.badPdf': { es: 'No se pudo leer el PDF: puede estar dañado o protegido.', en: 'Could not read the PDF: it may be damaged or protected.' },
 
   // Panel de control
-  'panel.docTitle': { es: 'Control de la cámara · presentation·camera', en: 'CAM Control · presentation·camera' },
+  'panel.docTitle': { es: 'Panel de control · onslide', en: 'Control panel · onslide' },
   'panel.linking': { es: 'conectando…', en: 'linking…' },
   'panel.linked': { es: 'conectado a la principal', en: 'linked to main' },
   'panel.lost': { es: 'ventana principal no encontrada', en: 'main window not detected' },
