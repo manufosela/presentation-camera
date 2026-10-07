@@ -7,6 +7,7 @@ import {
   pickSupportedMimeType,
   startScreenRecording,
 } from './recorder.js';
+import { memoryDir } from './test-support/memoryOpfs.js';
 
 describe('helpers puros', () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -119,33 +120,12 @@ describe('estimateStorage', () => {
   });
 });
 
-// Mock OPFS para la ruta de escritura incremental
-function makeRecordingOPFS() {
-  const files = new Map();
-  const fileHandle = name => ({
-    async createWritable() {
-      const parts = [];
-      return { async write(d) { parts.push(d); }, async close() { files.set(name, parts); } };
-    },
-    async getFile() { return { __opfs: true, name, type: '' }; },
-  });
-  const dir = {
-    async *entries() { for (const k of files.keys()) yield [k, fileHandle(k)]; },
-    async getFileHandle(name, opts) {
-      if (!files.has(name) && !opts?.create) throw new Error('NotFound');
-      if (opts?.create && !files.has(name)) files.set(name, []);
-      return fileHandle(name);
-    },
-    async removeEntry(name) { files.delete(name); },
-  };
-  return { files, getDirectory: async () => ({ getDirectoryHandle: async () => dir }) };
-}
-
 describe('startScreenRecording con OPFS', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it('escribe a OPFS y entrega el File al detener', async () => {
-    const opfs = makeRecordingOPFS();
+  it('guarda por trozos confirmados en OPFS y entrega el vídeo unido al detener (CAM-TSK-0095)', async () => {
+    const root = memoryDir();
+    const opfs = { getDirectory: async () => root };
     vi.stubGlobal('MediaRecorder', FakeRecorder);
     vi.stubGlobal('MediaStream', FakeStream);
     vi.stubGlobal('navigator', {
@@ -164,7 +144,13 @@ describe('startScreenRecording con OPFS', () => {
     });
     ctrl.stop();
     await stopped;
-    expect(out).toBeTruthy();
-    expect(out.__opfs).toBe(true);
+    expect(out).toBeInstanceOf(Blob);
+    expect(out.type).toBe('video/webm;codecs=vp9,opus');
+    expect(out.size).toBeGreaterThan(0);
+    const recordings = await root.getDirectoryHandle('recordings');
+    const sessions = [];
+    for await (const [name] of recordings.entries()) sessions.push(name);
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0]).toMatch(/^rec-\d+$/);
   });
 });
