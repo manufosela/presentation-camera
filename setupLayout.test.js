@@ -126,6 +126,7 @@ describe('setup en una pantalla', () => {
     const author = footer.querySelector('a[href="https://github.com/manufosela"]');
     expect(author.textContent.trim()).toBe('manufosela');
     expect(footer.querySelector('[data-i18n="footer.license"]')).not.toBeNull();
+    expect(footer.querySelector('a[href="privacy.html"][data-i18n="footer.privacy"]')).not.toBeNull();
   });
 
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
