@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createDriveConnect } from './driveConnect.js';
+import { GoogleApiError } from './googleClient.js';
 
 const NOW = Date.UTC(2026, 9, 10);
 const at = ms => ({ toMillis: () => ms });
@@ -102,5 +103,35 @@ describe('conectar el Drive de la empresa (CAM-TSK-0145)', () => {
     expect(await connect.callback({ state: pending, code: 'c' })).toBe(`${PANEL}?drive=error&reason=already`);
     expect(google.revoke).toHaveBeenCalledWith('rt'); // el token nuevo no se queda vivo
     expect(db.docs.has('orgs/org1/private/drive')).toBe(false);
+  });
+});
+
+describe('desconectar el Drive de la empresa (CAM-TSK-0148)', () => {
+  const connected = async () => {
+    const state = stateOf((await connect.start(admin, { orgId: 'org1' })).url);
+    await connect.callback({ state, code: 'c' });
+  };
+
+  it('revoca en Google y borra las credenciales', async () => {
+    await connected();
+    await connect.disconnect(admin, { orgId: 'org1' });
+    expect(google.revoke).toHaveBeenCalledWith('rt');
+    expect(db.docs.has('orgs/org1/private/drive')).toBe(false);
+    expect(db.docs.get('orgs/org1').drive).toEqual({ connected: false });
+  });
+
+  it('si Google ya no reconoce el token (400) se borra igual', async () => {
+    await connected();
+    google.revoke.mockRejectedValueOnce(new GoogleApiError(400, 'invalid_token'));
+    await connect.disconnect(admin, { orgId: 'org1' });
+    expect(db.docs.has('orgs/org1/private/drive')).toBe(false);
+  });
+
+  it('ante un fallo pasajero se rechaza y la credencial se queda para reintentar', async () => {
+    await connected();
+    google.revoke.mockRejectedValueOnce(new Error('red caída'));
+    await expect(connect.disconnect(admin, { orgId: 'org1' })).rejects.toMatchObject({ code: 'unavailable' });
+    expect(db.docs.has('orgs/org1/private/drive')).toBe(true);
+    await expect(connect.disconnect({ uid: 'x', token: { orgId: 'org2' } }, { orgId: 'org1' })).rejects.toMatchObject({ code: 'permission-denied' });
   });
 });
