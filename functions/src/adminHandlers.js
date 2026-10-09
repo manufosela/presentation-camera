@@ -35,14 +35,14 @@ function text(value, { field, max, min = 1 }) {
 
 const DOC_ID = /^[A-Za-z0-9_-]{1,64}$/;
 
-function docId(value, field) {
+export function docId(value, field) {
   if (typeof value !== 'string' || !DOC_ID.test(value)) {
     throw new AdminError('invalid-argument', `${field} no válido.`);
   }
   return value;
 }
 
-function requireOrgAdmin(caller, orgId) {
+export function requireOrgAdmin(caller, orgId) {
   if (!isSuperadmin(caller) && (typeof caller?.token?.orgId !== 'string' || caller.token.orgId !== orgId)) {
     throw new AdminError('permission-denied', 'No administras esta empresa.');
   }
