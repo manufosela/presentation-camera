@@ -23,6 +23,20 @@ describe('política de privacidad (CAM-TSK-0137)', () => {
   });
 });
 
+describe('condiciones de uso (CAM-TSK-0138)', () => {
+  const doc = load('./terms.html');
+
+  it('están en español e inglés, con responsable, contacto y enlace a la privacidad', () => {
+    for (const lang of ['es', 'en']) {
+      const article = doc.querySelector(`article[lang="${lang}"]`);
+      expect(article.textContent).toContain('manufosela');
+      expect(article.querySelector('a[href="mailto:privacidad@onsli.de"]')).not.toBeNull();
+      expect(article.querySelector('a[href="privacy.html"]')).not.toBeNull();
+    }
+    expect(doc.documentElement.outerHTML).not.toMatch(/@gmail\.com/);
+  });
+});
+
 describe('showLegalLang — un idioma a la vista', () => {
   it('muestra el artículo del idioma pedido y oculta el otro', () => {
     document.body.innerHTML = '<article lang="es"></article><article lang="en"></article>';

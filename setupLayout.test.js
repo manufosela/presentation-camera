@@ -127,6 +127,7 @@ describe('setup en una pantalla', () => {
     expect(author.textContent.trim()).toBe('manufosela');
     expect(footer.querySelector('[data-i18n="footer.license"]')).not.toBeNull();
     expect(footer.querySelector('a[href="privacy.html"][data-i18n="footer.privacy"]')).not.toBeNull();
+    expect(footer.querySelector('a[href="terms.html"][data-i18n="footer.terms"]')).not.toBeNull();
   });
 
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
