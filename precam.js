@@ -55,6 +55,7 @@ import {
 import { deriveSourceTitle, hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
 import { BLUR_BACKGROUND_ID, STORAGE_KEYS, SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startMainLink } from './linkChannel.js';
+import { onActiveDeckLoaded } from './deckLoadNotice.js';
 import {
   buildQuery,
   parseQuery,
@@ -641,6 +642,7 @@ function renderIframeStack(list, activeIndex) {
       frame.dataset.sourceId = source.id;
       // Al cargar, pedir a reveal.js que avise de los cambios de slide (notas).
       frame.addEventListener('load', () => enableDeckEvents(frame));
+      onActiveDeckLoaded(frame, clearLoadingNotice);
       // El sandbox debe fijarse antes de la primera navegación del iframe.
       const sandbox = sandboxForSource(source, window.location.origin);
       if (sandbox !== null) frame.setAttribute('sandbox', sandbox);
@@ -1238,6 +1240,12 @@ async function startWebcam() {
 // (p. ej. los recursos que le faltan a un deck de carpeta, que llega en paralelo).
 function showProgress(message) {
   if (!statusMessage.classList.contains('error')) showStatus(message);
+}
+
+// Solo quita el aviso de carga: otro estado (cámara, error) que ya lo haya
+// sustituido se queda a la vista.
+function clearLoadingNotice() {
+  if (statusMessage.textContent === t('status.loadingPresentation')) showStatus('');
 }
 
 // Arranca el bucle de canvas solo si el estilo lo necesita y no está ya en marcha.
