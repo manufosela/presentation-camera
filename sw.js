@@ -38,6 +38,7 @@ const SHELL = [
   'webcamLoop.js',
   'deckNotes.js',
   'deckBridge.js',
+  'deckLoadNotice.js',
   'savedSources.js',
   'appVersion.js',
   'streamSwitch.js',
