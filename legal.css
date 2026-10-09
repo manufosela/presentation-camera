@@ -1,0 +1,29 @@
+/* Páginas legales (CAM-TSK-0137): mismos tonos que la app, en una columna legible. */
+:root {
+  --bg: oklch(0.165 0.014 60);
+  --ink: oklch(0.82 0.014 75);
+  --ink-strong: oklch(0.96 0.012 80);
+  --accent: oklch(0.78 0.155 70);
+  --line: oklch(0.30 0.020 60);
+}
+:root[data-theme="light"] {
+  --bg: oklch(0.975 0.010 80);
+  --ink: oklch(0.32 0.020 60);
+  --ink-strong: oklch(0.18 0.020 60);
+  --accent: oklch(0.52 0.140 60);
+  --line: oklch(0.85 0.015 70);
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 1rem/1.65 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+main { max-width: 44rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+h1, h2 { color: var(--ink-strong); line-height: 1.25; }
+h1 { font-size: 1.9rem; margin-top: 1rem; }
+h2 { font-size: 1.2rem; margin-top: 2rem; }
+a { color: var(--accent); }
+nav { display: flex; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+nav button { background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 6px; padding: .2rem .6rem; cursor: pointer; }
+.updated { color: var(--ink); opacity: .75; font-size: .9rem; }
