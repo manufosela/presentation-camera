@@ -1,26 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest';
+import { fakeFirestore } from '../../test-support/fakeFirestore.js';
 import { AdminError, createAdminHandlers } from './adminHandlers.js';
 import { hashEventCode } from './eventCodes.js';
 
 const NOW = Date.UTC(2026, 9, 10);
 const DAY = 24 * 3600 * 1000;
 const at = ms => ({ toMillis: () => ms });
-
-// Firestore en memoria con lo que usan los handlers: doc().get/create y transacciones.
-function fakeDb() {
-  const docs = new Map();
-  const snap = path => ({ exists: docs.has(path), data: () => docs.get(path) });
-  const create = (path, data) => {
-    if (docs.has(path)) throw new Error(`already exists: ${path}`);
-    docs.set(path, data);
-  };
-  const db = {
-    docs,
-    doc: path => ({ path, get: async () => snap(path), create: async data => create(path, data) }),
-    runTransaction: async fn => fn({ get: async ref => snap(ref.path), create: (ref, data) => create(ref.path, data) }),
-  };
-  return db;
-}
 
 const superadmin = { uid: 'owner', token: { superadmin: true } };
 const adminOf = orgId => ({ uid: `admin-${orgId}`, token: { orgId } });
@@ -29,7 +14,7 @@ let db;
 let users;
 let handlers;
 beforeEach(() => {
-  db = fakeDb();
+  db = fakeFirestore();
   users = new Map([['ana@empresa.test', { uid: 'u-ana', customClaims: { lang: 'es' } }]]);
   let ids = 0;
   handlers = createAdminHandlers({

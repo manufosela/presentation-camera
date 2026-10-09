@@ -1,26 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fakeFirestore } from '../../test-support/fakeFirestore.js';
 import { ensureEventFolder } from './driveFolders.js';
-
-function fakeDb() {
-  const docs = new Map();
-  const snap = path => {
-    const data = docs.get(path);
-    return { exists: data !== undefined, data: () => data };
-  };
-  const runTransaction = async fn => {
-    const ops = [];
-    const result = await fn({ get: async r => snap(r.path), set: (r, data) => ops.push(() => docs.set(r.path, data)) });
-    for (const op of ops) op();
-    return result;
-  };
-  return { docs, doc: path => ({ path }), runTransaction };
-}
 
 let db;
 let google;
 let ids;
 beforeEach(() => {
-  db = fakeDb();
+  db = fakeFirestore();
   ids = 0;
   google = { createFolder: vi.fn(async () => `folder${++ids}`) };
 });
