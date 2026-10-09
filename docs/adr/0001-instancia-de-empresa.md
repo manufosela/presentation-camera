@@ -85,11 +85,10 @@ administradores lo necesitan para su panel.)*
 **El access token nunca sale del servidor.** *(Cambia junio, que daba al navegador un access token:
 con `drive.file` ese token vería todas las grabaciones que onslide ha creado en ese Drive.)*
 
-**Por verificar al empezar CAM-TSK-0104:** que Drive devuelve cabeceras CORS en los `PUT` del
-navegador a una sesión abierta por el servidor con `Origin`. Si no lo hace, la alternativa decidida
-es un **relay**: el navegador manda cada trozo a una Function (Cloud Run) que lo reenvía a la
-sesión de Drive sin guardarlo. La entrada de datos a Google Cloud es gratuita; el coste es CPU, y
-se mide en CAM-TSK-0110.
+**Verificado el 2026-10-10 (CAM-TSK-0104):** con la sesión abierta en el servidor con
+`Origin: https://onsli.de`, una página de onsli.de sube trozos con `PUT` y lee la respuesta (308 con
+la cabecera `Range`). No hace falta el relay que se dejó como alternativa (reenviar cada trozo desde
+una Function); se mantiene solo como plan B si Google cambiara ese comportamiento.
 
 ### 6. Aviso visible
 
