@@ -6,9 +6,11 @@
  * «onslide» se crea con la primera sesión de subida, así un fallo aquí no deja
  * nada en el Drive). Nada se guarda si algo falla, y una empresa ya conectada
  * no se reconecta sin desconectar antes (no quedan tokens sin revocar).
+ * disconnect (CAM-TSK-0148) revoca en Google y solo entonces borra.
  */
 
 import { AdminError, docId, requireOrgAdmin } from './adminHandlers.js';
+import { GoogleApiError } from './googleClient.js';
 
 const STATE_TTL_MS = 10 * 60_000;
 const STATE = /^[A-Za-z0-9_-]{43}$/; // 32 bytes en base64url
@@ -76,5 +78,27 @@ export function createDriveConnect({ db, google, seal, unseal, randomBytes, now,
     }
   }
 
-  return { start, callback };
+  async function disconnect(caller, input) {
+    const orgId = docId(input?.orgId, 'orgId');
+    requireOrgAdmin(caller, orgId);
+    const privateRef = db.doc(`orgs/${orgId}/private/drive`);
+    const snapshot = await privateRef.get();
+    if (snapshot.exists) {
+      try {
+        await google.revoke(unseal(snapshot.data(), orgId));
+      } catch (error) {
+        // 400 = Google ya no lo reconoce (revocado desde su cuenta): se borra igual.
+        // Cualquier otro fallo deja la credencial para poder reintentar.
+        if (!(error instanceof GoogleApiError && error.status === 400)) {
+          console.error(error);
+          throw new AdminError('unavailable', 'Google no ha confirmado la desconexión. Inténtalo de nuevo.');
+        }
+      }
+      await privateRef.delete();
+    }
+    await db.doc(`orgs/${orgId}`).update({ drive: { connected: false } });
+    return { connected: false };
+  }
+
+  return { start, callback, disconnect };
 }
