@@ -1,9 +1,13 @@
 /**
- * Alta de empresas y de sus administradores (ADR 0001, CAM-TSK-0141).
+ * Alta de empresas y de sus administradores (ADR 0001, CAM-TSK-0141) y códigos
+ * de evento (CAM-TSK-0143).
  * Núcleo sin dependencias de Firebase: index.js le pasa Firestore, Auth y el
  * reloj, y traduce AdminError a HttpsError. caller = request.auth (o null).
  */
 
+import { generateEventCode } from './eventCodes.js';
+
+const DAY_MS = 24 * 3600 * 1000;
 const SLUG = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_LIMITS = Object.freeze({ sessionsPerDay: 200, gbPerMonth: 100 });
@@ -29,7 +33,29 @@ function text(value, { field, max, min = 1 }) {
   return trimmed;
 }
 
-export function createAdminHandlers({ db, auth, newId, now, timestamp }) {
+const DOC_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+function docId(value, field) {
+  if (typeof value !== 'string' || !DOC_ID.test(value)) {
+    throw new AdminError('invalid-argument', `${field} no válido.`);
+  }
+  return value;
+}
+
+function requireOrgAdmin(caller, orgId) {
+  if (!isSuperadmin(caller) && (typeof caller?.token?.orgId !== 'string' || caller.token.orgId !== orgId)) {
+    throw new AdminError('permission-denied', 'No administras esta empresa.');
+  }
+}
+
+function integerInRange(value, { field, min, max }) {
+  if (!Number.isInteger(value) || value < min || value > max) {
+    throw new AdminError('invalid-argument', `${field}: entero entre ${min} y ${max}.`);
+  }
+  return value;
+}
+
+export function createAdminHandlers({ db, auth, randomBytes, newId, now, timestamp }) {
   async function requireDoc(path, what) {
     const snapshot = await db.doc(path).get();
     if (!snapshot.exists) throw new AdminError('not-found', `${what} no existe.`);
@@ -61,7 +87,8 @@ export function createAdminHandlers({ db, auth, newId, now, timestamp }) {
     requireSuperadmin(caller);
     const email = typeof input?.email === 'string' ? input.email.trim().toLowerCase() : '';
     if (!EMAIL.test(email)) throw new AdminError('invalid-argument', 'email no válido.');
-    await requireDoc(`orgs/${input.orgId}`, 'La empresa');
+    const orgId = docId(input.orgId, 'orgId');
+    await requireDoc(`orgs/${orgId}`, 'La empresa');
     let user;
     try {
       user = await auth.getUserByEmail(email);
@@ -69,9 +96,28 @@ export function createAdminHandlers({ db, auth, newId, now, timestamp }) {
       if (error.code !== 'auth/user-not-found') throw error;
       throw new AdminError('not-found', 'Ese usuario tiene que entrar una vez en el panel antes.');
     }
-    await auth.setCustomUserClaims(user.uid, { ...user.customClaims, orgId: input.orgId });
+    await auth.setCustomUserClaims(user.uid, { ...user.customClaims, orgId });
     return { uid: user.uid };
   }
 
-  return { createOrg, setOrgAdmin };
+  async function createEventCode(caller, input) {
+    const orgId = docId(input?.orgId, 'orgId');
+    requireOrgAdmin(caller, orgId);
+    const eventId = docId(input.eventId, 'eventId');
+    const event = await requireDoc(`orgs/${orgId}/events/${eventId}`, 'El evento');
+    const label = text(input.label ?? '', { field: 'label', max: 60, min: 0 });
+    const maxUploads = integerInRange(input.maxUploads ?? 50, { field: 'maxUploads', min: 1, max: 1000 });
+    const maxExpiry = now() + 365 * DAY_MS;
+    const expiresAtMs = integerInRange(input.expiresAtMs ?? Math.min(event.endsAt.toMillis() + 2 * DAY_MS, maxExpiry), {
+      field: 'expiresAtMs', min: now() + 1, max: maxExpiry,
+    });
+    const { code, hash } = generateEventCode(randomBytes);
+    await db.doc(`orgs/${orgId}/codes/${hash}`).create({
+      eventId, label, expiresAt: timestamp(expiresAtMs), revoked: false,
+      maxUploads, uploads: 0, createdAt: timestamp(now()), createdBy: caller.uid,
+    });
+    return { code, expiresAtMs };
+  }
+
+  return { createOrg, setOrgAdmin, createEventCode };
 }
