@@ -32,7 +32,9 @@ jobs:
             --exclude '*.test.js' --exclude '*.md' --exclude 'package*.json' \
             --exclude 'eslint.config.js' --exclude 'commitlint.config.js' \
             --exclude 'sonar-project.properties' --exclude 'start.sh' \
-            --exclude 'scripts' --exclude 'models' --exclude 'vendor-dl' --exclude 'test-support'
+            --exclude 'scripts' --exclude 'models' --exclude 'vendor-dl' --exclude 'test-support' \
+            --exclude 'functions' --exclude 'firestore-tests' --exclude 'firebase.json' \
+            --exclude 'firestore.rules' --exclude 'firestore.indexes.json' --exclude 'vitest*.config.js'
 
       # El modelo del recorte y pdf.js se sirven desde el propio sitio; el
       # script verifica cada sha256 y falla si alguno no coincide.

@@ -1,0 +1,49 @@
+rules_version = '2';
+
+// Firestore de onslide (ADR 0001, CAM-TSK-0103). Todo cerrado por defecto.
+// Lecturas del panel: el superadmin (claim superadmin) y los administradores de
+// cada empresa (claim orgId). Lo sensible (empresas, credenciales, códigos,
+// subidas) solo lo escriben las Functions con el Admin SDK.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSuperadmin() {
+      return request.auth != null && request.auth.token.superadmin == true;
+    }
+    function managesOrg(orgId) {
+      return isSuperadmin() || (request.auth != null && request.auth.token.orgId == orgId);
+    }
+    function validEvent(data) {
+      return data.keys().hasOnly(['name', 'startsAt', 'endsAt'])
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 120
+        && data.startsAt is timestamp && data.endsAt is timestamp
+        && data.endsAt > data.startsAt;
+    }
+
+    match /orgs/{orgId} {
+      allow read: if managesOrg(orgId);
+
+      // Credenciales cifradas del Drive: solo las Functions.
+      match /private/{docId} {
+        allow read, write: if false;
+      }
+
+      match /events/{eventId} {
+        allow read, delete: if managesOrg(orgId);
+        allow create, update: if managesOrg(orgId) && validEvent(request.resource.data);
+      }
+
+      // El id es el SHA-256 del código; se crean desde una Function. Desde el
+      // panel solo se puede revocar.
+      match /codes/{codeHash} {
+        allow read: if managesOrg(orgId);
+        allow update: if managesOrg(orgId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revoked'])
+          && request.resource.data.revoked == true;
+      }
+
+      match /uploads/{uploadId} {
+        allow read: if managesOrg(orgId);
+      }
+    }
+  }
+}
