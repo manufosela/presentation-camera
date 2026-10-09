@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fakeFirestore } from '../../test-support/fakeFirestore.js';
 import { createDriveConnect } from './driveConnect.js';
 import { GoogleApiError } from './googleClient.js';
 
@@ -7,42 +8,11 @@ const at = ms => ({ toMillis: () => ms });
 const admin = { uid: 'admin-org1', token: { orgId: 'org1' } };
 const PANEL = 'https://onsli.de/panel.html';
 
-function fakeDb() {
-  const docs = new Map();
-  const snap = path => {
-    const data = docs.get(path); // como Firestore: la lectura es una foto del momento
-    return { exists: data !== undefined, data: () => data };
-  };
-  const ref = path => ({
-    path,
-    get: async () => snap(path),
-    create: async data => { if (docs.has(path)) throw new Error('exists'); docs.set(path, data); },
-    set: async data => { docs.set(path, data); },
-    update: async data => { docs.set(path, { ...docs.get(path), ...data }); },
-    delete: async () => { docs.delete(path); },
-  });
-  // Transacción: las escrituras se aplican al final, todas o ninguna.
-  const runTransaction = async fn => {
-    const ops = [];
-    const result = await fn({
-      get: async r => snap(r.path),
-      delete: r => ops.push(() => docs.delete(r.path)),
-      set: (r, data) => ops.push(() => docs.set(r.path, data)),
-      update: (r, data) => ops.push(() => docs.set(r.path, { ...docs.get(r.path), ...data })),
-    });
-    if (db.failCommit && ops.length > 1) throw new Error('commit');
-    for (const op of ops) op();
-    return result;
-  };
-  const db = { docs, doc: ref, runTransaction };
-  return db;
-}
-
 let db;
 let google;
 let connect;
 beforeEach(() => {
-  db = fakeDb();
+  db = fakeFirestore();
   db.docs.set('orgs/org1', { name: 'Acme', drive: { connected: false } });
   google = {
     authUrl: state => `https://accounts.test/auth?state=${state}`,
@@ -89,7 +59,9 @@ describe('conectar el Drive de la empresa (CAM-TSK-0145)', () => {
     expect(await connect.callback({ state: fresh, code: 'c' })).toBe(`${PANEL}?drive=error&reason=google`);
     expect(db.docs.has('orgs/org1/private/drive')).toBe(false);
     const again = stateOf((await connect.start(admin, { orgId: 'org1' })).url);
-    db.failCommit = true; // falla la escritura: ni credencial ni empresa conectada
+    const realTransaction = db.runTransaction;
+    let transactions = 0; // la 1.ª consume el state; la 2.ª (guardar) falla al confirmar
+    db.runTransaction = fn => (++transactions === 2 ? Promise.reject(new Error('commit')) : realTransaction(fn));
     expect(await connect.callback({ state: again, code: 'c' })).toBe(`${PANEL}?drive=error&reason=google`);
     expect(google.revoke).toHaveBeenCalledWith('rt'); // el token canjeado no se queda vivo
     expect(db.docs.has('orgs/org1/private/drive')).toBe(false);
