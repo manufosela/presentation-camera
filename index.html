@@ -303,6 +303,19 @@
           </div>
       </section>
 
+      <!-- Grabación para una empresa (CAM-TSK-0106): solo con ?org=… -->
+      <section class="panel enterprise-setup" id="enterpriseSetup" aria-labelledby="panel-enterprise" hidden>
+        <h2 class="panel-title" id="panel-enterprise" data-i18n="enterprise.title">Recording for a company</h2>
+        <label class="enterprise-field"><span data-i18n="enterprise.code">Event code</span>
+          <input id="enterpriseCode" type="text" class="url-input" autocomplete="off" spellcheck="false" autocapitalize="characters" /></label>
+        <label class="enterprise-field"><span data-i18n="enterprise.speaker">Your name</span>
+          <input id="enterpriseSpeaker" type="text" class="url-input" autocomplete="name" maxlength="80" /></label>
+        <label class="enterprise-field"><span data-i18n="enterprise.talk">Talk title</span>
+          <input id="enterpriseTitle" type="text" class="url-input" autocomplete="off" maxlength="100" /></label>
+        <button type="button" id="enterpriseCheckBtn" class="row-btn" data-i18n="enterprise.check">Check</button>
+        <p id="enterpriseStatus" class="enterprise-status" aria-live="polite"></p>
+      </section>
+
       <!-- Opciones avanzadas, plegadas (CAM-TSK-0090) -->
       <details class="more-options">
         <summary>

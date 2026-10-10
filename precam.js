@@ -19,6 +19,8 @@ import { trimRecording } from './recordingTrim.js';
 import { openTrimDialog } from './trimDialog.js';
 import { createInkLayer, nextInkMode } from './inkLayer.js';
 import { createCaptionsSetup } from './captionsSetup.js';
+import { createEnterpriseMode } from './enterpriseMode.js';
+import { callFunction, readEnterpriseLink } from './enterpriseLink.js';
 import { createRecognizer, installLanguage, recognizerSupport } from './captionsRecognizer.js';
 import { createCaptionsEngine } from './captionsEngine.js';
 import { createCaptionsSession } from './captionsSession.js';
@@ -166,6 +168,22 @@ const captionsSetup = createCaptionsSetup({
   createTranslator: createCaptionTranslator,
 });
 captionsSetup.refresh();
+
+// Grabación para una empresa (CAM-TSK-0106): solo con un enlace ?org=…; sin él
+// no aparece nada ni se llama a Firebase.
+createEnterpriseMode({
+  elements: {
+    section: document.getElementById('enterpriseSetup'),
+    code: document.getElementById('enterpriseCode'),
+    speaker: document.getElementById('enterpriseSpeaker'),
+    title: document.getElementById('enterpriseTitle'),
+    check: document.getElementById('enterpriseCheckBtn'),
+    status: document.getElementById('enterpriseStatus'),
+  },
+  link: readEnterpriseLink(new URL(globalThis.location.href)),
+  call: callFunction,
+  storage: (() => { try { return globalThis.sessionStorage; } catch { return null; } })(),
+});
 
 // Subtítulos al presentar (CAM-TSK-0121): en pantalla (salen en la grabación) y
 // la transcripción al panel. Arrancan solos si están activados; T los alterna.
