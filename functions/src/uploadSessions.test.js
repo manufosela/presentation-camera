@@ -32,6 +32,23 @@ beforeEach(() => {
   });
 });
 
+describe('describeCode — comprobar el código sin gastarlo (CAM-TSK-0155)', () => {
+  it('devuelve empresa, evento y caducidad sin contar ningún uso', async () => {
+    expect(await sessions.describeCode(null, { org: 'acme', code })).toEqual({
+      orgName: 'Acme', eventName: 'Congreso', expiresAtMs: NOW + 3600_000,
+    });
+    expect(db.docs.get(`orgs/org1/codes/${hash}`).uploads).toBe(0);
+    expect(db.docs.has('usage/org1_20261010')).toBe(false);
+  });
+
+  it('rechaza igual que al abrir una sesión', async () => {
+    db.docs.get(`orgs/org1/codes/${hash}`).uploads = 5;
+    await expect(sessions.describeCode(null, { org: 'acme', code })).rejects.toMatchObject({ code: 'permission-denied', message: 'Este código ya no admite más grabaciones.' });
+    await expect(sessions.describeCode(null, { org: 'acme', code: 'x' })).rejects.toMatchObject({ code: 'invalid-argument' });
+    await expect(sessions.describeCode(null, { org: 'otra', code })).rejects.toMatchObject({ code: 'not-found' });
+  });
+});
+
 describe('createSession — subida con código de evento (CAM-TSK-0152)', () => {
   it('cuenta la subida, crea la carpeta de la sesión y devuelve solo la URI', async () => {
     expect(await sessions.createSession(null, request)).toEqual({
