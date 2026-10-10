@@ -47,4 +47,5 @@ vendor-dl/
 !.karajan/policy-anchor.json
 !.karajan/supervisor-signers.json
 !.karajan/rules.yml
+!.karajan/security-level.json
 .karajan/identity.local.yml
