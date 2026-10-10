@@ -98,7 +98,9 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
     // addAll falla entero si un recurso no existe; añadimos uno a uno tolerando fallos.
-    await Promise.allSettled(SHELL.map(url => cache.add(url)));
+    // 'reload' se salta la caché HTTP (max-age=600 en Pages): si no, una
+    // publicación nueva podría guardar ficheros de la anterior (CAM-BUG-0025).
+    await Promise.allSettled(SHELL.map(url => cache.add(new Request(new URL(url, self.location.href), { cache: 'reload' }))));
     self.skipWaiting();
   })());
 });
@@ -161,7 +163,7 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const cached = await cache.match(request);
-    const network = fetch(request).then(fresh => {
+    const network = fetch(request, { cache: 'no-cache' }).then(fresh => { // revalida con el servidor, no con la caché HTTP
       if (fresh.ok && fresh.type === 'basic') cache.put(request, fresh.clone()).catch(() => {});
       return fresh;
     }).catch(() => null);

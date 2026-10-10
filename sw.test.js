@@ -3,14 +3,17 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 const ORIGIN = 'https://app.example';
 
 let fetchHandler;
+let installHandler;
 beforeAll(async () => {
   const listeners = {};
   vi.stubGlobal('self', {
-    location: { origin: ORIGIN },
+    location: { origin: ORIGIN, href: `${ORIGIN}/sw.js` },
     addEventListener: (type, fn) => { listeners[type] = fn; },
+    skipWaiting: () => {},
   });
   await import('./sw.js');
   fetchHandler = listeners.fetch;
+  installHandler = listeners.install;
 });
 
 // Ejecuta el handler fetch del SW real y devuelve la Response que entrega.
@@ -49,5 +52,29 @@ describe('sw.js — version.json siempre fresco', () => {
     vi.stubGlobal('fetch', async () => { throw new TypeError('offline'); });
     const res = await swFetch('/version.json');
     expect(await res.text()).toBe('{"commit":"old"}');
+  });
+});
+
+// GitHub Pages manda max-age=600: si el SW lee de la caché HTTP, una publicación
+// nueva puede guardar un precam.js nuevo junto a un messages.js viejo y la app
+// no arranca (CAM-BUG-0025).
+describe('sw.js — nunca mezcla ficheros de dos publicaciones', () => {
+  it('al instalarse pide cada fichero del shell a la red, saltándose la caché HTTP', async () => {
+    const added = [];
+    vi.stubGlobal('caches', { open: async () => ({ add: async request => { added.push(request); } }) });
+    let installing;
+    installHandler({ waitUntil: promise => { installing = promise; } });
+    await installing;
+    expect(added.length).toBeGreaterThan(0);
+    expect(added.every(request => request.cache === 'reload')).toBe(true);
+    expect(added.map(request => request.url)).toContain(`${ORIGIN}/messages.js`);
+  });
+
+  it('al refrescar un estático en segundo plano revalida con el servidor', async () => {
+    vi.stubGlobal('caches', { open: async () => ({ match: async () => undefined, put: async () => {} }) });
+    const fetchMock = vi.fn(async () => new Response('nuevo'));
+    vi.stubGlobal('fetch', fetchMock);
+    await swFetch('/messages.js');
+    expect(fetchMock.mock.calls[0][1]).toEqual({ cache: 'no-cache' });
   });
 });
