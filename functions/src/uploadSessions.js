@@ -8,7 +8,7 @@
  */
 
 import { AdminError } from './adminHandlers.js';
-import { hashEventCode, reserveCodeUse } from './eventCodes.js';
+import { checkCodeUse, hashEventCode, reserveCodeUse } from './eventCodes.js';
 import { GoogleApiError } from './googleClient.js';
 import { uploadNames } from './uploadNames.js';
 
@@ -21,17 +21,23 @@ const REJECTED = {
   exhausted: 'Este código ya no admite más grabaciones.',
 };
 
-function validate(input) {
+/** Empresa y código bien formados; devuelve el hash del código. */
+function validateCode(input) {
   if (typeof input?.org !== 'string' || !SLUG.test(input.org)) throw new AdminError('invalid-argument', 'Empresa no válida.');
-  if (typeof input.speaker !== 'string' || !input.speaker.trim()) throw new AdminError('invalid-argument', 'Falta el nombre del ponente.');
-  if (input.size !== undefined && (!Number.isInteger(input.size) || input.size < 1 || input.size > MAX_BYTES)) {
-    throw new AdminError('invalid-argument', 'Tamaño no válido.');
-  }
   try {
     return hashEventCode(input.code);
   } catch {
     throw new AdminError('invalid-argument', 'Código no válido.');
   }
+}
+
+function validateSession(input) {
+  const codeHash = validateCode(input);
+  if (typeof input.speaker !== 'string' || !input.speaker.trim()) throw new AdminError('invalid-argument', 'Falta el nombre del ponente.');
+  if (input.size !== undefined && (!Number.isInteger(input.size) || input.size < 1 || input.size > MAX_BYTES)) {
+    throw new AdminError('invalid-argument', 'Tamaño no válido.');
+  }
+  return codeHash;
 }
 
 export function createUploadSessions({ db, google, unseal, ensureFolder, now, timestamp, newId, origin }) {
@@ -78,14 +84,31 @@ export function createUploadSessions({ db, google, unseal, ensureFolder, now, ti
     }
   }
 
-  async function createSession(_caller, input) {
-    const codeHash = validate(input);
-    const names = uploadNames({ speaker: input.speaker, title: input.title, mimeType: input.mimeType, nowMs: now() });
-    const { orgId } = await requireData(`orgSlugs/${input.org}`, new AdminError('not-found', 'Empresa no encontrada.'));
+  /** La empresa del slug, si está activa y con Drive. */
+  async function receivingOrg(slug) {
+    const { orgId } = await requireData(`orgSlugs/${slug}`, new AdminError('not-found', 'Empresa no encontrada.'));
     const org = await requireData(`orgs/${orgId}`, new AdminError('not-found', 'Empresa no encontrada.'));
     if (org.status !== 'active' || !org.drive?.connected) {
       throw new AdminError('failed-precondition', 'Esta empresa no puede recibir grabaciones ahora.');
     }
+    return { orgId, org };
+  }
+
+  /** Comprueba el código sin gastarlo: a qué empresa y evento irá la grabación (CAM-TSK-0155). */
+  async function describeCode(_caller, input) {
+    const codeHash = validateCode(input);
+    const { orgId, org } = await receivingOrg(input.org);
+    const codeDoc = (await db.doc(`orgs/${orgId}/codes/${codeHash}`).get()).data() ?? null;
+    const verdict = checkCodeUse(codeDoc, now());
+    if (!verdict.ok) throw new AdminError('permission-denied', REJECTED[verdict.reason]);
+    const event = await requireData(`orgs/${orgId}/events/${verdict.eventId}`, new AdminError('not-found', 'El evento ya no existe.'));
+    return { orgName: org.name, eventName: event.name, expiresAtMs: codeDoc.expiresAt.toMillis() };
+  }
+
+  async function createSession(_caller, input) {
+    const codeHash = validateSession(input);
+    const names = uploadNames({ speaker: input.speaker, title: input.title, mimeType: input.mimeType, nowMs: now() });
+    const { orgId, org } = await receivingOrg(input.org);
     const usageRef = usageRefFor(orgId); // el mismo día para reservar y para devolver
     const eventId = await reserve(orgId, org, codeHash, usageRef);
     try {
@@ -111,5 +134,5 @@ export function createUploadSessions({ db, google, unseal, ensureFolder, now, ti
     return { uploadId, sessionUri, orgName: org.name, eventName: event.name };
   }
 
-  return { createSession };
+  return { describeCode, createSession };
 }

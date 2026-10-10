@@ -66,3 +66,4 @@ const uploadSessions = () => buildUploadSessions({
 });
 
 export const createUploadSession = callable((caller, data) => uploadSessions().createSession(caller, data), { secrets: DRIVE_SECRETS });
+export const describeCode = callable((caller, data) => uploadSessions().describeCode(caller, data), { secrets: DRIVE_SECRETS });
