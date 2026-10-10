@@ -1307,6 +1307,14 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 .trim-range output { font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-strong); }
 .trim-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
 .trim-actions button { min-height: 44px; width: auto; }
+/* Descartar (CAM-TSK-0139): a la izquierda, lejos de «Descargar», y en rojo. */
+.trim-actions .trim-discard { margin-right: auto; color: var(--live); }
+.trim-confirm { margin-top: 1rem; padding: 0.75rem 1rem; border: 1px solid var(--live); border-radius: var(--radius-md); background: var(--live-soft); }
+.trim-confirm p { margin: 0 0 0.75rem; color: var(--ink-strong); }
+.trim-actions-row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.75rem; }
+.trim-actions-row button { min-height: 44px; width: auto; }
+.trim-confirm .trim-confirm-yes { color: var(--live); }
+.trim-actions[hidden], .trim-confirm[hidden] { display: none; } /* el display: flex de arriba no puede ganar a hidden */
 
 /* ─── Ocultar controles durante la grabación ─────────────────── */
 /* Con body.chrome-hidden se ocultan los controles de la app para que no salgan

@@ -421,7 +421,7 @@
       <p class="help-meta app-version" id="appVersion" aria-live="polite"></p>
     </dialog>
 
-    <!-- Recorte al parar la grabación (CAM-TSK-0128): cerrar con Esc descarga entero. -->
+    <!-- Recorte al parar la grabación (CAM-TSK-0128): cerrar con Esc descarga entera. -->
     <dialog id="trimDialog" class="help-dialog trim-dialog" aria-labelledby="trimTitle">
       <h2 id="trimTitle" data-i18n="trim.title">Your recording</h2>
       <p data-i18n="trim.intro">Trim the start and the end if you like, then download it.</p>
@@ -438,8 +438,18 @@
           <output id="trimEndTime" for="trimEnd">0:00</output>
         </div>
         <div class="trim-actions">
+          <button type="button" class="row-btn trim-discard" data-i18n="trim.discard">Discard</button>
           <button type="submit" value="full" class="row-btn" data-i18n="trim.full">Download whole</button>
           <button type="submit" value="trim" class="start-button" data-i18n="trim.download">Download</button>
+        </div>
+        <!-- Descartar (CAM-TSK-0139): dos confirmaciones; Esc sigue descargando entera. -->
+        <div class="trim-confirm" aria-live="polite" hidden>
+          <p data-step="1" data-i18n="trim.discardAsk">Discard this recording? It won't be downloaded.</p>
+          <p data-step="2" data-i18n="trim.discardSure" hidden>It will be deleted for good and can't be recovered. Sure?</p>
+          <div class="trim-actions-row">
+            <button type="button" class="row-btn trim-confirm-no" data-i18n="trim.discardNo">No, keep it</button>
+            <button type="button" class="row-btn trim-confirm-yes" data-i18n="trim.discardYes">Yes, discard</button>
+          </div>
         </div>
       </form>
     </dialog>

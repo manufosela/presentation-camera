@@ -10,7 +10,7 @@ beforeEach(() => setLang('es', null));
 // La descarga llega tras el diálogo de recorte (asíncrono, CAM-TSK-0129).
 const settle = () => new Promise(resolve => setTimeout(resolve, 0));
 
-function setup({ startFails = false, chapters, countdown, micId = null, review, trim } = {}) {
+function setup({ startFails = false, chapters, countdown, micId = null, review, trim, discardSaved } = {}) {
   const calls = { chrome: [], status: [], downloads: [], blobs: [], changes: 0 };
   let options = null;
   const startRecording = vi.fn(async opts => {
@@ -39,6 +39,7 @@ function setup({ startFails = false, chapters, countdown, micId = null, review, 
     getMicId: () => micId,
     review,
     trim,
+    discardSaved,
   });
   return { flow, calls, startRecording, emitError: error => options.onError(error) };
 }
@@ -100,6 +101,29 @@ describe('createRecordingFlow — grabar la sesión', () => {
     await settle();
     expect(calls.status.at(-1)).toEqual(['No se pudo recortar: se descarga entera.', true]);
     expect(await calls.blobs[0].text()).toBe('vídeo');
+  });
+
+  it('si se descarta (confirmado dos veces) no se descarga nada y se borra la copia (CAM-TSK-0139)', async () => {
+    const discardSaved = vi.fn(async () => {});
+    const trim = vi.fn();
+    const { flow, calls } = setup({ review: async () => ({ discard: true }), trim, discardSaved,
+      chapters: { track: { start() {}, finish: () => ({ toVtt: () => 'WEBVTT\n' }) }, current: () => null } });
+    await flow.start();
+    flow.stop();
+    await settle();
+    expect(calls.downloads).toEqual([]);
+    expect(trim).not.toHaveBeenCalled();
+    expect(discardSaved).toHaveBeenCalledOnce();
+    expect(calls.status.at(-1)).toEqual(['Grabación descartada.', false]);
+  });
+
+  it('si no se puede borrar la copia, no se descarga y se avisa como error', async () => {
+    const { flow, calls } = setup({ review: async () => ({ discard: true }), discardSaved: async () => { throw new Error('opfs'); } });
+    await flow.start();
+    flow.stop();
+    await settle();
+    expect(calls.downloads).toEqual([]);
+    expect(calls.status.at(-1)).toEqual([expect.stringContaining('no se pudo borrar'), true]);
   });
 
   it('sin capítulos (el deck no avisó) solo se descarga el vídeo', async () => {
