@@ -89,8 +89,6 @@ describe('createCaptionsEngine — subtítulos estables (CAM-TSK-0116)', () => {
     const pending = new Map();
     const translator = { translate: vi.fn(text => new Promise(resolve => pending.set(text, resolve))) };
     engine.start('es', { translator });
-    interim('ho');
-    expect(translator.translate).not.toHaveBeenCalled(); // lo provisional no se traduce
     final('hola');
     final('adiós');
     await Promise.resolve();
@@ -99,6 +97,47 @@ describe('createCaptionsEngine — subtítulos estables (CAM-TSK-0116)', () => {
     await vi.waitFor(() => expect(translator.translate).toHaveBeenCalledTimes(2));
     pending.get('adiós')('bye');
     await vi.waitFor(() => expect(engine.snapshot().lines.map(line => line.translation)).toEqual(['hello', 'bye']));
+  });
+
+  it('mientras se habla traduce lo provisional, solo la última versión y sin pisar la final (CAM-TSK-0159)', async () => {
+    const { engine, final, interim } = setup();
+    const pending = new Map();
+    const translator = { translate: vi.fn(text => new Promise(resolve => pending.set(text, resolve))) };
+    engine.start('es', { translator });
+    interim('hola');
+    interim('hola a');
+    interim('hola a todos');
+    expect(translator.translate.mock.calls.map(([text]) => text)).toEqual(['hola']);
+    pending.get('hola')('hello');
+    await vi.waitFor(() => expect(translator.translate.mock.calls.map(([text]) => text)).toEqual(['hola', 'hola a todos']));
+    expect(engine.snapshot().lines[0]).toMatchObject({ text: 'hola a todos', final: false, translation: 'hello' });
+    final('hola a todos');
+    await vi.waitFor(() => expect(translator.translate).toHaveBeenCalledTimes(3));
+    pending.get('hola a todos')('hello everyone');
+    await vi.waitFor(() => expect(engine.snapshot().lines[0]).toMatchObject({ final: true, translation: 'hello everyone' }));
+  });
+
+  it('una traducción provisional tardía no pisa la de la frase final', async () => {
+    const { engine, final, interim } = setup();
+    let lateInterim;
+    const translator = { translate: vi.fn(text => (text === 'hol' ? new Promise(r => { lateInterim = r; }) : Promise.resolve('hello'))) };
+    engine.start('es', { translator });
+    interim('hol');
+    final('hola');
+    await vi.waitFor(() => expect(engine.snapshot().lines[0].translation).toBe('hello'));
+    lateInterim('hol-en');
+    await new Promise(r => setTimeout(r, 0));
+    expect(engine.snapshot().lines[0].translation).toBe('hello');
+  });
+
+  it('una traducción provisional colgada no bloquea la sesión siguiente', async () => {
+    const { engine, interim } = setup();
+    engine.start('es', { translator: { translate: () => new Promise(() => {}) } });
+    interim('hola');
+    engine.stop();
+    engine.start('es', { translator: { translate: async text => `[en] ${text}` } });
+    interim('adiós');
+    await vi.waitFor(() => expect(engine.snapshot().lines[0].translation).toBe('[en] adiós'));
   });
 
   it('al parar, las traducciones pendientes se descartan', async () => {

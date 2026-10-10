@@ -16,7 +16,7 @@ export function renderCaptions(overlay, snapshot, { translated = false } = {}) {
   overlay.replaceChildren(...snapshot.lines.map(line => {
     const element = document.createElement('p');
     const text = translated ? line.translation ?? line.text : line.text;
-    const pending = translated ? line.translation == null : !line.final;
+    const pending = !line.final || (translated && line.translation == null);
     element.className = 'caption-line';
     element.classList.toggle('is-pending', pending);
     element.textContent = text;
