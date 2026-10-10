@@ -12,7 +12,7 @@ import { defineSecret } from 'firebase-functions/params';
 import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
 import { createAdminHandlers } from './src/adminHandlers.js';
 import { wrapHandler } from './src/callable.js';
-import { buildDriveConnect } from './src/driveSetup.js';
+import { buildDriveConnect, buildUploadSessions } from './src/driveSetup.js';
 
 const GOOGLE_CLIENT_SECRET = defineSecret('GOOGLE_CLIENT_SECRET');
 const ORG_TOKEN_KEY = defineSecret('ORG_TOKEN_KEY');
@@ -54,3 +54,15 @@ export const driveDisconnect = callable((caller, data) => driveConnect().disconn
 export const driveConnectCallback = onRequest({ secrets: DRIVE_SECRETS }, async (request, response) => {
   response.redirect(302, await driveConnect().callback(request.query));
 });
+
+// Sesiones de subida (CAM-TSK-0152): sin sesión; el código de evento es la autorización.
+const uploadSessions = () => buildUploadSessions({
+  db, fetch,
+  clientSecret: GOOGLE_CLIENT_SECRET.value(),
+  tokenKey: ORG_TOKEN_KEY.value(),
+  now: () => Date.now(),
+  timestamp: ms => Timestamp.fromMillis(ms),
+  newId: () => db.collection('uploads').doc().id,
+});
+
+export const createUploadSession = callable((caller, data) => uploadSessions().createSession(caller, data), { secrets: DRIVE_SECRETS });

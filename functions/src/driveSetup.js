@@ -5,23 +5,38 @@
  */
 
 import { createDriveConnect } from './driveConnect.js';
+import { ensureEventFolder } from './driveFolders.js';
 import { createGoogleClient } from './googleClient.js';
 import { decryptToken, encryptToken } from './tokenCrypto.js';
+import { createUploadSessions } from './uploadSessions.js';
 
 export const DRIVE = Object.freeze({
   clientId: '914471047423-tef6cogd95op5rn6lu35omqoo26cq8dv.apps.googleusercontent.com',
   redirectUri: 'https://europe-west1-precam-app.cloudfunctions.net/driveConnectCallback',
   panelUrl: 'https://onsli.de/empresa.html',
+  appOrigin: 'https://onsli.de', // el navegador que sube los trozos (CORS de la sesión)
 });
 
-export function buildDriveConnect({ db, fetch, clientSecret, tokenKey, randomBytes, now, timestamp }) {
+/** Cliente de Google y cifrado con los secretos; falla si falta alguno. */
+function withSecrets({ fetch, clientSecret, tokenKey }) {
   if (!clientSecret) throw new Error('Falta GOOGLE_CLIENT_SECRET.');
   if (Buffer.from(tokenKey ?? '', 'base64').length !== 32) throw new Error('ORG_TOKEN_KEY no es una clave de 32 bytes.');
-  return createDriveConnect({
-    db,
+  return {
     google: createGoogleClient({ fetch, clientId: DRIVE.clientId, clientSecret, redirectUri: DRIVE.redirectUri }),
     seal: (token, orgId) => encryptToken(token, { keyBase64: tokenKey, orgId }),
     unseal: (sealed, orgId) => decryptToken(sealed, { keyBase64: tokenKey, orgId }),
-    randomBytes, now, timestamp, panelUrl: DRIVE.panelUrl,
+  };
+}
+
+export function buildDriveConnect({ db, fetch, clientSecret, tokenKey, randomBytes, now, timestamp }) {
+  return createDriveConnect({
+    db, ...withSecrets({ fetch, clientSecret, tokenKey }), randomBytes, now, timestamp, panelUrl: DRIVE.panelUrl,
+  });
+}
+
+export function buildUploadSessions({ db, fetch, clientSecret, tokenKey, now, timestamp, newId }) {
+  const { google, unseal } = withSecrets({ fetch, clientSecret, tokenKey });
+  return createUploadSessions({
+    db, google, unseal, ensureFolder: ensureEventFolder, now, timestamp, newId, origin: DRIVE.appOrigin,
   });
 }
