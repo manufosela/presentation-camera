@@ -1299,6 +1299,14 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 }
 .caption-line.is-pending { color: oklch(0.85 0 0); font-style: italic; }
 
+/* Grabación para una empresa (CAM-TSK-0106) */
+.enterprise-setup { display: grid; gap: 0.6rem; }
+.enterprise-setup[hidden] { display: none; }
+.enterprise-field { display: grid; gap: 0.25rem; color: var(--ink-body); font-size: 0.9rem; }
+.enterprise-setup .row-btn { justify-self: start; min-height: 44px; }
+.enterprise-status { margin: 0; color: var(--ink-strong); }
+.enterprise-status.error { color: var(--live); }
+
 /* Recorte al parar la grabación (CAM-TSK-0128) */
 .trim-dialog { width: min(720px, calc(100% - 2rem)); }
 .trim-video { display: block; width: 100%; aspect-ratio: 16 / 9; margin: 0.75rem 0; background: #000; border-radius: var(--radius-lg); }
