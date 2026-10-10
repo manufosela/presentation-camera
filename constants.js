@@ -23,4 +23,5 @@ export const STORAGE_KEYS = Object.freeze({
   theme: 'cam.theme.v1', // también en theme.js (script clásico, no puede importar)
   lang: 'cam.lang.v1',
   captions: 'cam.captions.v1',
+  enterprise: 'cam.enterprise.v1', // en sessionStorage: código, ponente y título (CAM-TSK-0106)
 });
