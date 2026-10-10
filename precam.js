@@ -147,6 +147,7 @@ const recording = createRecordingFlow({
   // Al parar, elegir inicio y fin antes de descargar (CAM-TSK-0129).
   review: ({ blob, durationSec }) => openTrimDialog({ dialog: document.getElementById('trimDialog'), blob, durationSec }),
   trim: trimRecording,
+  discardSaved: () => createRecordingStore().discardFinished(), // CAM-TSK-0139
 });
 // Subtítulos en el setup (CAM-TSK-0133): preferencias, soporte y descarga del idioma.
 const captionsSetup = createCaptionsSetup({

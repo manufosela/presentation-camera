@@ -38,6 +38,18 @@ describe('recordingStore — grabación en trozos confirmados (CAM-TSK-0095)', (
     expect(await text(new Blob(parts))).toBe('parte guardada');
   });
 
+  it('descartar borra ya las terminadas y deja las que quedaron a medias (CAM-TSK-0139)', async () => {
+    const done = await store.startSession({ mimeType: 'video/webm', startedAt: 1000 });
+    await done.append(new Blob(['x']));
+    await done.finish();
+    const unfinished = await store.startSession({ mimeType: 'video/webm', startedAt: 2000 });
+    await unfinished.append(new Blob(['y']));
+    await done.finish(); // al parar, la sesión queda terminada
+    await unfinished.append(new Blob(['z']));
+    await store.discardFinished();
+    expect(await sessionNames()).toEqual(['rec-2000']);
+  });
+
   it('una nueva sesión borra las terminadas, no las que quedaron a medias', async () => {
     const done = await store.startSession({ mimeType: 'video/webm', startedAt: 1000 });
     await done.append(new Blob(['x']));

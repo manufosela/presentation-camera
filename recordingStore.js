@@ -92,6 +92,11 @@ export function createRecordingStore(getRoot = () => navigator.storage.getDirect
       return pending.toSorted((a, b) => b.startedAt - a.startedAt); // la más reciente primero
     },
 
+    /** Al descartar una grabación ya parada: se borra ahora, no al grabar otra (CAM-TSK-0139). */
+    async discardFinished() {
+      await removeFinished(await recordingsDir());
+    },
+
     async startSession({ mimeType, startedAt }) {
       const recordings = await recordingsDir();
       await removeFinished(recordings);

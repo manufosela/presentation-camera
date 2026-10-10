@@ -23,6 +23,7 @@ export function createRecordingFlow({
   getMicId = () => null, // micrófono elegido en el setup (CAM-TSK-0101)
   review = async () => null, // diálogo de recorte: { startSec, endSec } o null = entera (CAM-TSK-0129)
   trim = null, // trimRecording (recordingTrim.js)
+  discardSaved = async () => {}, // borra la copia en disco al descartar (CAM-TSK-0139)
 }) {
   let controller = null;
   const isRecording = () => controller !== null;
@@ -35,6 +36,16 @@ export function createRecordingFlow({
     let chapterRange;
     try {
       const range = await review({ blob, durationSec: durationMs / 1000 });
+      if (range?.discard) { // confirmado dos veces en el diálogo: ni vídeo ni capítulos
+        try {
+          await discardSaved();
+          showStatus(t('trim.discarded'), false);
+        } catch (error) { // no se descarga igualmente; la copia se borrará al grabar otra
+          logger.error(error);
+          showStatus(t('trim.discardFailed'), true);
+        }
+        return;
+      }
       if (range) {
         const trimmed = await trim(blob, range);
         video = trimmed.blob;
