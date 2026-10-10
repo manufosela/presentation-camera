@@ -29,6 +29,11 @@ describe('renderCaptions — subtítulos sobre la presentación (CAM-TSK-0118)',
     expect(shown()).toEqual([{ text: 'hello', pending: false }, { text: 'adiós', pending: true }]);
   });
 
+  it('traduciendo, la traducción de una frase aún provisional se marca como pendiente (CAM-TSK-0159)', () => {
+    renderCaptions(overlay, snap([{ id: 1, text: 'hola a to', final: false, translation: 'hello' }]), { translated: true });
+    expect(shown()).toEqual([{ text: 'hello', pending: true }]);
+  });
+
   it('el texto se pinta como texto, nunca como HTML', () => {
     renderCaptions(overlay, snap([{ id: 1, text: '<img src=x onerror=alert(1)>', final: true }]));
     expect(overlay.querySelector('img')).toBeNull();

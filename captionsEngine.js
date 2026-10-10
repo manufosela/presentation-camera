@@ -46,6 +46,35 @@ export function createCaptionsEngine({ createRecognizer, maxLines = 2, onChange 
     queue = queue.then(() => translateLine(current, id, text));
   }
 
+  // Lo provisional (CAM-TSK-0159) se traduce mientras se habla, sin cola: si
+  // llegan versiones nuevas mientras traduce, solo cuenta la más reciente. Su
+  // traducción no pisa la de la frase final; si falla, ya avisará la final.
+  let latestInterim = null;
+  let pumping = 0; // sesión cuya traducción provisional está en marcha
+  async function pumpInterim(current) {
+    const job = latestInterim;
+    if (!job || current !== session) {
+      if (pumping === current) pumping = 0;
+      return;
+    }
+    latestInterim = null;
+    try {
+      const translation = await translator.translate(job.text);
+      if (current === session && lines.some(line => line.id === job.id && !line.final)) {
+        setTranslation(job.id, translation);
+        changed();
+      }
+    } catch { /* provisional: la traducción final informa del fallo */ }
+    await pumpInterim(current); // la versión más reciente que llegó mientras tanto
+  }
+
+  function translateInterim(id, text) {
+    latestInterim = { id, text };
+    if (pumping === session) return;
+    pumping = session;
+    pumpInterim(session);
+  }
+
   function put(text, final) {
     const last = lines.at(-1);
     let id = nextId;
@@ -57,7 +86,9 @@ export function createCaptionsEngine({ createRecognizer, maxLines = 2, onChange 
     }
     lines = lines.slice(-maxLines);
     changed();
-    if (final && translator) translate(id, text);
+    if (!translator) return;
+    if (final) translate(id, text);
+    else translateInterim(id, text);
   }
 
   function fail(code) {
@@ -76,6 +107,7 @@ export function createCaptionsEngine({ createRecognizer, maxLines = 2, onChange 
       translator = lineTranslator;
       translationError = null;
       queue = Promise.resolve(); // cola propia: lo colgado de otra sesión no la bloquea
+      latestInterim = null;
       const current = session;
       const live = handler => (...args) => { if (current === session && status === 'listening') handler(...args); };
       lines = [];
