@@ -92,6 +92,25 @@ describe('startScreenRecording', () => {
     expect(await stopped).toBeInstanceOf(Blob);
   });
 
+  it('por defecto pide la pestaña actual (presentación)', async () => {
+    const ctrl = await startScreenRecording({ withMic: false, withSystemAudio: false });
+    expect(navigator.mediaDevices.getDisplayMedia.mock.calls[0][0]).toMatchObject({ preferCurrentTab: true });
+    ctrl.stop();
+  });
+
+  it('con surface screen ofrece pantalla, ventana o pestaña, sugiere la pantalla y no la propia pestaña (CAM-TSK-0163)', async () => {
+    const ctrl = await startScreenRecording({ withMic: false, withSystemAudio: true, surface: 'screen' });
+    const request = navigator.mediaDevices.getDisplayMedia.mock.calls[0][0];
+    expect(request).not.toHaveProperty('preferCurrentTab');
+    expect(request).toMatchObject({
+      video: { frameRate: 30, displaySurface: 'monitor' },
+      audio: true,
+      selfBrowserSurface: 'exclude',
+      systemAudio: 'include',
+    });
+    ctrl.stop();
+  });
+
   it('pide un fotograma clave por segundo, para poder recortar al segundo (CAM-TSK-0111)', async () => {
     let options;
     let timeslice;

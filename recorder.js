@@ -90,6 +90,19 @@ async function requestMic(deviceId) {
 // la precisión del recorte (mp4Trim.js).
 const SLICE_MS = 1000;
 
+// Qué se pide al navegador: la pestaña de la presentación o, para grabar demos
+// fuera de onslide (CAM-TSK-0163), su selector completo sugiriendo la pantalla
+// entera y sin la propia pestaña de onslide.
+const CAPTURE_REQUESTS = {
+  tab: withSystemAudio => ({ video: { frameRate: 30 }, audio: withSystemAudio, preferCurrentTab: true }),
+  screen: withSystemAudio => ({
+    video: { frameRate: 30, displaySurface: 'monitor' },
+    audio: withSystemAudio,
+    selfBrowserSurface: 'exclude',
+    systemAudio: 'include',
+  }),
+};
+
 /**
  * Inicia una grabación de pantalla/pestaña con audio mezclado (micrófono +
  * sistema). Devuelve un controlador { stop, state, mimeType }. onStop recibe el
@@ -104,6 +117,7 @@ export async function startScreenRecording({
   withMic = true,
   micDeviceId = null, // el elegido en el setup (CAM-TSK-0101); null = predeterminado
   withSystemAudio = true,
+  surface = 'tab', // 'tab' (la presentación) | 'screen' (pantalla, ventana o pestaña)
   onStop,
   onError,
   beforeStart = async () => {}, // tras aceptar la captura, antes de grabar (cuenta atrás)
@@ -111,11 +125,9 @@ export async function startScreenRecording({
   if (!navigator.mediaDevices?.getDisplayMedia) {
     throw new Error(t('error.noScreenCapture'));
   }
-  const displayStream = await navigator.mediaDevices.getDisplayMedia({
-    video: { frameRate: 30 },
-    audio: withSystemAudio,
-    preferCurrentTab: true,
-  });
+  const request = CAPTURE_REQUESTS[surface];
+  if (!request) throw new Error(`superficie de captura desconocida: ${surface}`);
+  const displayStream = await navigator.mediaDevices.getDisplayMedia(request(withSystemAudio));
 
   const tracks = [...displayStream.getVideoTracks()];
   const audioInputs = [];
