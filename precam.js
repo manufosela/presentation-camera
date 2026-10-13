@@ -58,6 +58,8 @@ import { deriveSourceTitle, hostnameOf, sanitizePresentationUrl } from './urlUti
 import { BLUR_BACKGROUND_ID, STORAGE_KEYS, SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startMainLink } from './linkChannel.js';
 import { onActiveDeckLoaded } from './deckLoadNotice.js';
+import { openCameraBubble } from './cameraBubble.js';
+import { createScreenSession } from './screenSession.js';
 import {
   buildQuery,
   parseQuery,
@@ -136,21 +138,40 @@ const localBlobUrls = new Map();
 // activada, persistida).
 // Capítulos con el tiempo grabado (sin pausas), no el del reloj.
 const chapterTrack = createChapterTrack({ now: () => recording.elapsed() });
-const recording = createRecordingFlow({
-  startRecording: startScreenRecording,
+// Micrófono y guardado (recorte, descarte, descarga): iguales para la
+// presentación y para la pantalla entera.
+const recordingCommon = {
   download: downloadBlob,
-  setChromeHidden: hidden => setChromeHidden(hidden),
   showStatus: (message, isError) => showStatus(message, isError),
-  onChange: () => updateRecordButton(),
-  // Capítulos por diapositiva (CAM-TSK-0097): la de partida, si el deck ya la dijo.
-  chapters: { track: chapterTrack, current: () => (deckSlideReported ? chapterLabel(deckSlide) : null) },
-  countdown: () => runCountdown(document.getElementById('countdown'), 3),
   getMicId: () => readMicId(),
   // Al parar, elegir inicio y fin antes de descargar (CAM-TSK-0129).
   review: ({ blob, durationSec }) => openTrimDialog({ dialog: document.getElementById('trimDialog'), blob, durationSec }),
   trim: trimRecording,
   discardSaved: () => createRecordingStore().discardFinished(), // CAM-TSK-0139
+};
+const recording = createRecordingFlow({
+  ...recordingCommon,
+  startRecording: startScreenRecording,
+  setChromeHidden: hidden => setChromeHidden(hidden),
+  onChange: () => updateRecordButton(),
+  // Capítulos por diapositiva (CAM-TSK-0097): la de partida, si el deck ya la dijo.
+  chapters: { track: chapterTrack, current: () => (deckSlideReported ? chapterLabel(deckSlide) : null) },
+  countdown: () => runCountdown(document.getElementById('countdown'), 3),
 });
+// Grabar la pantalla entera con la burbuja de cámara (CAM-TSK-0165), como Loom.
+const screenSession = createScreenSession({
+  openBubble: actions => openCameraBubble({ styleHref: new URL('cameraBubble.css', import.meta.url).href, ...actions }),
+  requestCamera: () => requestVideoStream(),
+  createFlow: onChange => createRecordingFlow({
+    ...recordingCommon,
+    startRecording: options => startScreenRecording({ ...options, surface: 'screen' }),
+    setChromeHidden: () => {}, // onslide no sale en lo grabado: nada que ocultar
+    onChange,
+  }),
+  showStatus: (message, isError) => showStatus(message, isError),
+  focusApp: () => globalThis.focus(),
+});
+document.getElementById('screenRecordButton').addEventListener('click', () => screenSession.open());
 // Subtítulos en el setup (CAM-TSK-0133): preferencias, soporte y descarga del idioma.
 const captionsSetup = createCaptionsSetup({
   elements: {

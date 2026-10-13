@@ -64,6 +64,16 @@ describe('openCameraBubble — burbuja de cámara flotante (CAM-TSK-0164)', () =
     expect(actions.onClose).toHaveBeenCalledOnce();
   });
 
+  it('la cámara puede llegar después de abrir (el permiso de cámara tarda más que el del clic, CAM-TSK-0165)', async () => {
+    const { win, pip, track, stream, actions } = setup();
+    const bubble = await openCameraBubble({ pip, styleHref: CSS, ...actions });
+    expect(win.document.querySelector('video').srcObject).toBeNull();
+    bubble.showCamera(stream);
+    expect(win.document.querySelector('video').srcObject).toBe(stream);
+    bubble.close();
+    expect(track.stop).toHaveBeenCalled();
+  });
+
   it('sin Document Picture-in-Picture falla con un mensaje claro', async () => {
     const { stream, actions } = setup();
     await expect(openCameraBubble({ pip: undefined, camera: stream, styleHref: CSS, ...actions }))

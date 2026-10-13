@@ -22,7 +22,7 @@ function createButton(doc, action, onClick) {
 
 export async function openCameraBubble({
   pip = globalThis.documentPictureInPicture,
-  camera,
+  camera = null, // o luego con showCamera: el permiso de cámara puede tardar más que el del clic
   styleHref,
   onRecord,
   onPause,
@@ -41,7 +41,13 @@ export async function openCameraBubble({
 
   const video = doc.createElement('video');
   video.className = 'bubble-camera';
-  Object.assign(video, { autoplay: true, muted: true, playsInline: true, srcObject: camera });
+  Object.assign(video, { autoplay: true, muted: true, playsInline: true });
+  let current = null;
+  const showCamera = stream => {
+    current = stream;
+    video.srcObject = stream;
+  };
+  if (camera) showCamera(camera);
 
   const handlers = { record: onRecord, pause: onPause, stop: onStop };
   const buttons = Object.fromEntries(ACTIONS.map(action => [action, createButton(doc, action, () => handlers[action]())]));
@@ -66,9 +72,9 @@ export async function openCameraBubble({
   win.addEventListener('pagehide', () => { // la cierra la app o el usuario
     if (closed) return;
     closed = true;
-    for (const track of camera.getTracks()) track.stop();
+    for (const track of current?.getTracks() ?? []) track.stop();
     onClose();
   });
 
-  return { setState, close: () => win.close() };
+  return { setState, showCamera, close: () => win.close() };
 }

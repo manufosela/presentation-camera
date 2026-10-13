@@ -96,6 +96,7 @@ export const MESSAGES = {
   'footer.singleKey': { es: 'Atajos de una tecla (desactívalos si dictas por voz)', en: 'Single-key shortcuts (turn them off if you dictate by voice)' },
   'footer.goLive': { es: 'Empezar a presentar', en: 'Start presenting' },
   'footer.pickFirst': { es: 'Elige una presentación para empezar.', en: 'Choose a presentation to start.' },
+  'footer.screenRecord': { es: 'Grabar la pantalla con tu cámara', en: 'Record your screen with your camera' },
   'footer.license': { es: 'Licencia MIT', en: 'MIT License' },
   'footer.privacy': { es: 'Privacidad', en: 'Privacy' },
   'footer.terms': { es: 'Condiciones', en: 'Terms' },
