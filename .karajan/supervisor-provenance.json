@@ -1,6 +1,6 @@
 {
-  "kj_version": "4.48.1",
-  "generated_at": "2026-10-10T21:02:29.372Z",
+  "kj_version": "4.49.4",
+  "generated_at": "2026-10-13T04:43:29.794Z",
   "generation": {
     "profile": "standard",
     "cmds": {},
@@ -23,7 +23,7 @@
     },
     {
       "file": ".karajan/harness/pretooluse-sentinel.mjs",
-      "sha256": "44705c90f476605dd2083694b13ccba7378c39c33391f07aeab89b686de05302"
+      "sha256": "c35e722cf3a82f3f0e239f4563ad1765b7c12e9dd4cabdef4e0a334b51e67934"
     },
     {
       "file": ".karajan/harness/pretooluse.mjs",
@@ -51,7 +51,7 @@
     },
     {
       "file": ".karajan/harness/sentinel-shell.mjs",
-      "sha256": "3fe9c7f3856e0e6403a47f2f7bb5f4614d4693dcb5938530929eeb7857c222c9"
+      "sha256": "fe82826d7018d849abf6b4c1ef6bdd021ecae6a3d050e07ed31ba05f1871de96"
     },
     {
       "file": ".karajan/harness/sessionstart.mjs",
@@ -83,15 +83,15 @@
     }
   ],
   "signature": {
-    "cid": "48fc7c12e451e573f9ca60a741955617",
-    "nonce": "ca7d55e4614767016e0d18ce1f63958c",
+    "cid": "086da5206599d9bca52778a4ff34acda",
+    "nonce": "e26671076011780c9bad122e3636f644",
     "project": "presentation_camera",
-    "filesHash": "41ab784a4b6d4a8bced944ce13085de1ca936853616ec57d0533bd44aed2b87c",
+    "filesHash": "17ee80e4ad32d7e4b79cd2feb12f4579b54e10407a473a74aa1cd1382fa2f01a",
     "v": 2,
-    "kjVersion": "4.48.1",
-    "issuedMs": 1791666138135,
-    "expiresMs": 1791666198135,
+    "kjVersion": "4.49.4",
+    "issuedMs": 1791866601391,
+    "expiresMs": 1791866661391,
     "signer": "EgMc2b95g5nUh8e6LDCeLjv7G69cQaszUCIy+3aLpPQ=",
-    "signature": "/ZHhOp/mg+Tevpzi5ArrH93P1g8daplt1XiaZutO/zFP9GQHQXodYu1NuUufqOq+1K5QEj0MzgOTGTdqG5jKBQ=="
+    "signature": "gUCQZvpgEvGg4dFLTHs9quMHGZEJLcI1g7gAIQKwvuk7CRNLN1hrFQc/jKm9lxEBoo4IETcNxO3Q1bTah2FmAQ=="
   }
 }
