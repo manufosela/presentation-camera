@@ -20,7 +20,8 @@ const withTimeout = (promise, ms) => Promise.race([
 export function createRemoteHost({
   qrImage, urlLink, status, pageUrl, onCommand, onPhoneLost = () => {}, t,
   newSessionId = createSessionId,
-  loadQr = () => import('./vendor-dl/qrcode/qrcode.mjs'),
+  // URL calculada, como pdf.js: el fichero lo descarga fetch-assets y no está en git.
+  loadQr = () => import(new URL('vendor-dl/qrcode/qrcode.mjs', document.baseURI).href),
   loadRtdb = loadRemoteDatabase,
 }) {
   let opening = null;
