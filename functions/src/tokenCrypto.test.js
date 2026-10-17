@@ -23,7 +23,10 @@ describe('tokenCrypto — refresh token cifrado por empresa (CAM-TSK-0104)', () 
     const otherKey = randomBytes(32).toString('base64');
     expect(() => decryptToken(sealed, { keyBase64: otherKey, orgId: 'org1' })).toThrow();
     expect(() => decryptToken(sealed, { keyBase64: key, orgId: 'org2' })).toThrow();
-    const tampered = { ...sealed, ciphertext: Buffer.from('x').toString('base64') };
+    // Invertir un bit del cifrado real: sustituirlo por otro byte fijo coincidía 1 de cada 256 veces (CAM-BUG-0026).
+    const flipped = Buffer.from(sealed.ciphertext, 'base64');
+    flipped[0] ^= 1;
+    const tampered = { ...sealed, ciphertext: flipped.toString('base64') };
     expect(() => decryptToken(tampered, { keyBase64: key, orgId: 'org1' })).toThrow();
   });
 
