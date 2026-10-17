@@ -25,6 +25,18 @@ describe('droppedEntry — qué se ha soltado en la vista previa (CAM-TSK-0091)'
     expect(await droppedEntry(transfer([item({ file })]))).toEqual({ kind: 'file', file });
   });
 
+  it('varios ficheros: todos, para montar un deck de imágenes (CAM-TSK-0014)', async () => {
+    const files = [new File(['a'], '1.png'), new File(['b'], '2.png')];
+    expect(await droppedEntry(transfer(files.map(file => item({ handle: { kind: 'file' }, file })))))
+      .toEqual({ kind: 'files', files });
+  });
+
+  it('una carpeta junto con otros ficheros no se admite: no se pierde la carpeta en silencio', async () => {
+    const dir = { kind: 'directory', name: 'taller' };
+    const png = new File(['a'], '1.png');
+    expect(await droppedEntry(transfer([item({ handle: dir }), item({ handle: { kind: 'file' }, file: png })]))).toBeNull();
+  });
+
   it('nada que importar (texto arrastrado, vacío)', async () => {
     expect(await droppedEntry(transfer([{ kind: 'string' }]))).toBeNull();
     expect(await droppedEntry(transfer([]))).toBeNull();
