@@ -34,7 +34,7 @@ jobs:
             --exclude 'sonar-project.properties' --exclude 'start.sh' \
             --exclude 'scripts' --exclude 'models' --exclude 'vendor-dl' --exclude 'test-support' \
             --exclude 'functions' --exclude 'firestore-tests' --exclude 'firebase.json' \
-            --exclude 'firestore.rules' --exclude 'firestore.indexes.json' --exclude 'vitest*.config.js'
+            --exclude 'firestore.rules' --exclude 'firestore.indexes.json' --exclude 'database.rules.json' --exclude 'vitest*.config.js'
 
       # El modelo del recorte y pdf.js se sirven desde el propio sitio; el
       # script verifica cada sha256 y falla si alguno no coincide.

@@ -9,7 +9,7 @@
     "check": "node --check precam.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-onslide \"vitest run --config vitest.rules.config.js\"",
+    "test:rules": "firebase emulators:exec --only firestore,database --project demo-onslide \"vitest run --config vitest.rules.config.js\"",
     "fetch-assets": "node scripts/fetch-assets.js ."
   },
   "author": "@manufosela",

@@ -3,6 +3,9 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "database": {
+    "rules": "database.rules.json"
+  },
   "functions": [
     {
       "source": "functions",
@@ -13,6 +16,7 @@
   ],
   "emulators": {
     "firestore": { "port": 8085 },
+    "database": { "port": 9010 },
     "singleProjectMode": true
   }
 }

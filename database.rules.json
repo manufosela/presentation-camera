@@ -1,0 +1,34 @@
+{
+  "rules": {
+    "remote": {
+      "$id": {
+        ".read": "$id.matches(/^[A-Za-z0-9_-]{22}$/) && data.child('expiresAt').val() > now",
+        ".write": "$id.matches(/^[A-Za-z0-9_-]{22}$/) && (data.exists() ? data.child('expiresAt').val() > now : newData.child('expiresAt').val() <= now + 43200000)",
+        ".validate": "newData.hasChildren(['createdAt', 'expiresAt'])",
+        "createdAt": { ".validate": "newData.isNumber() && newData.val() <= now && (!data.exists() || newData.val() === data.val())" },
+        "expiresAt": { ".validate": "newData.isNumber() && newData.val() > now && (!data.exists() || newData.val() === data.val())" },
+        "desktop": {
+          "online": { ".validate": "newData.isBoolean()" },
+          "$other": { ".validate": false }
+        },
+        "phone": {
+          "online": { ".validate": "newData.isBoolean()" },
+          "$other": { ".validate": false }
+        },
+        "cmd": {
+          ".validate": "newData.hasChildren(['seq', 'name', 'sentAt'])",
+          "seq": { ".validate": "newData.isNumber()" },
+          "name": { ".validate": "newData.isString() && newData.val().matches(/^(next|prev|first|last|blackout)$/)" },
+          "sentAt": { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        },
+        "ack": {
+          ".validate": "newData.hasChildren(['seq'])",
+          "seq": { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}
