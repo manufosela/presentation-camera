@@ -103,7 +103,7 @@ describe('initI18n — arranque en la app y en el panel', () => {
 });
 
 describe('HTML — toda clave marcada existe en el catálogo', () => {
-  it.each(['index.html', 'panel.html'])('%s', file => {
+  it.each(['index.html', 'panel.html', 'remote.html'])('%s', file => {
     const html = readFileSync(file, 'utf8');
     const keys = [
       ...[...html.matchAll(/data-i18n="([^"]+)"/g)].map(([, key]) => key),
