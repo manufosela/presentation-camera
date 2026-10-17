@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="referrer" content="no-referrer" />
+    <title data-i18n="remote.docTitle">Mando · onslide</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="precam.css" />
+    <link rel="stylesheet" href="remote.css" />
+  </head>
+  <body class="remote-body">
+    <header class="remote-bar">
+      <h1 class="remote-title">onslide · mando</h1>
+      <button id="langBtn" class="lang-btn" type="button"></button>
+    </header>
+    <main class="remote-main">
+      <output class="remote-status" id="remoteStatus" aria-live="polite" data-i18n="remote.connecting">Conectando…</output>
+      <div class="remote-pad">
+        <button class="remote-btn" type="button" data-command="prev" data-i18n="remote.prev" disabled>Anterior</button>
+        <button class="remote-btn remote-btn-main" type="button" data-command="next" data-i18n="remote.next" disabled>Siguiente</button>
+      </div>
+      <div class="remote-row">
+        <button class="remote-btn" type="button" data-command="first" data-i18n="remote.first" disabled>Primera</button>
+        <button class="remote-btn" type="button" data-command="blackout" data-i18n="remote.blackout" disabled>Negro</button>
+        <button class="remote-btn" type="button" data-command="last" data-i18n="remote.last" disabled>Última</button>
+      </div>
+      <p class="remote-latency" id="remoteLatency" aria-live="polite"></p>
+    </main>
+    <script type="module" src="remote.js"></script>
+  </body>
+</html>

@@ -242,6 +242,21 @@ export const MESSAGES = {
   'error.notPdf': { es: 'El fichero no es un PDF.', en: 'The file is not a PDF.' },
   'error.badPdf': { es: 'No se pudo leer el PDF: puede estar dañado o protegido.', en: 'Could not read the PDF: it may be damaged or protected.' },
 
+  // Mando desde el móvil (remote.html, CAM-TSK-0167)
+  'remote.docTitle': { es: 'Mando · onslide', en: 'Remote · onslide' },
+  'remote.connecting': { es: 'Conectando…', en: 'Connecting…' },
+  'remote.connected': { es: 'Conectado a la presentación', en: 'Connected to the presentation' },
+  'remote.desktopGone': { es: 'La presentación se ha desconectado', en: 'The presentation is disconnected' },
+  'remote.invalid': { es: 'Enlace no válido: escanea el QR de la presentación.', en: 'Invalid link: scan the presentation QR code.' },
+  'remote.failed': { es: 'No se pudo conectar: la sesión no existe o ha caducado. Escanea el QR de nuevo.', en: 'Could not connect: the session does not exist or has expired. Scan the QR code again.' },
+  'remote.sendFailed': { es: 'No se pudo enviar el comando.', en: 'Could not send the command.' },
+  'remote.prev': { es: 'Anterior', en: 'Previous' },
+  'remote.next': { es: 'Siguiente', en: 'Next' },
+  'remote.first': { es: 'Primera', en: 'First' },
+  'remote.last': { es: 'Última', en: 'Last' },
+  'remote.blackout': { es: 'Negro', en: 'Black' },
+  'remote.latency': { es: 'Ida y vuelta: mediana {median} ms · p95 {p95} ms ({count})', en: 'Round trip: median {median} ms · p95 {p95} ms ({count})' },
+
   // Panel de control
   'panel.docTitle': { es: 'Panel de control · onslide', en: 'Control panel · onslide' },
   'panel.linking': { es: 'conectando…', en: 'linking…' },
