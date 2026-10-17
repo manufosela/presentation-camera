@@ -27,6 +27,13 @@ describe('ASSETS — lo que se descarga al publicar (y en local con npm)', () =>
     expect(pdfjs.files.map(f => f.name)).toEqual(['pdf.min.mjs', 'pdf.worker.min.mjs']);
   });
 
+  it('qrcode-generator con versión fijada en vendor-dl/qrcode (QR del mando, CAM-TSK-0167)', () => {
+    const qr = assetNamed('qrcode');
+    expect(qr.url).toBe('https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/');
+    expect(qr.dir).toBe('vendor-dl/qrcode');
+    expect(qr.files.map(f => f.name)).toEqual(['qrcode.mjs']);
+  });
+
   it('todo fichero lleva su sha256', () => {
     expect(ASSETS.flatMap(asset => asset.files).every(file => /^[\da-f]{64}$/.test(file.sha256))).toBe(true);
   });

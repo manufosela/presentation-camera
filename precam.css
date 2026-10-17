@@ -1307,6 +1307,12 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 .enterprise-status { margin: 0; color: var(--ink-strong); }
 .enterprise-status.error { color: var(--live); }
 
+/* Mando desde el móvil (CAM-TSK-0167) */
+.remote-dialog { width: min(420px, calc(100% - 2rem)); text-align: center; }
+.remote-qr { display: block; width: 240px; max-width: 100%; margin: 0.75rem auto; image-rendering: pixelated; background: #fff; border-radius: var(--radius-sm); }
+.remote-link { display: block; color: var(--ink-muted); font-size: 0.8rem; overflow-wrap: anywhere; }
+.remote-host-status { margin: 0.75rem 0 0; color: var(--ink-strong); }
+
 /* Recorte al parar la grabación (CAM-TSK-0128) */
 .trim-dialog { width: min(720px, calc(100% - 2rem)); }
 .trim-video { display: block; width: 100%; aspect-ratio: 16 / 9; margin: 0.75rem 0; background: #000; border-radius: var(--radius-lg); }

@@ -32,6 +32,7 @@ import { runCountdown } from './countdown.js';
 import { renderDeviceSelect } from './deviceSelect.js';
 import { createMicTester } from './micTest.js';
 import { deckCommandForKey, revealSlideFromMessage, sendDeckCommand } from './deckKeys.js';
+import { createRemoteHost } from './remoteHost.js';
 import { notesAt, parseDeckNotes } from './deckNotes.js';
 import { allowForSource, deckOrigin, sandboxForSource } from './frameSandbox.js';
 import { createCutoutRenderer, createFrameLoop } from './webcamLoop.js';
@@ -392,6 +393,23 @@ cameraSelect?.addEventListener('change', async event => {
 homeButton.addEventListener('click', returnToSetup);
 fullscreenBtn?.addEventListener('click', toggleFullscreen);
 openPanelBtn?.addEventListener('click', openControlPanel);
+
+// Mando desde el móvil (CAM-TSK-0167): los comandos van al deck activo, como las teclas.
+const remoteDialog = document.getElementById('remoteDialog');
+const remoteHost = createRemoteHost({
+  qrImage: document.getElementById('remoteQr'),
+  urlLink: document.getElementById('remoteLink'),
+  status: document.getElementById('remoteStatus'),
+  pageUrl: location.href,
+  onCommand: command => sendDeckCommand(iframeStack?.querySelector('iframe.is-active'), command),
+  onPhoneLost: () => showStatus(t('remoteHost.phoneOff'), true),
+  t,
+});
+document.getElementById('openRemoteBtn').addEventListener('click', () => {
+  remoteDialog.showModal();
+  remoteHost.open();
+});
+window.addEventListener('pagehide', () => remoteHost.close());
 document.getElementById('pickFileBtn').addEventListener('click', () => {
   uploadMenu.hidePopover();
   fileInput.click();

@@ -2,7 +2,8 @@
  * Descarga los recursos grandes que la app sirve desde su propio sitio pero
  * que no se versionan en git (CAM-TSK-0039, CAM-TSK-0013):
  *   - el modelo de BodyPix del recorte (2,6 MB) en models/bodypix/;
- *   - pdf.js para convertir PDFs (1,7 MB) en vendor-dl/pdfjs/.
+ *   - pdf.js para convertir PDFs (1,7 MB) en vendor-dl/pdfjs/;
+ *   - qrcode-generator para el QR del mando desde el móvil en vendor-dl/qrcode/.
  * Lo ejecuta el workflow de Pages al publicar y, en local, `npm run
  * fetch-assets`. Cada fichero se comprueba contra su sha256 fijado aquí: si
  * el origen cambia o la descarga se altera, falla en vez de publicar otra cosa.
@@ -32,6 +33,15 @@ export const ASSETS = [
     files: [
       { name: 'pdf.min.mjs', sha256: '57456c8e0c81e46be31174b499ef77f2b9f5ee46d04412ba627320a36755d4c2' },
       { name: 'pdf.worker.min.mjs', sha256: '9536359f1b8367850d485731ca1d5e45c159a7b7a0912325e539937aa21ceb18' },
+    ],
+  },
+  {
+    // QR del mando desde el móvil (CAM-TSK-0167); MIT.
+    name: 'qrcode',
+    url: 'https://cdn.jsdelivr.net/npm/qrcode-generator@2.0.4/dist/',
+    dir: 'vendor-dl/qrcode',
+    files: [
+      { name: 'qrcode.mjs', sha256: 'ea91d7118a5395289170da848b7c6758b996163bfbccf312591ab65a4911b7c0' },
     ],
   },
 ];
