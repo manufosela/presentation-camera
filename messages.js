@@ -257,6 +257,16 @@ export const MESSAGES = {
   'remote.blackout': { es: 'Negro', en: 'Black' },
   'remote.latency': { es: 'Ida y vuelta: mediana {median} ms · p95 {p95} ms ({count})', en: 'Round trip: median {median} ms · p95 {p95} ms ({count})' },
 
+  // Mando desde el móvil, lado escritorio (CAM-TSK-0167)
+  'remoteHost.open': { es: 'Pasar las slides desde el móvil', en: 'Control the slides from your phone' },
+  'remoteHost.title': { es: 'Mando desde el móvil', en: 'Phone remote' },
+  'remoteHost.intro': { es: 'Escanea el código con el móvil para pasar las slides desde él.', en: 'Scan the code with your phone to change slides from it.' },
+  'remoteHost.opening': { es: 'Preparando el mando…', en: 'Setting up the remote…' },
+  'remoteHost.waiting': { es: 'Esperando al móvil…', en: 'Waiting for the phone…' },
+  'remoteHost.phoneOn': { es: 'Móvil conectado', en: 'Phone connected' },
+  'remoteHost.phoneOff': { es: 'El móvil se ha desconectado', en: 'The phone disconnected' },
+  'remoteHost.failed': { es: 'No se pudo preparar el mando. Comprueba la conexión.', en: 'Could not set up the remote. Check your connection.' },
+
   // Panel de control
   'panel.docTitle': { es: 'Panel de control · onslide', en: 'Control panel · onslide' },
   'panel.linking': { es: 'conectando…', en: 'linking…' },

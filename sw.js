@@ -14,7 +14,7 @@
  * iframe aislado (bundleBlobs.js).
  */
 
-const CACHE = 'cam-shell-v25';
+const CACHE = 'cam-shell-v26';
 
 // Rutas relativas al scope del SW (funciona también en subruta /presentation-camera/).
 const SHELL = [
@@ -26,6 +26,9 @@ const SHELL = [
   'localStore.js',
   'recorder.js',
   'deckKeys.js',
+  'remoteSession.js',
+  'remoteChannel.js',
+  'remoteHost.js',
   'frameSandbox.js',
   'frameGuard.js',
   'presence.js',
