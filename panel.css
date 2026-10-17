@@ -68,7 +68,7 @@
 .panel-link-dot {
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: var(--ink-faint);
+  background: var(--line);
   box-shadow: 0 0 0 3px oklch(0.42 0.014 60 / .25);
   transition: background .25s, box-shadow .25s;
 }
