@@ -4,6 +4,7 @@ import { saveHtml, saveBundle, readBundleFiles, readLocalHtml, removeHtml, remov
 import { buildBundleBlobs, missingResourcesMessage } from './bundleBlobs.js';
 import { pdfToDeckFile } from './pdfImport.js';
 import { fileKind } from './fileKind.js';
+import { imagesToDeckFile } from './imageImport.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { recentKey, removedLocalFiles, sourceLabel } from './savedSources.js';
 import { createSetupPreview } from './setupPreview.js';
@@ -435,6 +436,7 @@ stageDrop.addEventListener('drop', async event => {
   const entry = await droppedEntry(event.dataTransfer);
   if (entry?.kind === 'directory') await importBundle(entry.handle);
   else if (entry?.kind === 'file') await importLocalFile(entry.file);
+  else if (entry?.kind === 'files') await importLocalFiles(entry.files);
   else showStatus(t('status.unsupportedFile'), true);
 });
 helpBtn.addEventListener('click', openHelp);
@@ -1070,9 +1072,16 @@ function toggleRecording() {
 // Botón único «Subir archivo» (CAM-TSK-0083): el tipo se detecta y el fichero
 // sigue el mismo camino que antes tenía su propio botón.
 async function handleLocalFilePick(event) {
-  const file = event.target.files?.[0];
+  const files = [...(event.target.files ?? [])];
   event.target.value = '';
-  await importLocalFile(file);
+  await importLocalFiles(files);
+}
+
+// Varias imágenes forman un deck; varios ficheros de otro tipo no se admiten.
+async function importLocalFiles(files) {
+  if (files.length === 1) await importLocalFile(files[0]);
+  else if (files.length > 1 && files.every(file => fileKind(file) === 'image')) await importImages(files);
+  else if (files.length > 1) showStatus(t('status.unsupportedFile'), true);
 }
 
 async function importLocalFile(file) {
@@ -1080,7 +1089,20 @@ async function importLocalFile(file) {
   const kind = fileKind(file);
   if (kind === 'pdf') await importPdf(file);
   else if (kind === 'html') await importHtml(file);
+  else if (kind === 'image') await importImages([file]);
   else showStatus(t('status.unsupportedFile'), true);
+}
+
+async function importImages(files) {
+  try {
+    const { deck, skipped } = await imagesToDeckFile(files);
+    const replaced = await storeLocalHtml(deck, deck.name.replace(/\.html$/i, ''));
+    const added = t(replaced ? 'status.imagesUpdated' : 'status.imagesAdded');
+    showStatus(skipped.length ? `${added} ${t('status.imagesSkipped', { names: skipped.join(', ') })}` : added, skipped.length > 0);
+  } catch (error) {
+    console.error(error);
+    showStatus(error.message || t('status.imagesLoadFailed'), true);
+  }
 }
 
 async function importHtml(file) {
