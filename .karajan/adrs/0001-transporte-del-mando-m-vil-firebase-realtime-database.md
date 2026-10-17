@@ -1,6 +1,6 @@
 # Transporte del mando móvil: Firebase Realtime Database
 
-Status: proposed
+Status: accepted
 Date: 2026-10-17
 
 ## Context
