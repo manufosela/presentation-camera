@@ -65,7 +65,7 @@
   --ink-strong:   oklch(0.96 0.012 80);
   --ink-body:     oklch(0.82 0.014 75);
   --ink-muted:    oklch(0.62 0.014 65);
-  --ink-faint:    oklch(0.46 0.014 60);
+  --ink-faint:    oklch(0.60 0.014 60);    /* ≥4,5:1 sobre los fondos de texto (CAM-BUG-0021) */
 
   --accent:       oklch(0.78 0.155 70);    /* warm amber */
   --accent-deep:  oklch(0.70 0.180 60);
