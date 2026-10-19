@@ -1,6 +1,6 @@
 {
-  "kj_version": "4.56.0",
-  "generated_at": "2026-10-18T18:06:32.510Z",
+  "kj_version": "4.57.0",
+  "generated_at": "2026-10-19T19:58:08.703Z",
   "generation": {
     "profile": "standard",
     "cmds": {},
@@ -51,7 +51,7 @@
     },
     {
       "file": ".karajan/harness/sentinel-shell.mjs",
-      "sha256": "34667c58b9a8b80aa06c49300308d2c4baa5dbcfc353e4f13bccf37fa9704200"
+      "sha256": "b0808fb0a146d6c1a8183207b45097cbb1e5f1bc93c0c1d625ea12c1bcf6dfa3"
     },
     {
       "file": ".karajan/harness/sessionstart.mjs",
@@ -83,15 +83,15 @@
     }
   ],
   "signature": {
-    "cid": "158bd284d5469102afd93a6b42911e39",
-    "nonce": "9a435ac39274624516f47f46265db255",
+    "cid": "1fa4563aa9918b8d09e87fba5847cf70",
+    "nonce": "646241470f7fa017224154d6ee095034",
     "project": "presentation_camera",
-    "filesHash": "5aaad5ab6305375c90b3d242c4209e11c2205e5c1a5853b2fd321c7141bcb5f2",
+    "filesHash": "33efb7c20de909efad329f52bdc4218ed377b859ce684c45d8c785ee98f3403d",
     "v": 2,
-    "kjVersion": "4.56.0",
-    "issuedMs": 1792346783067,
-    "expiresMs": 1792346843067,
+    "kjVersion": "4.57.0",
+    "issuedMs": 1792439879587,
+    "expiresMs": 1792439939587,
     "signer": "EgMc2b95g5nUh8e6LDCeLjv7G69cQaszUCIy+3aLpPQ=",
-    "signature": "vTR5fJu/IXIuaXXvCtcsgvw90g/GTXXUMd91l1xfvdANL3HnlyTnsiNShuVQbjFtBZ/dsIiPMnGMlb3SulBNCQ=="
+    "signature": "VC46h6z03pt2GrEltEnspk0EYiUPHTczWXCLNSpYJU9XB5iUKah+BW8NWTX3d/zOIFpE3O0TLqNzq5l1eWVdDQ=="
   }
 }
