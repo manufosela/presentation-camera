@@ -1,6 +1,6 @@
 {
-  "kj_version": "4.57.0",
-  "generated_at": "2026-10-19T19:58:08.703Z",
+  "kj_version": "4.66.1",
+  "generated_at": "2026-10-25T22:47:30.410Z",
   "generation": {
     "profile": "standard",
     "cmds": {},
@@ -14,52 +14,21 @@
   },
   "files": [
     {
-      "file": ".karajan/harness/posttooluse.mjs",
-      "sha256": "12bb6e25311cea11e1ad67066165291cd42ac37f7a107f723c86583d4f636c58"
+      "file": ".claude/settings.json",
+      "sha256": "13c97d5da2e128d9ad026d00626fee5d4167c38a4095289fcf15ab877e292951",
+      "local": true
     },
     {
-      "file": ".karajan/harness/pretooluse-rules.mjs",
-      "sha256": "f1948a95ed80f94c58d709b589a8b1e1ae60d1f1eb35d75ca7d83839250cd9b8"
+      "file": ".github/workflows/kj-no-ai-attribution.yml",
+      "sha256": "e01c40dbd0f4a98432a205bacdd54711096572db31ccf28422ac167144121445"
     },
     {
-      "file": ".karajan/harness/pretooluse-sentinel.mjs",
-      "sha256": "b724601605d4c3d70ce3084fe36ce44fc629d2d98e85726ea31e556c8a1f6918"
+      "file": ".github/workflows/kj-quality.yml",
+      "sha256": "c5dc01751a3632828bb13e99fa1a7210f683003f8b44d49a44692498011d8d8f"
     },
     {
-      "file": ".karajan/harness/pretooluse.mjs",
-      "sha256": "468f30932ead7dd9332707dc2b8dd6054f1a82b64e46203ae8cf56c96690771c"
-    },
-    {
-      "file": ".karajan/harness/sentinel-bash-write.mjs",
-      "sha256": "5a5d4beb3bf4e36d1bf0fe79b525c906990695e5be4c65b095a2d0e94602b342"
-    },
-    {
-      "file": ".karajan/harness/sentinel-discard.mjs",
-      "sha256": "d27cacf0900c9fc6e7990e456bea2caff6b4e553083ce8844f0dcf71758f9d9f"
-    },
-    {
-      "file": ".karajan/harness/sentinel-lib.mjs",
-      "sha256": "1717d9a673fc15a929ef192f1c123dad5f09f687b01e5d2c070be2ada8b6ff40"
-    },
-    {
-      "file": ".karajan/harness/sentinel-reminders.mjs",
-      "sha256": "8ff651803d925b0f73fda7103d27416b07bd067e91c2db6e7274a689d422e8ea"
-    },
-    {
-      "file": ".karajan/harness/sentinel-rules.mjs",
-      "sha256": "82d324f20ead19883a45a96f9dc0da08b1b1a969735afabb164235df39951d79"
-    },
-    {
-      "file": ".karajan/harness/sentinel-shell.mjs",
-      "sha256": "b0808fb0a146d6c1a8183207b45097cbb1e5f1bc93c0c1d625ea12c1bcf6dfa3"
-    },
-    {
-      "file": ".karajan/harness/sessionstart.mjs",
-      "sha256": "2d119cac5c9b4432badf7d7c905371d351acccb9899b51a8aadb5c5c83a83472"
-    },
-    {
-      "file": ".karajan/harness/stop.mjs",
-      "sha256": "4c2d4f7c0e8650be562d04f03477e40243d28cf98246937f31f192e744f77011"
+      "file": ".github/workflows/pages.yml",
+      "sha256": "f88a4e4d7958034440581276f8e945c3ba4e49583067cb3723fe9a59fd0385ad"
     },
     {
       "file": ".karajan/hooks/commit-msg",
@@ -67,11 +36,11 @@
     },
     {
       "file": ".karajan/hooks/post-merge",
-      "sha256": "3debc2a7239bb758ecaad5db145ff2c139e4bd504abfeecd4405d7ebcc98ee58"
+      "sha256": "a3dabd83659f5de4427235a8d4347cde72b9f85f1be32d8420fd91be00df7483"
     },
     {
       "file": ".karajan/hooks/pre-commit",
-      "sha256": "119573cf90ebf9f4b8369b8616fac87f2b5877d97452503b9d918ea186162c73"
+      "sha256": "298be82d3e95c183f62abe23632c9496e268d9dadf8dd2300f170969a1c71de9"
     },
     {
       "file": ".karajan/hooks/pre-push",
@@ -80,18 +49,66 @@
     {
       "file": ".karajan/hooks/prepare-commit-msg",
       "sha256": "4850712b985d9c2470fbaf55f84019ff739370ad3fd0d941aaefcbdebe6537f9"
+    },
+    {
+      "file": ".karajan/harness/posttooluse.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/pretooluse-rules.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/pretooluse-sentinel.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/pretooluse.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/sentinel-bash-write.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/sentinel-discard.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/sentinel-lib.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/sentinel-reminders.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/sentinel-rules.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/sentinel-shell.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/sessionstart.mjs",
+      "deleted": true
+    },
+    {
+      "file": ".karajan/harness/stop.mjs",
+      "deleted": true
     }
   ],
   "signature": {
-    "cid": "1fa4563aa9918b8d09e87fba5847cf70",
-    "nonce": "646241470f7fa017224154d6ee095034",
+    "cid": "49cd8116bcfebe5dbb0870391dddc1fa",
+    "nonce": "c9883e1b22b03db0980ee4a29e1abd31",
     "project": "presentation_camera",
-    "filesHash": "33efb7c20de909efad329f52bdc4218ed377b859ce684c45d8c785ee98f3403d",
+    "filesHash": "2c6e5ec902ae43e42a541133e627b92bbec017f4da600df1bb2df5f4bfb92d79",
     "v": 2,
-    "kjVersion": "4.57.0",
-    "issuedMs": 1792439879587,
-    "expiresMs": 1792439939587,
+    "kjVersion": "4.66.1",
+    "issuedMs": 1792968440095,
+    "expiresMs": 1792968500095,
     "signer": "EgMc2b95g5nUh8e6LDCeLjv7G69cQaszUCIy+3aLpPQ=",
-    "signature": "VC46h6z03pt2GrEltEnspk0EYiUPHTczWXCLNSpYJU9XB5iUKah+BW8NWTX3d/zOIFpE3O0TLqNzq5l1eWVdDQ=="
+    "signature": "GuvlI+cTwTybcLoclkQGj2sB6KxaRXJPrNXfiAkdMJFas/G/UUhcmoVr7ddAMQ6eIDpvuRiuCgLMecQ8G8BqDA=="
   }
 }
