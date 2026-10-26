@@ -51,3 +51,21 @@ pero es más lento y la presencia saldría a base de escrituras periódicas.
 ## Fuera de alcance de este spike
 - Medir la latencia en un móvil real y la PoC del canal: card nueva, tras el ADR.
 - La interfaz del mando en el móvil.
+
+## Resultado en vivo (CAM-TSK-0167 y CAM-TSK-0169)
+El ADR 0001 eligió Realtime Database y la PoC quedó en producción: instancia
+`precam-app-default-rtdb` (europe-west1) con `database.rules.json` desplegado; una lectura o
+escritura anónima fuera de `remote/{id}` devuelve 401.
+
+Ida y vuelta de cada comando (el móvil escribe `cmd`, el escritorio responde `ack`):
+
+| Prueba | Comandos | Mediana | p95 |
+|---|---|---|---|
+| Dos pestañas en el mismo escritorio | 8 | 55 ms | 192 ms |
+| Móvil real pasando slides de un deck reveal.js | 11 | 123 ms | 165 ms |
+
+Con el móvil real las slides avanzan sin retraso apreciable: la latencia cae dentro de lo previsto
+para RTDB (50–150 ms).
+
+Pendiente de revisar: la primera conexión del móvil se quedó una vez en «Conectando…» (al
+repetir conectó a la primera) y la página del mando se ve en apaisado.
