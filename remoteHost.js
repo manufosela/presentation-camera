@@ -6,16 +6,12 @@
 
 import { hostRemote, loadRemoteDatabase } from './remoteChannel.js';
 import { createSessionId, remoteUrl } from './remoteSession.js';
+import { withTimeout } from './withTimeout.js';
 
 const QR_CELL_PX = 6;
 const QR_MARGIN_CELLS = 2;
 // Sin red, RTDB deja la escritura en cola para siempre: pasado este tiempo se da por fallida.
 const OPEN_TIMEOUT_MS = 15_000;
-
-const withTimeout = (promise, ms) => Promise.race([
-  promise,
-  new Promise((_, reject) => setTimeout(() => reject(new Error(`sin respuesta en ${ms} ms`)), ms)),
-]);
 
 export function createRemoteHost({
   qrImage, urlLink, status, pageUrl, onCommand, onPhoneLost = () => {}, t,

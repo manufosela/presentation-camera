@@ -8,6 +8,7 @@
  */
 
 import { createRemoteSession, deckCommandForRemote } from './remoteSession.js';
+import { withTimeout } from './withTimeout.js';
 
 const SDK = 'https://www.gstatic.com/firebasejs/13.0.0';
 const FIREBASE_CONFIG = {
@@ -81,4 +82,19 @@ export async function joinRemote({ rtdb, sessionId, onDesktop, onAck, clock = ()
       await set(presence, false);
     },
   };
+}
+
+/**
+ * Carga el SDK y se une con plazo: en el móvil la primera conexión puede no
+ * responder nunca (CAM-BUG-0027). Si la unión llega tarde se cierra, para que
+ * el escritorio no vea conectado un mando que dice haber fallado.
+ */
+export async function joinRemoteWithin({ timeoutMs, loadRtdb = loadRemoteDatabase, ...options }) {
+  const joining = (async () => joinRemote({ rtdb: await loadRtdb(), ...options }))();
+  try {
+    return await withTimeout(joining, timeoutMs);
+  } catch (error) {
+    joining.then(remote => remote.close(), () => {});
+    throw error;
+  }
 }

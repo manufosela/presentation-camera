@@ -5,7 +5,7 @@
  */
 
 import './frameGuard.js';
-import { joinRemote, loadRemoteDatabase } from './remoteChannel.js';
+import { joinRemoteWithin } from './remoteChannel.js';
 import { sessionIdFromHash } from './remoteSession.js';
 import { latencySummary } from './latencyStats.js';
 import { lockPortrait } from './remoteOrientation.js';
@@ -15,8 +15,13 @@ lockPortrait();
 
 initI18n({ storage: globalThis.localStorage, languages: navigator.languages, button: document.getElementById('langBtn') });
 
+// Mismo plazo que el escritorio al preparar el mando (remoteHost.js).
+const JOIN_TIMEOUT_MS = 15_000;
+
 const status = document.getElementById('remoteStatus');
 const latency = document.getElementById('remoteLatency');
+const retry = document.getElementById('remoteRetry');
+retry.addEventListener('click', () => location.reload());
 const buttons = [...document.querySelectorAll('[data-command]')];
 const samples = [];
 
@@ -33,8 +38,8 @@ onLangChange(renderLatency);
 async function start(sessionId) {
   let remote;
   try {
-    remote = await joinRemote({
-      rtdb: await loadRemoteDatabase(),
+    remote = await joinRemoteWithin({
+      timeoutMs: JOIN_TIMEOUT_MS,
       sessionId,
       onDesktop: online => setStatus(online ? 'remote.connected' : 'remote.desktopGone'),
       onAck: ({ roundTripMs }) => {
@@ -44,7 +49,9 @@ async function start(sessionId) {
     });
   } catch (error) {
     console.error('[remote] no se pudo unir a la sesión', error);
-    setStatus('remote.failed');
+    const timedOut = error.name === 'TimeoutError';
+    setStatus(timedOut ? 'remote.timeout' : 'remote.failed');
+    retry.hidden = !timedOut;
     return;
   }
   for (const button of buttons) {
