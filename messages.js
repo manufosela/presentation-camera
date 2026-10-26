@@ -249,6 +249,8 @@ export const MESSAGES = {
   'remote.desktopGone': { es: 'La presentación se ha desconectado', en: 'The presentation is disconnected' },
   'remote.invalid': { es: 'Enlace no válido: escanea el QR de la presentación.', en: 'Invalid link: scan the presentation QR code.' },
   'remote.failed': { es: 'No se pudo conectar: la sesión no existe o ha caducado. Escanea el QR de nuevo.', en: 'Could not connect: the session does not exist or has expired. Scan the QR code again.' },
+  'remote.timeout': { es: 'La presentación no responde. Comprueba la conexión del móvil y reintenta.', en: 'The presentation is not responding. Check your phone connection and try again.' },
+  'remote.retry': { es: 'Reintentar', en: 'Try again' },
   'remote.sendFailed': { es: 'No se pudo enviar el comando.', en: 'Could not send the command.' },
   'remote.prev': { es: 'Anterior', en: 'Previous' },
   'remote.next': { es: 'Siguiente', en: 'Next' },

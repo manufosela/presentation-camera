@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeRtdb } from './test-support/fakeRtdb.js';
-import { hostRemote, joinRemote, loadRemoteDatabase } from './remoteChannel.js';
+import { hostRemote, joinRemote, joinRemoteWithin, loadRemoteDatabase } from './remoteChannel.js';
 
 const ID = 'abcdefghijklmnopqrstuv';
 let server;
@@ -80,6 +80,31 @@ describe('mando móvil sobre Realtime Database (CAM-TSK-0167)', () => {
     expect(onDesktop).toHaveBeenLastCalledWith(true);
     desktop.disconnect();
     expect(onDesktop).toHaveBeenLastCalledWith(false);
+  });
+});
+
+describe('el móvil se une con plazo (CAM-BUG-0027)', () => {
+  afterEach(() => vi.useRealTimers());
+
+  const joinWithin = loadRtdb => joinRemoteWithin({ timeoutMs: 1000, loadRtdb, sessionId: ID, onDesktop: vi.fn(), onAck: vi.fn() });
+
+  it('se une cuando la base responde', async () => {
+    await host();
+    const remote = await joinWithin(async () => phone.api);
+    expect(server.read(`remote/${ID}/phone/online`)).toBe(true);
+    await remote.close();
+  });
+
+  it('falla con TimeoutError si no hay respuesta, y cierra la unión que llega tarde', async () => {
+    await host();
+    vi.useFakeTimers();
+    const { promise: loaded, resolve: load } = Promise.withResolvers();
+    const assertion = expect(joinWithin(() => loaded)).rejects.toMatchObject({ name: 'TimeoutError' });
+    await vi.advanceTimersByTimeAsync(1000);
+    await assertion;
+    load(phone.api);
+    await vi.runAllTimersAsync();
+    expect(server.read(`remote/${ID}/phone/online`)).toBe(false);
   });
 });
 
