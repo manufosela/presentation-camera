@@ -8,7 +8,10 @@ import './frameGuard.js';
 import { joinRemote, loadRemoteDatabase } from './remoteChannel.js';
 import { sessionIdFromHash } from './remoteSession.js';
 import { latencySummary } from './latencyStats.js';
+import { lockPortrait } from './remoteOrientation.js';
 import { initI18n, onLangChange, t } from './i18n.js';
+
+lockPortrait();
 
 initI18n({ storage: globalThis.localStorage, languages: navigator.languages, button: document.getElementById('langBtn') });
 
