@@ -1313,6 +1313,10 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 .publish-form { display: grid; gap: 0.5rem; margin-top: 1rem; }
 .publish-url-field { display: flex; align-items: center; gap: 0.25rem; color: var(--ink-muted); } .publish-url-field input { flex: 1; min-width: 0; }
 .publish-result, .publish-dialog output { display: block; margin-top: 0.75rem; overflow-wrap: anywhere; }
+.publish-dialog [hidden] { display: none; } /* los display de arriba no pueden ganar a hidden */
+.publish-list { display: grid; gap: 0.25rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+.publish-list li { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.publish-list button, .publish-dialog [data-publish="copy"] { width: auto; min-height: 44px; }
 .remote-qr { display: block; width: 240px; max-width: 100%; margin: 0.75rem auto; image-rendering: pixelated; background: #fff; border-radius: var(--radius-sm); }
 .remote-link { display: block; color: var(--ink-muted); font-size: 0.8rem; overflow-wrap: anywhere; }
 .remote-host-status { margin: 0.75rem 0 0; color: var(--ink-strong); }

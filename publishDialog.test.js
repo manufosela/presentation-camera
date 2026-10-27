@@ -11,6 +11,7 @@ const DECK = { title: 'Mi Charla: Web', html: '<h1>Hola</h1>' };
 
 let fake;
 let ui;
+let copyText;
 const part = name => document.querySelector(`[data-publish="${name}"]`);
 const visible = () => ['signIn', 'username', 'deck', 'result'].filter(name => !part(name).hidden);
 const submit = name => part(name).dispatchEvent(new Event('submit', { cancelable: true }));
@@ -20,9 +21,11 @@ beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
   document.body.innerHTML = MARKUP;
   fake = fakePublishSdk();
+  copyText = vi.fn(async () => {});
   ui = createPublishDialog({
     dialog: document.getElementById('publishDialog'),
     loadPublisher: async () => createPublisher(fake.api, { origin: 'https://onsli.de' }),
+    copyText,
   });
 });
 
@@ -57,5 +60,45 @@ describe('diálogo de publicar (CAM-TSK-0175)', () => {
     submit('username');
     await vi.waitFor(() => expect(part('status').value).toMatch(/ya lo tiene otra persona/));
     expect(visible()).toEqual(['username']);
+  });
+});
+
+describe('copiar y despublicar (CAM-TSK-0183)', () => {
+  const signedUpWith = async (...decks) => {
+    await fake.api.signInWithPopup();
+    fake.docs.set('usernames/ana', { uid: 'uid-ana' });
+    fake.docs.set('users/uid-ana', { username: 'ana', decks });
+    for (const deck of decks) fake.files.set(`decks/uid-ana/${deck}.html`, { body: 'x' });
+  };
+  const listed = () => [...part('list').querySelectorAll('a')].map(a => a.href);
+
+  it('tras publicar, copia el enlace y lo confirma', async () => {
+    await signedUpWith();
+    await ui.open(DECK);
+    submit('deck');
+    await vi.waitFor(() => expect(part('copy').hidden).toBe(false));
+    part('copy').click();
+    await vi.waitFor(() => expect(part('status').value).toBe('Enlace copiado.'));
+    expect(copyText).toHaveBeenCalledWith('https://onsli.de/ana/mi-charla-web');
+    expect(listed()).toEqual(['https://onsli.de/ana/mi-charla-web']);
+  });
+
+  it('lista los decks publicados y despublica uno', async () => {
+    await signedUpWith('primera', 'segunda');
+    await ui.open(DECK);
+    expect(listed()).toEqual(['https://onsli.de/ana/primera', 'https://onsli.de/ana/segunda']);
+    part('list').querySelector('button').click();
+    await vi.waitFor(() => expect(listed()).toEqual(['https://onsli.de/ana/segunda']));
+    expect(fake.files.has('decks/uid-ana/primera.html')).toBe(false);
+  });
+
+  it('cerrar el popup de Google no es un error', async () => {
+    fake.api.signInWithPopup = async () => { throw Object.assign(new Error('x'), { code: 'auth/popup-closed-by-user' }); };
+    await ui.open(DECK);
+    console.error.mockClear();
+    part('signIn').querySelector('button').click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(part('status').value).toBe('');
+    expect(console.error).not.toHaveBeenCalled();
   });
 });
