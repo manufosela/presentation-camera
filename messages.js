@@ -278,6 +278,14 @@ export const MESSAGES = {
   'viewer.loading': { es: 'Cargando…', en: 'Loading…' },
   'viewer.notFound': { es: 'Aquí no hay nada: el deck no existe o ya no está publicado.', en: 'Nothing here: the deck does not exist or is no longer published.' },
   'viewer.failed': { es: 'No se pudo cargar el deck. Comprueba la conexión y recarga la página.', en: 'Could not load the deck. Check your connection and reload the page.' },
+  'viewer.report': { es: 'Denunciar', en: 'Report' },
+  'viewer.reportTitle': { es: 'Denunciar este deck', en: 'Report this deck' },
+  'viewer.reportReason': { es: '¿Qué problema tiene? (suplantación, phishing, contenido abusivo…)', en: 'What is wrong with it? (impersonation, phishing, abusive content…)' },
+  'viewer.reportCancel': { es: 'Cancelar', en: 'Cancel' },
+  'viewer.reportSend': { es: 'Enviar denuncia', en: 'Send report' },
+  'viewer.reportSent': { es: 'Gracias: onslide revisará este deck.', en: 'Thank you: onslide will review this deck.' },
+  'viewer.reportInvalid': { es: 'Escribe el motivo en 500 caracteres como máximo.', en: 'Write the reason in 500 characters at most.' },
+  'viewer.reportFailed': { es: 'No se pudo enviar la denuncia. Inténtalo de nuevo.', en: 'Could not send the report. Please try again.' },
 
   // Panel de control
   'panel.docTitle': { es: 'Panel de control · onslide', en: 'Control panel · onslide' },

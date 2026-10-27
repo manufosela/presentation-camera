@@ -8,7 +8,7 @@
 
 import './frameGuard.js';
 import { initI18n, t } from './i18n.js';
-import { loadPublishedDeck, parseDeckPath } from './publicDeck.js';
+import { loadPublishedDeck, parseDeckPath, reportDeck } from './publicDeck.js';
 
 initI18n({ storage: globalThis.localStorage, languages: navigator.languages, button: document.getElementById('langBtn') });
 
@@ -19,6 +19,36 @@ const showStatus = key => {
   status.dataset.i18n = key;
   status.textContent = t(key);
 };
+
+/** Botón «Denunciar» (CAM-TSK-0181): el motivo va a reports para que onslide lo revise. */
+function enableReport(target) {
+  const dialog = document.getElementById('reportDialog');
+  const form = document.getElementById('reportForm');
+  const reason = document.getElementById('reportReason');
+  const reportStatus = document.getElementById('reportStatus');
+  const send = document.getElementById('reportSend');
+  const open = document.getElementById('reportOpen');
+  open.hidden = false;
+  open.addEventListener('click', () => {
+    reportStatus.value = '';
+    dialog.showModal();
+  });
+  document.getElementById('reportCancel').addEventListener('click', () => dialog.close());
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    send.disabled = true;
+    try {
+      await reportDeck({ ...target, reason: reason.value });
+      reportStatus.value = t('viewer.reportSent');
+      reason.value = ''; // form.reset() también vaciaría el <output> con el aviso
+    } catch (error) {
+      console.error('[viewer] denuncia', error);
+      reportStatus.value = t(error.message === 'viewer.reportInvalid' ? 'viewer.reportInvalid' : 'viewer.reportFailed');
+    } finally {
+      send.disabled = false;
+    }
+  });
+}
 
 async function show() {
   const target = parseDeckPath(location.pathname);
@@ -31,6 +61,7 @@ async function show() {
     frame.src = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
     frame.hidden = false;
     status.hidden = true;
+    enableReport(target);
     frame.focus();
   } catch (error) {
     console.error('[viewer]', error);
