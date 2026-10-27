@@ -438,6 +438,28 @@
 
     <!-- Recorte al parar la grabación (CAM-TSK-0128): cerrar con Esc descarga entera. -->
     <!-- Mando desde el móvil (CAM-TSK-0167): QR con la sesión y estado del móvil. -->
+    <dialog id="publishDialog" class="help-dialog publish-dialog" aria-labelledby="publishTitle">
+      <form method="dialog" class="help-close-form">
+        <button class="help-close" type="submit" aria-label="Close" data-i18n-attr="aria-label:help.close">✕</button>
+      </form>
+      <h2 id="publishTitle" data-i18n="publishUi.title">Publish on onsli.de</h2>
+      <div data-publish="signIn" hidden>
+        <button type="button" class="start-button" data-i18n="publishUi.signIn">Sign in with Google</button>
+      </div>
+      <form data-publish="username" class="publish-form" hidden>
+        <label for="publishUsername" data-i18n="publishUi.username">Your username (it will be in all your links)</label>
+        <input id="publishUsername" type="text" data-publish="usernameInput" autocomplete="username" required />
+        <button type="submit" class="start-button" data-i18n="publishUi.reserve">Reserve name</button>
+      </form>
+      <form data-publish="deck" class="publish-form" hidden>
+        <label for="publishDeckName" data-i18n="publishUi.deckName">Deck name</label>
+        <span class="publish-url-field"><span data-publish="prefix"></span><input id="publishDeckName" type="text" data-publish="deckInput" autocomplete="off" required /></span>
+        <button type="submit" class="start-button" data-i18n="publishUi.publish">Publish</button>
+      </form>
+      <a data-publish="result" class="publish-result" target="_blank" rel="noopener" hidden>onsli.de</a>
+      <output data-publish="status" aria-live="polite"></output>
+    </dialog>
+
     <dialog id="remoteDialog" class="help-dialog remote-dialog" aria-labelledby="remoteTitle">
       <form method="dialog" class="help-close-form">
         <button class="help-close" type="submit" aria-label="Close" data-i18n-attr="aria-label:help.close">✕</button>

@@ -53,6 +53,12 @@ export function createPublisher(sdk, { origin = globalThis.location?.origin } = 
   return {
     profile,
 
+    ready: () => sdk.auth.authStateReady(), // la sesión guardada se restaura en segundo plano
+
+    signedIn: () => Boolean(sdk.auth.currentUser),
+
+    urlFor: (username, deck) => publicDeckUrl(origin, username, deck),
+
     async signIn() {
       return (await sdk.signInWithPopup(sdk.auth, new sdk.GoogleAuthProvider())).user;
     },
@@ -76,6 +82,7 @@ export function createPublisher(sdk, { origin = globalThis.location?.origin } = 
     async publish({ deck, html }) {
       uid();
       rejectIf(deckNameError(deck));
+      if (typeof html !== 'string') rejectIf('publish.failed'); // el fichero local ya no existe
       if (new Blob([html]).size > MAX_DECK_BYTES) rejectIf('publish.tooBig');
       const current = await profile();
       if (!current) rejectIf('publish.noUsername');

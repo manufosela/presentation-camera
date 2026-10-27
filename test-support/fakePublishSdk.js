@@ -9,7 +9,7 @@ const firebaseError = code => Object.assign(new Error(code), { code });
 export function fakePublishSdk({ user = { uid: 'uid-ana' } } = {}) {
   const docs = new Map();
   const files = new Map();
-  const auth = { currentUser: null };
+  const auth = { currentUser: null, authStateReady: async () => {} };
   const failNextUpload = { value: false };
 
   const applyField = (current, value) => {

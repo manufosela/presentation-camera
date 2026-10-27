@@ -488,8 +488,9 @@ kbd {
   border-radius: 10px;
   color: var(--ink-muted);
 }
-.saved-source-remove:hover { color: var(--accent); }
-.saved-source-pick:focus-visible,
+.saved-source-publish { min-height: 44px; padding: 0 0.6rem; border-radius: 10px; color: var(--ink-muted); font-size: 0.8rem; }
+.saved-source-remove:hover, .saved-source-publish:hover { color: var(--accent); }
+.saved-source-pick:focus-visible, .saved-source-publish:focus-visible,
 .saved-source-remove:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
@@ -1309,6 +1310,9 @@ body:has(#presentationSection:not([hidden])) .setup { display: none; }
 
 /* Mando desde el móvil (CAM-TSK-0167) */
 .remote-dialog { width: min(420px, calc(100% - 2rem)); text-align: center; }
+.publish-form { display: grid; gap: 0.5rem; margin-top: 1rem; }
+.publish-url-field { display: flex; align-items: center; gap: 0.25rem; color: var(--ink-muted); } .publish-url-field input { flex: 1; min-width: 0; }
+.publish-result, .publish-dialog output { display: block; margin-top: 0.75rem; overflow-wrap: anywhere; }
 .remote-qr { display: block; width: 240px; max-width: 100%; margin: 0.75rem auto; image-rendering: pixelated; background: #fff; border-radius: var(--radius-sm); }
 .remote-link { display: block; color: var(--ink-muted); font-size: 0.8rem; overflow-wrap: anywhere; }
 .remote-host-status { margin: 0.75rem 0 0; color: var(--ink-strong); }
