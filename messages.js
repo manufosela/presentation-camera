@@ -284,6 +284,7 @@ export const MESSAGES = {
   'publishUi.reserve': { es: 'Reservar nombre', en: 'Reserve name' },
   'publishUi.deckName': { es: 'Nombre del deck', en: 'Deck name' },
   'publishUi.publish': { es: 'Publicar', en: 'Publish' },
+  'publishUi.terms': { es: 'Lo verá cualquiera con el enlace. Al publicar aceptas las condiciones de uso.', en: 'Anyone with the link will see it. By publishing you accept the terms of use.' },
   'publishUi.copy': { es: 'Copiar enlace', en: 'Copy link' },
   'publishUi.copied': { es: 'Enlace copiado.', en: 'Link copied.' },
   'publishUi.list': { es: 'Tus decks publicados', en: 'Your published decks' },

@@ -14,7 +14,7 @@
  * iframe aislado (bundleBlobs.js).
  */
 
-const CACHE = 'cam-shell-v31';
+const CACHE = 'cam-shell-v32';
 
 // Rutas relativas al scope del SW (funciona también en subruta /presentation-camera/).
 const SHELL = [
