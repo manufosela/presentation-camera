@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="referrer" content="no-referrer" />
+    <!-- GitHub Pages sirve esta página para cualquier ruta que no existe:
+         onsli.de/<usuario>/<deck> se resuelve aquí (ADR 0002). Las rutas son
+         absolutas porque la página responde a cualquier profundidad. -->
+    <title data-i18n="viewer.docTitle">onslide</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <script src="/theme.js"></script>
+    <link rel="stylesheet" href="/precam.css" />
+    <link rel="stylesheet" href="/viewer.css" />
+    <script type="module" src="/viewer.js"></script>
+  </head>
+  <body class="viewer-body">
+    <header class="viewer-bar">
+      <a class="viewer-home" href="/">onslide</a>
+      <span class="viewer-name" id="viewerName"></span>
+      <button id="langBtn" class="lang-btn" type="button"></button>
+    </header>
+    <output class="viewer-status" id="viewerStatus" aria-live="polite" data-i18n="viewer.loading">Cargando…</output>
+    <iframe class="viewer-frame" id="viewerFrame" title="Deck" sandbox="allow-scripts" referrerpolicy="no-referrer" hidden></iframe>
+  </body>
+</html>
