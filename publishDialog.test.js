@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { setLang } from './i18n.js';
+import { MESSAGES } from './messages.js';
 import { createPublishDialog } from './publishDialog.js';
 import { createPublisher } from './publishStore.js';
 import { fakePublishSdk } from './test-support/fakePublishSdk.js';
@@ -30,6 +31,11 @@ beforeEach(() => {
 });
 
 describe('diálogo de publicar (CAM-TSK-0175)', () => {
+  it('enlaza las condiciones de uso, con su texto en el catálogo (CAM-TSK-0177)', async () => {
+    const terms = document.querySelector('#publishDialog a[href="terms.html"]');
+    expect(MESSAGES[terms.dataset.i18n]).toEqual({ es: expect.stringMatching(/condiciones de uso/), en: expect.any(String) });
+  });
+
   it('sin sesión pide entrar con Google; luego, sin nombre, pide reservarlo', async () => {
     await ui.open(DECK);
     expect(document.getElementById('publishDialog').open).toBe(true);
