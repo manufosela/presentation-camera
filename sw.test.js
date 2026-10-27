@@ -78,3 +78,22 @@ describe('sw.js — nunca mezcla ficheros de dos publicaciones', () => {
     expect(fetchMock.mock.calls[0][1]).toEqual({ cache: 'no-cache' });
   });
 });
+
+// onsli.de/<usuario>/<deck> llega como 404 de Pages con el visor (CAM-TSK-0176):
+// esa respuesta no puede quedarse como la copia offline de la app.
+describe('sw.js — una ruta que no existe no reemplaza a index.html', () => {
+  it('entrega el 404 del visor y conserva la copia offline de la app', async () => {
+    const stored = new Map([['index.html', new Response('app')]]);
+    const cache = { put: async (key, res) => { stored.set(key, res); } };
+    vi.stubGlobal('caches', { open: async () => cache });
+    vi.stubGlobal('fetch', async () => new Response('visor', { status: 404 }));
+    let responsePromise;
+    fetchHandler({
+      request: { method: 'GET', url: `${ORIGIN}/ana/mi-charla`, mode: 'navigate', destination: 'document' },
+      respondWith: p => { responsePromise = p; },
+    });
+    const res = await responsePromise;
+    expect(res.status).toBe(404);
+    expect(await stored.get('index.html').text()).toBe('app');
+  });
+});
