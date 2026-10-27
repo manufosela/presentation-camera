@@ -9,7 +9,9 @@
 
 import { deckNameError, usernameError } from './publishNames.js';
 
-const FIRESTORE = 'https://firestore.googleapis.com/v1/projects/precam-app/databases/(default)/documents';
+const DATABASE = 'projects/precam-app/databases/(default)';
+const FIRESTORE = `https://firestore.googleapis.com/v1/${DATABASE}/documents`;
+const MAX_REASON = 500;
 const STORAGE = 'https://firebasestorage.googleapis.com/v0/b/precam-app.firebasestorage.app/o';
 
 /** { username, deck } de una ruta /<usuario>/<deck>, o null si no lo es. */
@@ -33,4 +35,27 @@ export async function loadPublishedDeck({ username, deck }, fetchImpl = globalTh
   if (!owner) return null;
   const path = encodeURIComponent(`decks/${owner.fields.uid.stringValue}/${deck}.html`);
   return fetchOrNull(fetchImpl, `${STORAGE}/${path}?alt=media`, response => response.text());
+}
+
+/**
+ * Guarda una denuncia en reports (CAM-TSK-0181). Va por :commit porque las
+ * reglas exigen createdAt == request.time, que solo pone el servidor.
+ */
+export async function reportDeck({ username, deck, reason }, fetchImpl = globalThis.fetch) {
+  const text = reason.trim();
+  if (!text || text.length > MAX_REASON) throw new Error('viewer.reportInvalid');
+  const write = {
+    update: {
+      name: `${DATABASE}/documents/reports/${crypto.randomUUID()}`,
+      fields: { username: { stringValue: username }, deck: { stringValue: deck }, reason: { stringValue: text } },
+    },
+    updateTransforms: [{ fieldPath: 'createdAt', setToServerValue: 'REQUEST_TIME' }],
+    currentDocument: { exists: false },
+  };
+  const response = await fetchImpl(`${FIRESTORE}:commit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ writes: [write] }),
+  });
+  if (!response.ok) throw new Error(`reports → ${response.status}`);
 }

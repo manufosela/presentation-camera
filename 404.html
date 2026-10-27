@@ -19,9 +19,23 @@
     <header class="viewer-bar">
       <a class="viewer-home" href="/">onslide</a>
       <span class="viewer-name" id="viewerName"></span>
+      <button id="reportOpen" class="viewer-report" type="button" data-i18n="viewer.report" hidden>Denunciar</button>
       <button id="langBtn" class="lang-btn" type="button"></button>
     </header>
     <output class="viewer-status" id="viewerStatus" aria-live="polite" data-i18n="viewer.loading">Cargando…</output>
     <iframe class="viewer-frame" id="viewerFrame" title="Deck" sandbox="allow-scripts" referrerpolicy="no-referrer" hidden></iframe>
+
+    <dialog id="reportDialog" class="help-dialog" aria-labelledby="reportTitle">
+      <h2 id="reportTitle" data-i18n="viewer.reportTitle">Denunciar este deck</h2>
+      <form id="reportForm" class="viewer-report-form">
+        <label for="reportReason" data-i18n="viewer.reportReason">¿Qué problema tiene? (suplantación, phishing, contenido abusivo…)</label>
+        <textarea id="reportReason" rows="4" maxlength="500" required></textarea>
+        <output id="reportStatus" aria-live="polite"></output>
+        <div class="viewer-report-actions">
+          <button type="button" id="reportCancel" class="row-btn" data-i18n="viewer.reportCancel">Cancelar</button>
+          <button type="submit" id="reportSend" class="start-button" data-i18n="viewer.reportSend">Enviar denuncia</button>
+        </div>
+      </form>
+    </dialog>
   </body>
 </html>

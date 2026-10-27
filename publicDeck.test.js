@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { loadPublishedDeck, parseDeckPath } from './publicDeck.js';
+import { loadPublishedDeck, parseDeckPath, reportDeck } from './publicDeck.js';
 
 const USERNAME_URL = 'https://firestore.googleapis.com/v1/projects/precam-app/databases/(default)/documents/usernames/ana';
 const DECK_URL = 'https://firebasestorage.googleapis.com/v0/b/precam-app.firebasestorage.app/o/decks%2Fuid-ana%2Fmi-charla.html?alt=media';
@@ -43,5 +43,37 @@ describe('carga del deck publicado', () => {
       [DECK_URL]: response(403, {}),
     });
     await expect(loadPublishedDeck({ username: 'ana', deck: 'mi-charla' }, fetchImpl)).rejects.toThrow('403');
+  });
+});
+
+describe('denunciar un deck (CAM-TSK-0181)', () => {
+  const COMMIT_URL = 'https://firestore.googleapis.com/v1/projects/precam-app/databases/(default)/documents:commit';
+
+  it('crea la denuncia con la hora del servidor, sin sobrescribir ninguna', async () => {
+    const fetchImpl = vi.fn(async () => response(200, {}));
+    await reportDeck({ username: 'ana', deck: 'mi-charla', reason: '  Suplanta a un banco  ' }, fetchImpl);
+    const [url, init] = fetchImpl.mock.calls[0];
+    expect(url).toBe(COMMIT_URL);
+    expect(init.method).toBe('POST');
+    const [write] = JSON.parse(init.body).writes;
+    expect(write.update.name).toMatch(/^projects\/precam-app\/databases\/\(default\)\/documents\/reports\/[0-9a-f-]{36}$/);
+    expect(write.update.fields).toEqual({
+      username: { stringValue: 'ana' }, deck: { stringValue: 'mi-charla' }, reason: { stringValue: 'Suplanta a un banco' },
+    });
+    expect(write.updateTransforms).toEqual([{ fieldPath: 'createdAt', setToServerValue: 'REQUEST_TIME' }]);
+    expect(write.currentDocument).toEqual({ exists: false });
+  });
+
+  it('rechaza un motivo vacío o de más de 500 caracteres sin llamar a la red', async () => {
+    const fetchImpl = vi.fn();
+    for (const reason of ['   ', 'x'.repeat(501)]) {
+      await expect(reportDeck({ username: 'ana', deck: 'mi-charla', reason }, fetchImpl)).rejects.toThrow('viewer.reportInvalid');
+    }
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('un rechazo del servidor se propaga', async () => {
+    await expect(reportDeck({ username: 'ana', deck: 'mi-charla', reason: 'Spam' }, async () => response(403, {})))
+      .rejects.toThrow('403');
   });
 });
