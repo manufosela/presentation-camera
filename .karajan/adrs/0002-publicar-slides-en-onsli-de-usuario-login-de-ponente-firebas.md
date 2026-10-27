@@ -1,6 +1,6 @@
 # Publicar slides en onsli.de/usuario: login de ponente, Firebase Storage y enrutado por 404.html
 
-Status: proposed
+Status: accepted
 Date: 2026-10-17
 
 ## Context

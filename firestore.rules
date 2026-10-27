@@ -45,5 +45,58 @@ service cloud.firestore {
         allow read: if managesOrg(orgId);
       }
     }
+
+    // Publicar slides (ADR 0002, CAM-TSK-0168). El nombre forma la URL
+    // onsli.de/<nombre>/<deck>: minúsculas, cifras y guiones, de 2 a 30, y
+    // nunca el de una carpeta o página del sitio, que lo taparía.
+    function validSlug(name) {
+      return name is string && name.matches('^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$');
+    }
+    function freeUsername(name) {
+      return validSlug(name) && !(name in ['vendor', 'vendor-dl', 'models', 'poc', 'docs',
+        'index', 'panel', 'privacy', 'remote', 'terms', 'empresa', 'admin', 'api', 'www', 'onslide']);
+    }
+    function usersDoc(uid) {
+      return /databases/$(database)/documents/users/$(uid);
+    }
+    function usernameDoc(name) {
+      return /databases/$(database)/documents/usernames/$(name);
+    }
+
+    // Un nombre por ponente, para siempre: se reserva en el mismo batch que
+    // su perfil y luego no se cambia ni se suelta.
+    match /usernames/{name} {
+      allow read: if true;
+      allow create: if request.auth != null && freeUsername(name)
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid
+        && !exists(usersDoc(request.auth.uid))
+        && getAfter(usersDoc(request.auth.uid)).data.username == name;
+    }
+
+    // La lista de decks publicados limita cuántos acepta Storage (storage.rules).
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['username', 'decks'])
+        && request.resource.data.decks == []
+        && getAfter(usernameDoc(request.resource.data.username)).data.uid == uid;
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['decks'])
+        && request.resource.data.decks is list
+        && request.resource.data.decks.size() <= 20;
+    }
+
+    // Denuncias de decks publicados: las crea cualquiera, las lee el dueño de onslide.
+    match /reports/{reportId} {
+      allow read: if isSuperadmin();
+      allow create: if request.resource.data.keys().hasOnly(['username', 'deck', 'reason', 'createdAt'])
+        && validSlug(request.resource.data.username)
+        && validSlug(request.resource.data.deck)
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 500
+        && request.resource.data.createdAt == request.time;
+    }
   }
 }
