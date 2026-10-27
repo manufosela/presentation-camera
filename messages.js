@@ -273,6 +273,12 @@ export const MESSAGES = {
   'publish.invalidName': { es: 'Usa de 2 a 30 caracteres: minúsculas sin tildes, cifras y guiones, sin guion al principio ni al final.', en: 'Use 2 to 30 characters: lowercase letters without accents, digits and hyphens, with no hyphen at the start or end.' },
   'publish.reservedName': { es: 'Ese nombre está reservado por onslide. Elige otro.', en: 'That name is reserved by onslide. Choose another one.' },
 
+  // Visor público de decks, 404.html (CAM-TSK-0180)
+  'viewer.docTitle': { es: 'onslide', en: 'onslide' },
+  'viewer.loading': { es: 'Cargando…', en: 'Loading…' },
+  'viewer.notFound': { es: 'Aquí no hay nada: el deck no existe o ya no está publicado.', en: 'Nothing here: the deck does not exist or is no longer published.' },
+  'viewer.failed': { es: 'No se pudo cargar el deck. Comprueba la conexión y recarga la página.', en: 'Could not load the deck. Check your connection and reload the page.' },
+
   // Panel de control
   'panel.docTitle': { es: 'Panel de control · onslide', en: 'Control panel · onslide' },
   'panel.linking': { es: 'conectando…', en: 'linking…' },
