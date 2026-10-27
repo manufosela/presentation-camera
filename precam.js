@@ -658,8 +658,27 @@ function renderSavedSource(source, index, activeIndex) {
   remove.setAttribute('aria-label', t('saved.remove', { title }));
   remove.addEventListener('click', () => sources.remove(source.id));
 
-  li.append(pick, remove);
+  const publish = source.type === 'html' && !source.bundle ? [publishButton(source, title)] : []; // carpetas no
+  li.append(pick, ...publish, remove);
   return li;
+}
+
+// Publicar (CAM-TSK-0175): se importa al primer uso, sin pesar en el arranque offline.
+let publishDialog = null;
+function publishButton(source, title) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'saved-source-publish';
+  button.textContent = t('publishUi.publish');
+  button.addEventListener('click', async () => {
+    const [{ createPublishDialog }, { createPublisher, loadPublishSdk }] = await Promise.all([import('./publishDialog.js'), import('./publishStore.js')]);
+    publishDialog ??= createPublishDialog({
+      dialog: document.getElementById('publishDialog'),
+      loadPublisher: async () => createPublisher(await loadPublishSdk()),
+    });
+    await publishDialog.open({ title, html: await readLocalHtml(source) });
+  });
+  return button;
 }
 
 function renderSavedSources(list, activeIndex) {

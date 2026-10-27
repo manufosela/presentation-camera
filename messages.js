@@ -278,6 +278,12 @@ export const MESSAGES = {
   'publish.noUsername': { es: 'Elige primero tu nombre de usuario.', en: 'Choose your username first.' },
   'publish.tooBig': { es: 'El deck pasa de 10 MB y no se puede publicar.', en: 'The deck is over 10 MB and cannot be published.' },
   'publish.tooMany': { es: 'Ya tienes 20 decks publicados: despublica alguno para publicar otro.', en: 'You already have 20 published decks: unpublish one to publish another.' },
+  'publishUi.title': { es: 'Publicar en onsli.de', en: 'Publish on onsli.de' },
+  'publishUi.signIn': { es: 'Entrar con Google', en: 'Sign in with Google' },
+  'publishUi.username': { es: 'Tu nombre de usuario (irá en todos tus enlaces)', en: 'Your username (it will be in all your links)' },
+  'publishUi.reserve': { es: 'Reservar nombre', en: 'Reserve name' },
+  'publishUi.deckName': { es: 'Nombre del deck', en: 'Deck name' },
+  'publishUi.publish': { es: 'Publicar', en: 'Publish' },
 
   // Visor público de decks, 404.html (CAM-TSK-0180)
   'viewer.docTitle': { es: 'onslide', en: 'onslide' },
