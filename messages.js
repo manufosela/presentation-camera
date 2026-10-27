@@ -275,6 +275,9 @@ export const MESSAGES = {
   'publish.usernameTaken': { es: 'Ese nombre ya lo tiene otra persona. Elige otro.', en: 'Someone else already has that name. Choose another one.' },
   'publish.signedOut': { es: 'Entra con tu cuenta de Google para publicar.', en: 'Sign in with your Google account to publish.' },
   'publish.failed': { es: 'No se pudo completar. Comprueba la conexión e inténtalo de nuevo.', en: 'Could not complete it. Check your connection and try again.' },
+  'publish.noUsername': { es: 'Elige primero tu nombre de usuario.', en: 'Choose your username first.' },
+  'publish.tooBig': { es: 'El deck pasa de 10 MB y no se puede publicar.', en: 'The deck is over 10 MB and cannot be published.' },
+  'publish.tooMany': { es: 'Ya tienes 20 decks publicados: despublica alguno para publicar otro.', en: 'You already have 20 published decks: unpublish one to publish another.' },
 
   // Visor público de decks, 404.html (CAM-TSK-0180)
   'viewer.docTitle': { es: 'onslide', en: 'onslide' },

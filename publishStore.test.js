@@ -8,10 +8,14 @@ let publisher;
 
 beforeEach(() => {
   fake = fakePublishSdk();
-  publisher = createPublisher(fake.api);
+  publisher = createPublisher(fake.api, { origin: 'https://onsli.de' });
 });
 
 const codeOf = promise => promise.then(() => null, error => error.code);
+const signedUp = async () => {
+  await publisher.signIn();
+  await publisher.reserveUsername('ana');
+};
 
 describe('login y nombre de usuario (CAM-TSK-0178)', () => {
   it('entra con Google y aún no tiene perfil', async () => {
@@ -57,17 +61,71 @@ describe('login y nombre de usuario (CAM-TSK-0178)', () => {
   });
 });
 
+describe('publicar y despublicar (CAM-TSK-0179)', () => {
+  it('sube el deck como texto plano, lo apunta en la lista y da su URL', async () => {
+    await signedUp();
+    expect(await publisher.publish({ deck: 'mi-charla', html: '<h1>Hola</h1>' })).toBe('https://onsli.de/ana/mi-charla');
+    expect(fake.files.get('decks/uid-ana/mi-charla.html')).toEqual({ body: '<h1>Hola</h1>', format: 'raw', metadata: { contentType: 'text/plain' } });
+    expect((await publisher.profile()).decks).toEqual(['mi-charla']);
+  });
+
+  it('volver a publicar el mismo nombre lo reemplaza sin repetirlo en la lista', async () => {
+    await signedUp();
+    await publisher.publish({ deck: 'mi-charla', html: 'v1' });
+    await publisher.publish({ deck: 'mi-charla', html: 'v2' });
+    expect(fake.files.get('decks/uid-ana/mi-charla.html').body).toBe('v2');
+    expect((await publisher.profile()).decks).toEqual(['mi-charla']);
+  });
+
+  it('pide nombre de usuario antes y rechaza nombres no válidos, decks enormes y el número 21', async () => {
+    await publisher.signIn();
+    expect(await codeOf(publisher.publish({ deck: 'mi-charla', html: 'x' }))).toBe('publish.noUsername');
+    await publisher.reserveUsername('ana');
+    expect(await codeOf(publisher.publish({ deck: 'Mi charla', html: 'x' }))).toBe('publish.invalidName');
+    expect(await codeOf(publisher.publish({ deck: 'grande', html: 'x'.repeat(10 * 1024 * 1024 + 1) }))).toBe('publish.tooBig');
+    fake.docs.get('users/uid-ana').decks = Array.from({ length: 20 }, (_, i) => `deck-${i}`);
+    expect(await codeOf(publisher.publish({ deck: 'otra', html: 'x' }))).toBe('publish.tooMany');
+    expect(await codeOf(publisher.publish({ deck: 'deck-3', html: 'x' }))).toBeNull();
+  });
+
+  it('si la subida falla, la lista vuelve a como estaba', async () => {
+    await signedUp();
+    fake.failNextUpload.value = true;
+    expect(await codeOf(publisher.publish({ deck: 'mi-charla', html: 'x' }))).toBe('publish.failed');
+    expect((await publisher.profile()).decks).toEqual([]);
+  });
+
+  it('despublicar borra el fichero y lo saca de la lista, aunque el fichero ya no exista', async () => {
+    await signedUp();
+    await publisher.publish({ deck: 'mi-charla', html: 'x' });
+    await publisher.unpublish('mi-charla');
+    expect(fake.files.size).toBe(0);
+    expect((await publisher.profile()).decks).toEqual([]);
+    await publisher.publish({ deck: 'otra', html: 'x' });
+    fake.files.clear();
+    await publisher.unpublish('otra');
+    expect((await publisher.profile()).decks).toEqual([]);
+  });
+
+  it('cada error nuevo es un mensaje del catálogo', () => {
+    for (const key of ['publish.noUsername', 'publish.tooBig', 'publish.tooMany']) {
+      expect(MESSAGES[key]).toEqual({ es: expect.any(String), en: expect.any(String) });
+    }
+  });
+});
+
 describe('carga del SDK', () => {
-  it('importa Auth y Firestore fijados de gstatic sobre la app de onslide', async () => {
+  it('importa Auth, Firestore y Storage fijados de gstatic sobre la app de onslide', async () => {
     const urls = [];
     const importer = async url => {
       urls.push(url);
-      return { initializeApp: config => ({ config }), getAuth: app => ({ app }), getFirestore: app => ({ app }) };
+      return { initializeApp: config => ({ config }), getAuth: app => ({ app }), getFirestore: app => ({ app }), getStorage: app => ({ app }) };
     };
     const sdk = await loadPublishSdk(importer);
-    expect(urls.map(url => url.split('/').at(-1))).toEqual(['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js']);
+    expect(urls.map(url => url.split('/').at(-1))).toEqual(['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js', 'firebase-storage.js']);
     expect(urls.every(url => url.startsWith('https://www.gstatic.com/firebasejs/13.0.0/'))).toBe(true);
     expect(sdk.auth.app.config).toMatchObject({ projectId: 'precam-app', authDomain: 'precam-app.firebaseapp.com' });
     expect(sdk.db.app).toBe(sdk.auth.app);
+    expect(sdk.storage.app).toBe(sdk.auth.app);
   });
 });
