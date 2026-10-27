@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Storage de onslide (ADR 0002, CAM-TSK-0173): solo los decks publicados.
+// Cualquiera descarga uno conociendo su ruta, pero nadie lista. El dueño sube
+// los nombres de su lista users/{uid}.decks (Firestore la limita a 20), de
+// 10 MB como máximo y como texto plano: un text/html público se abriría como
+// página en el dominio de Storage, fuera del iframe aislado del visor.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /decks/{uid}/{file} {
+      function owner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+      function listedDeck() {
+        return file.matches('^[a-z0-9][a-z0-9-]{0,28}[a-z0-9][.]html$')
+          && file.split('[.]')[0] in firestore.get(/databases/(default)/documents/users/$(uid)).data.decks;
+      }
+
+      allow get: if true;
+      allow create, update: if owner() && listedDeck()
+        && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType == 'text/plain';
+      allow delete: if owner();
+    }
+  }
+}
