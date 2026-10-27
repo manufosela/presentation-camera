@@ -34,6 +34,10 @@ Sin Firebase Storage ni Firebase Hosting. El enrutado de `onsli.de/<usuario>` pa
 se decide en CAM-TSK-0134. *(Cambia «sin Firebase Auth»: los ponentes siguen sin login, pero los
 administradores lo necesitan para su panel.)*
 
+*(Cambiado por el ADR 0002 de `.karajan/adrs`, «Publicar slides en onsli.de/usuario»: para
+**publicar** un deck el ponente entra con Google, y los decks publicados van a Firebase Storage
+en europe-west1. Presentar sigue sin login y sigue sin Firebase Hosting.)*
+
 ### 2. Roles
 
 - **Dueño de onslide**: claim `superadmin`. Da de alta empresas y sus administradores.
