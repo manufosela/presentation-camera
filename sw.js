@@ -155,8 +155,11 @@ self.addEventListener('fetch', event => {
     event.respondWith((async () => {
       try {
         const fresh = await fetch(request);
-        const cache = await caches.open(CACHE);
-        cache.put('index.html', fresh.clone()).catch(() => {});
+        // Un 404 de Pages es el visor de decks publicados (404.html), no la app.
+        if (fresh.ok) {
+          const cache = await caches.open(CACHE);
+          cache.put('index.html', fresh.clone()).catch(() => {});
+        }
         return fresh;
       } catch {
         return (await caches.match('index.html')) || (await caches.match('./')) || Response.error();
