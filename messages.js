@@ -272,6 +272,9 @@ export const MESSAGES = {
   // Publicar slides en onsli.de/<usuario>/<deck> (CAM-TSK-0174)
   'publish.invalidName': { es: 'Usa de 2 a 30 caracteres: minúsculas sin tildes, cifras y guiones, sin guion al principio ni al final.', en: 'Use 2 to 30 characters: lowercase letters without accents, digits and hyphens, with no hyphen at the start or end.' },
   'publish.reservedName': { es: 'Ese nombre está reservado por onslide. Elige otro.', en: 'That name is reserved by onslide. Choose another one.' },
+  'publish.usernameTaken': { es: 'Ese nombre ya lo tiene otra persona. Elige otro.', en: 'Someone else already has that name. Choose another one.' },
+  'publish.signedOut': { es: 'Entra con tu cuenta de Google para publicar.', en: 'Sign in with your Google account to publish.' },
+  'publish.failed': { es: 'No se pudo completar. Comprueba la conexión e inténtalo de nuevo.', en: 'Could not complete it. Check your connection and try again.' },
 
   // Visor público de decks, 404.html (CAM-TSK-0180)
   'viewer.docTitle': { es: 'onslide', en: 'onslide' },
