@@ -70,7 +70,23 @@ describe('sw.js — nunca mezcla ficheros de dos publicaciones', () => {
     expect(added.map(request => request.url)).toContain(`${ORIGIN}/messages.js`);
   });
 
-  it('al refrescar un estático en segundo plano revalida con el servidor', async () => {
+  // Volver tras una publicación: el HTML nuevo con el JS viejo abortaba el
+  // arranque y no se podía subir nada (CAM-BUG-0029).
+  it('la app y sus módulos salen de la misma publicación, aunque haya otra en la red', async () => {
+    const stored = new Map([[`${ORIGIN}/`, 'app-vieja'], [`${ORIGIN}/precam.js`, 'js-viejo']]);
+    vi.stubGlobal('caches', { open: async () => ({ match: async request => stored.has(request.url) && new Response(stored.get(request.url)), put: async () => {} }) });
+    const fetchMock = vi.fn(async () => new Response('nuevo'));
+    vi.stubGlobal('fetch', fetchMock);
+    const page = await new Promise(resolve => fetchHandler({
+      request: { method: 'GET', url: `${ORIGIN}/`, mode: 'navigate', destination: 'document' },
+      respondWith: resolve,
+    }));
+    expect(await page.text()).toBe('app-vieja');
+    expect(await (await swFetch('/precam.js')).text()).toBe('js-viejo');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('un fichero del shell que falta en la caché se pide al servidor', async () => {
     vi.stubGlobal('caches', { open: async () => ({ match: async () => undefined, put: async () => {} }) });
     const fetchMock = vi.fn(async () => new Response('nuevo'));
     vi.stubGlobal('fetch', fetchMock);

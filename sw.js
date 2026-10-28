@@ -6,15 +6,15 @@
  *   - Solo intercepta peticiones GET del MISMO origin. Las cross-origin
  *     (iframes de presentaciones remotas, modelos de BodyPix desde CDN, etc.)
  *     se dejan pasar sin tocar — getUserMedia/getDisplayMedia no pasan por fetch.
- *   - index.html: network-first (para recibir actualizaciones), con fallback a
- *     caché si no hay red.
- *   - Resto de estáticos: cache-first (rápido y offline).
+ *   - Shell (index.html incluido): cache-first, todo de la misma publicación.
+ *   - Otros documentos: red, con la app como fallback offline.
+ *   - Resto de estáticos: stale-while-revalidate.
  *
  * Los decks de carpeta ya no pasan por aquí: se sirven como blob URLs en un
  * iframe aislado (bundleBlobs.js).
  */
 
-const CACHE = 'cam-shell-v32';
+const CACHE = 'cam-shell-v33';
 
 // Rutas relativas al scope del SW (funciona también en subruta /presentation-camera/).
 const SHELL = [
@@ -102,6 +102,21 @@ const SHELL = [
   'vendor/fonts/fraunces-latin.woff2',
 ];
 
+const SHELL_PATHS = new Set(SHELL.map(url => new URL(url, self.location.href).pathname));
+
+async function fromShell(request) {
+  const cache = await caches.open(CACHE);
+  const cached = await cache.match(request, { ignoreSearch: true });
+  if (cached) return cached;
+  try {
+    const fresh = await fetch(request, { cache: 'no-cache' }); // revalida con el servidor, no con la caché HTTP
+    if (fresh.ok) cache.put(request, fresh.clone()).catch(() => {});
+    return fresh;
+  } catch {
+    return Response.error();
+  }
+}
+
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
@@ -145,22 +160,22 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  const isDocument = request.mode === 'navigate'
-    || (request.destination === 'document')
-    || url.pathname.endsWith('/')
-    || url.pathname.endsWith('index.html');
+  // El shell (HTML incluido) sale entero de la caché de esta publicación: un HTML
+  // nuevo con módulos viejos aborta el arranque (CAM-BUG-0029). Cada publicación
+  // cambia sw.js (CACHE lleva el commit), así que la nueva se instala aparte y
+  // entra al recargar, con el aviso de versión nueva.
+  if (SHELL_PATHS.has(url.pathname)) {
+    event.respondWith(fromShell(request));
+    return;
+  }
+
+  const isDocument = request.mode === 'navigate' || request.destination === 'document';
 
   if (isDocument) {
-    // network-first para el HTML, con fallback a caché offline.
+    // Fuera del shell (visor 404.html, condiciones...): red, con la app offline.
     event.respondWith((async () => {
       try {
-        const fresh = await fetch(request);
-        // Un 404 de Pages es el visor de decks publicados (404.html), no la app.
-        if (fresh.ok) {
-          const cache = await caches.open(CACHE);
-          cache.put('index.html', fresh.clone()).catch(() => {});
-        }
-        return fresh;
+        return await fetch(request);
       } catch {
         return (await caches.match('index.html')) || (await caches.match('./')) || Response.error();
       }
@@ -168,9 +183,9 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // stale-while-revalidate para el resto de estáticos same-origin: responde al
-  // instante desde caché (rápido y offline) y refresca en segundo plano, para
-  // que los cambios de JS/CSS se propaguen sin depender de subir la versión.
+  // stale-while-revalidate para el resto de estáticos same-origin (vendor, módulos
+  // que se cargan al usarlos): responde al instante desde caché y refresca en
+  // segundo plano.
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const cached = await cache.match(request);
