@@ -1,11 +1,10 @@
 {
-  "kj_version": "4.66.1",
-  "generated_at": "2026-10-25T22:47:30.410Z",
+  "kj_version": "5.3.0",
+  "generated_at": "2026-11-03T06:20:08.735Z",
   "generation": {
     "profile": "standard",
     "cmds": {},
-    "baseBranch": "main",
-    "globalHooksDir": "$HOME/.git-hooks"
+    "baseBranch": "main"
   },
   "who": {
     "gh": "manufosela",
@@ -32,23 +31,23 @@
     },
     {
       "file": ".karajan/hooks/commit-msg",
-      "sha256": "7be3ae11b0bcd1029d70009bc1a9e0649695b4db343f8c83654a4936bbd2953e"
+      "sha256": "91db6db8389ae5ab8103cca6e979824130d74ed049b093dadddb3d41b2110e47"
     },
     {
       "file": ".karajan/hooks/post-merge",
-      "sha256": "a3dabd83659f5de4427235a8d4347cde72b9f85f1be32d8420fd91be00df7483"
+      "sha256": "a069100da9cb037badd40289494c4e64de761208e3f0c8b4fe536e2d0a5bed50"
     },
     {
       "file": ".karajan/hooks/pre-commit",
-      "sha256": "298be82d3e95c183f62abe23632c9496e268d9dadf8dd2300f170969a1c71de9"
+      "sha256": "cd03a3e720c80b10ea66200bed2338026e60a2f2603f2d60c8ea4b527d7c43d0"
     },
     {
       "file": ".karajan/hooks/pre-push",
-      "sha256": "69939a0062ffea538694d23040ae32aa5686bff87b616cd14a3b3d6ed87cfa22"
+      "sha256": "2ea25b2286af4b75843247d0fa8a24d48c1e1863c03a1e82f8c3d91361cbaa10"
     },
     {
       "file": ".karajan/hooks/prepare-commit-msg",
-      "sha256": "4850712b985d9c2470fbaf55f84019ff739370ad3fd0d941aaefcbdebe6537f9"
+      "sha256": "ba046aefffc8f36b4d6af733e8f7a273bdbfe938746dbda18014a3dfee74ff96"
     },
     {
       "file": ".karajan/harness/posttooluse.mjs",
@@ -100,15 +99,15 @@
     }
   ],
   "signature": {
-    "cid": "49cd8116bcfebe5dbb0870391dddc1fa",
-    "nonce": "c9883e1b22b03db0980ee4a29e1abd31",
+    "cid": "319871ef62b62367108fec7de0538858",
+    "nonce": "15b471bd3c613a559b26897230da3a26",
     "project": "presentation_camera",
-    "filesHash": "2c6e5ec902ae43e42a541133e627b92bbec017f4da600df1bb2df5f4bfb92d79",
+    "filesHash": "7eb50d91a69fd15ba57d9f1bbd580da05ebd2d791c081f5b895b3021309c56c1",
     "v": 2,
-    "kjVersion": "4.66.1",
-    "issuedMs": 1792968440095,
-    "expiresMs": 1792968500095,
+    "kjVersion": "5.3.0",
+    "issuedMs": 1793686801103,
+    "expiresMs": 1793686951103,
     "signer": "EgMc2b95g5nUh8e6LDCeLjv7G69cQaszUCIy+3aLpPQ=",
-    "signature": "GuvlI+cTwTybcLoclkQGj2sB6KxaRXJPrNXfiAkdMJFas/G/UUhcmoVr7ddAMQ6eIDpvuRiuCgLMecQ8G8BqDA=="
+    "signature": "wQSRTir9hLMidzsTJgFUz3LNds2Mv8NI7v/mAYAM0ujSmNEtHCZ01h6yvFzyCxRoQC49+yTxhyHXbxlSetmJAw=="
   }
 }

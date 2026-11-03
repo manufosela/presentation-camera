@@ -44,6 +44,13 @@ fi
 if git diff --cached --name-only --diff-filter=d | grep -qE '^(\.claude/[^/]*\.lock|\.claude/scheduled_tasks\.lock|\.kj/|\.karajan/identity\.local\.yml|\.karajan/harness/sentinel-state\.json)'; then
   echo 'kj harden: agent runtime files are staged (.claude/*.lock, .kj/, identity.local.yml, sentinel-state.json) — unstage them: git restore --staged <path>'; exit 1
 fi
+# KJC-TSK-1234 (ADR 0032): the project's kj.config.yml travels with the repo, so its staged
+# version is checked for secrets by kj, which parses the YAML (raw text can spell a key in
+# too many ways). Without kj nothing can check it, so it does not enter.
+if git diff --cached --name-only --diff-filter=d | grep -qx '.karajan/kj.config.yml'; then
+  command -v kj >/dev/null 2>&1 || { echo 'kj harden: .karajan/kj.config.yml is staged but kj is not installed to check it holds no secret'; exit 1; }
+  git show ':.karajan/kj.config.yml' | kj config --check-secrets - || { echo 'kj harden: keep tokens and passwords out of the shared kj.config.yml'; exit 1; }
+fi
 # KJC-TSK-1205 (ADR 0030): a tampered Sentinel is caught before each commit,
 # not only when the turn ends. Only where it is installed; no kj, no check.
 if [ -d .karajan/harness ] && command -v kj >/dev/null 2>&1; then
@@ -61,9 +68,10 @@ if git cat-file -e HEAD:.karajan/review-gate 2>/dev/null; then
   fi
   kj review --check || { echo 'kj: no approved cross-AI verdict for the staged diff — run `kj review --staged`'; exit 1; }
 fi
-# Chain the machine's previous global hook (kj harden keeps it active).
-if [ -x "$HOME/.git-hooks/pre-commit" ]; then
-  "$HOME/.git-hooks/pre-commit" "$@"; rc=$?
+# Chain the machine's global hook, looked up when the hook runs, not when kj harden ran (KJC-TSK-0645, HU-2762).
+kj_global=$(git config --global --type=path --get core.hooksPath 2>/dev/null || true)
+if [ -n "$kj_global" ] && [ -x "$kj_global/pre-commit" ] && [ "$(cd "$kj_global" 2>/dev/null && pwd -P)" != "$(cd "$(dirname "$0")" && pwd -P)" ]; then
+  "$kj_global/pre-commit" "$@"; rc=$?
   [ "$rc" -eq 0 ] || exit "$rc"
 fi
 # <<< kj:managed:hook:pre-commit <<<
