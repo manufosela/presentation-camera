@@ -1,6 +1,6 @@
 {
-  "kj_version": "5.3.0",
-  "generated_at": "2026-11-03T06:20:08.735Z",
+  "kj_version": "5.9.0",
+  "generated_at": "2026-11-08T21:08:14.273Z",
   "generation": {
     "profile": "standard",
     "cmds": {},
@@ -14,12 +14,17 @@
   "files": [
     {
       "file": ".claude/settings.json",
-      "sha256": "13c97d5da2e128d9ad026d00626fee5d4167c38a4095289fcf15ab877e292951",
+      "sha256": "78922a784ee78e9e50587e93628cd3b9d4dfbe49087adc4514e6781cea38cbb9",
+      "local": true
+    },
+    {
+      "file": ".claude/settings.local.json",
+      "sha256": "f56b2a446c5a8fdb77bf8ff6ce52b1216dbaee24875a043e163063928c8f0a42",
       "local": true
     },
     {
       "file": ".github/workflows/kj-no-ai-attribution.yml",
-      "sha256": "e01c40dbd0f4a98432a205bacdd54711096572db31ccf28422ac167144121445"
+      "sha256": "2da12bf23d5ffbf3689e6bfdfac3a6e5e10c2a51054fb991a319123d1c0e4e4c"
     },
     {
       "file": ".github/workflows/kj-quality.yml",
@@ -31,23 +36,23 @@
     },
     {
       "file": ".karajan/hooks/commit-msg",
-      "sha256": "91db6db8389ae5ab8103cca6e979824130d74ed049b093dadddb3d41b2110e47"
+      "sha256": "c2eb9af212aabc4da39634132639e4d1374fa9eb10defb846ece4c1b61e55cee"
     },
     {
       "file": ".karajan/hooks/post-merge",
-      "sha256": "a069100da9cb037badd40289494c4e64de761208e3f0c8b4fe536e2d0a5bed50"
+      "sha256": "079f0153f15a0d437ceb9880817bd7a43f28b8f59802806134a413756afbe32e"
     },
     {
       "file": ".karajan/hooks/pre-commit",
-      "sha256": "cd03a3e720c80b10ea66200bed2338026e60a2f2603f2d60c8ea4b527d7c43d0"
+      "sha256": "7f03de1d0924fc569659d5c67adc5c1817b8542b7b0a9790d7762a1005aadaa4"
     },
     {
       "file": ".karajan/hooks/pre-push",
-      "sha256": "2ea25b2286af4b75843247d0fa8a24d48c1e1863c03a1e82f8c3d91361cbaa10"
+      "sha256": "d623d9a5c59e9a433856974e66bb48fc524568eda2caf65eff82ccd114290e53"
     },
     {
       "file": ".karajan/hooks/prepare-commit-msg",
-      "sha256": "ba046aefffc8f36b4d6af733e8f7a273bdbfe938746dbda18014a3dfee74ff96"
+      "sha256": "e5e20936abd93401c3384410642b40385a3b275d3e5cc0a94edfca88c6af47d0"
     },
     {
       "file": ".karajan/harness/posttooluse.mjs",
@@ -99,15 +104,15 @@
     }
   ],
   "signature": {
-    "cid": "319871ef62b62367108fec7de0538858",
-    "nonce": "15b471bd3c613a559b26897230da3a26",
+    "cid": "f9f1d6da51253ef12020c8d95560aabb",
+    "nonce": "dae565efe2c1c712b6d9811680607199",
     "project": "presentation_camera",
-    "filesHash": "7eb50d91a69fd15ba57d9f1bbd580da05ebd2d791c081f5b895b3021309c56c1",
+    "filesHash": "6b4169fac40279e19c0047ee58b702e77f7d53cd71d2cb62b146763af893019d",
     "v": 2,
-    "kjVersion": "5.3.0",
-    "issuedMs": 1793686801103,
-    "expiresMs": 1793686951103,
+    "kjVersion": "5.9.0",
+    "issuedMs": 1794172086256,
+    "expiresMs": 1794172236256,
     "signer": "EgMc2b95g5nUh8e6LDCeLjv7G69cQaszUCIy+3aLpPQ=",
-    "signature": "wQSRTir9hLMidzsTJgFUz3LNds2Mv8NI7v/mAYAM0ujSmNEtHCZ01h6yvFzyCxRoQC49+yTxhyHXbxlSetmJAw=="
+    "signature": "UwPzP6sZTf2UikB02P3TiIAV1UZ7UkiwPypgwwicegUT85y2rCETlLHyKt1csHHPasLsEs1DAIZ1VuKUKG02Dg=="
   }
 }
