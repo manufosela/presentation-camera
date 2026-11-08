@@ -34,7 +34,7 @@ fi
 # KJC-BUG-0200 (issue #1772): the same is true of .karajan/harness — the
 # whole DIRECTORY is excluded, not one file, so a supervisor script added
 # later cannot bring the bug back.
-if git diff --cached -- . ':(exclude).github/workflows/kj-no-ai-attribution.yml' ':(exclude)src/harden/hook-templates.js' ':(exclude)src/harden/workflow-templates.js' ':(exclude)src/harden/sentinel-hooks.js' ':(exclude)scripts/ai-attribution-guard.yml' ':(exclude)tests/harden/attribution-guard.test.js' ':(exclude)tests/harden/sentinel-hooks.test.js' ':(exclude).karajan/hooks/pre-commit' ':(exclude).karajan/hooks/commit-msg' ':(exclude).karajan/harness/' | grep '^+' | grep -qiE 'co-authored-by:.*(claude|gpt|copilot|gemini)|(generated|written) (by|with) .*(claude|gpt|copilot)|generated with \[?claude'; then
+if git diff --cached -- . ':(exclude).github/workflows/kj-no-ai-attribution.yml' ':(exclude)src/harden/hook-templates.js' ':(exclude)src/harden/workflow-templates.js' ':(exclude)src/harden/sentinel-hooks.js' ':(exclude)scripts/ai-attribution-guard.yml' ':(exclude)tests/harden/attribution-guard.test.js' ':(exclude)tests/harden/sentinel-hooks.test.js' ':(exclude).karajan/hooks/pre-commit' ':(exclude).karajan/hooks/commit-msg' ':(exclude).karajan/harness/' | grep '^+' | grep -qiE 'co-authored-by:.*(claude|anthropic|openai|chatgpt|codex|gpt-?[0-9]|copilot|gemini|cursor|windsurf|codeium|deepseek)|(generated|written|authored|assisted|powered|created|made) (by|with|using) .*(claude|anthropic|openai|chatgpt|codex|gpt-?[0-9]|copilot|gemini|cursor|windsurf|codeium|deepseek)|generated with \[?claude'; then
   echo 'kj harden: AI attribution is not allowed in committed content'; exit 1
 fi
 # KJC-BUG-0296 (issue #1989): the host agent's runtime and local state never
@@ -68,7 +68,12 @@ if git cat-file -e HEAD:.karajan/review-gate 2>/dev/null; then
   fi
   kj review --check || { echo 'kj: no approved cross-AI verdict for the staged diff — run `kj review --staged`'; exit 1; }
 fi
-# Chain the machine's global hook, looked up when the hook runs, not when kj harden ran (KJC-TSK-0645, HU-2762).
+# Chain the repo's own hook in .git/hooks, then the machine's global one, both looked up when the hook runs (KJC-TSK-0645, HU-2762).
+kj_repo="$(git rev-parse --git-common-dir 2>/dev/null || true)/hooks"
+if [ -n "$kj_repo" ] && [ -x "$kj_repo/pre-commit" ] && [ "$(cd "$kj_repo" 2>/dev/null && pwd -P)" != "$(cd "$(dirname "$0")" && pwd -P)" ]; then
+  "$kj_repo/pre-commit" "$@"; rc=$?
+  [ "$rc" -eq 0 ] || exit "$rc"
+fi
 kj_global=$(git config --global --type=path --get core.hooksPath 2>/dev/null || true)
 if [ -n "$kj_global" ] && [ -x "$kj_global/pre-commit" ] && [ "$(cd "$kj_global" 2>/dev/null && pwd -P)" != "$(cd "$(dirname "$0")" && pwd -P)" ]; then
   "$kj_global/pre-commit" "$@"; rc=$?
