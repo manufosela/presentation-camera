@@ -24,8 +24,8 @@
   "devDependencies": {
     "@firebase/rules-unit-testing": "^6.0.0",
     "firebase": "^13.0.0",
-    "happy-dom": "^20.10.2",
-    "vitest": "^4.1.11"
+    "happy-dom": "^21.0.4",
+    "vitest": "^4.1.12"
   },
   "overrides": {
     "@grpc/grpc-js": "^1.14.6"
