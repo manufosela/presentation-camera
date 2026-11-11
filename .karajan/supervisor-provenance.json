@@ -1,10 +1,13 @@
 {
-  "kj_version": "5.13.0",
-  "generated_at": "2026-11-09T22:09:05.937Z",
+  "kj_version": "5.17.0",
+  "generated_at": "2026-11-11T21:30:13.614Z",
   "generation": {
     "profile": "standard",
-    "cmds": {},
-    "baseBranch": "main"
+    "cmds": {
+      "testSkippedByCi": true
+    },
+    "baseBranch": "main",
+    "commitConvention": "conventional"
   },
   "who": {
     "gh": "manufosela",
@@ -36,7 +39,7 @@
     },
     {
       "file": ".karajan/hooks/commit-msg",
-      "sha256": "f5cf348889a493bddb811d7b8373e3f36c280c59d21c63beeb515454c12149ef"
+      "sha256": "e740e2d05d40fe5ae7a776c4ae94979f602dd091ac4b5fc29ec2f43d8d7365e5"
     },
     {
       "file": ".karajan/hooks/post-merge",
@@ -48,7 +51,7 @@
     },
     {
       "file": ".karajan/hooks/pre-push",
-      "sha256": "71109259e9d19cb64ebaf8725154bdcf45fc0ba5fad3784193a82fe430224941"
+      "sha256": "66535df0f9a46d7d80c91996e8ef5386a19e278ecfdbeb70900a268df6fdc334"
     },
     {
       "file": ".karajan/hooks/prepare-commit-msg",
@@ -104,15 +107,15 @@
     }
   ],
   "signature": {
-    "cid": "2bb676892b2d331cd0bb819c6366ec89",
-    "nonce": "4ef44592f5ad7e271be3fc2d7bd5d5dd",
-    "project": "presentation_camera",
-    "filesHash": "84f27367b3bc3c014c412c80abd909e8bee9e7a11dd042cdf9cb170242e5cd5e",
+    "cid": "23ac9413df0da6e0b4ddfa226e023b15",
+    "nonce": "04ea6555f0141efb8d28994cb4d63856",
+    "project": "manufosela/presentation-camera",
+    "filesHash": "a70c35e3e5538a82bd01277e5393d2547d8f9843a53bafe745386c536964fa19",
     "v": 2,
-    "kjVersion": "5.13.0",
-    "issuedMs": 1794262135501,
-    "expiresMs": 1794262285501,
+    "kjVersion": "5.17.0",
+    "issuedMs": 1794432602693,
+    "expiresMs": 1794432752693,
     "signer": "EgMc2b95g5nUh8e6LDCeLjv7G69cQaszUCIy+3aLpPQ=",
-    "signature": "XdQdwNzBkBcPfJn7DAltVN6pZDyFGDnmH/rf9YuH7PFqavfBZCDtHZnyQQnULrgeXnc21EhtWyd62kyaltZUDg=="
+    "signature": "hqY1xCeeI0fTNGU2obuHaGqKOI7An64mIqXmqX8M8vuAnDwWG/+mHvbvN/sir/NEEIsGpx34O8RCJXXy0tdvBw=="
   }
 }
