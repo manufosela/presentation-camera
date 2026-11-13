@@ -22,7 +22,8 @@ export function createSetupPreview({ host, appOrigin, resolveSrc, titleFor }) {
   }
 
   async function show(source) {
-    if (!source) {
+    // Una pantalla compartida no tiene vista previa: se elige al salir en directo.
+    if (!source || source.type === 'display') {
       clear();
       return;
     }

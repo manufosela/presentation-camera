@@ -14,7 +14,8 @@
 import './frameGuard.js'; // primero: aborta si el panel está dentro de un iframe
 import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
 import { isDebugEnabled, loadSingleKeyShortcuts } from './appPrefs.js';
-import { hostnameOf, sanitizePresentationUrl } from './urlUtils.js';
+import { sanitizePresentationUrl } from './urlUtils.js';
+import { sourceLabel } from './savedSources.js';
 import { SYNC_CHANNEL } from './constants.js';
 import { sourceIndexForKey, startPanelLink } from './linkChannel.js';
 import { notesView } from './deckNotes.js';
@@ -161,7 +162,7 @@ function renderSource(item, index, activeIndex) {
   const name = document.createElement('span');
   name.className = 'panel-source-name';
   name.title = t('panel.editName');
-  name.textContent = item.title || hostnameOf(item.url);
+  name.textContent = item.title || sourceLabel(item).title;
   setupInlineEdit(name, item);
 
   const urlEl = document.createElement('a');
@@ -172,7 +173,9 @@ function renderSource(item, index, activeIndex) {
   urlEl.textContent = item.url;
   urlEl.title = t('panel.openTab');
 
-  titleBlock.append(name, urlEl);
+  // Solo las fuentes con URL tienen enlace para abrirlas en otra pestaña.
+  if (item.url) titleBlock.append(name, urlEl);
+  else titleBlock.append(name);
 
   // Acciones
   const actions = document.createElement('div');
@@ -233,7 +236,7 @@ function setupInlineEdit(node, item) {
     node.contentEditable = 'false';
     const raw = node.textContent.replace(/\s+/g, ' ').trim().slice(0, 80);
     const next = raw || null;
-    node.textContent = next || hostnameOf(item.url);
+    node.textContent = next || sourceLabel({ ...item, title: null }).title;
     if (next !== item.title) sources.updateTitle(item.id, next);
   });
 }
