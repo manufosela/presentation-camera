@@ -1,6 +1,6 @@
 {
-  "kj_version": "5.17.0",
-  "generated_at": "2026-11-11T21:30:13.614Z",
+  "kj_version": "5.22.0",
+  "generated_at": "2026-11-13T21:46:45.453Z",
   "generation": {
     "profile": "standard",
     "cmds": {
@@ -34,6 +34,14 @@
       "sha256": "c5dc01751a3632828bb13e99fa1a7210f683003f8b44d49a44692498011d8d8f"
     },
     {
+      "file": ".github/workflows/kj-secrets.yml",
+      "sha256": "a98711fc6495375cd4407e2a042a89ade02cec5a26c26f839dd45352f3280be4"
+    },
+    {
+      "file": ".github/workflows/kj-verdicts.yml",
+      "sha256": "4c461dc8181a26554de09aeded1cc9c0204eb8cd59747c1b77a05d9077f14060"
+    },
+    {
       "file": ".github/workflows/pages.yml",
       "sha256": "f88a4e4d7958034440581276f8e945c3ba4e49583067cb3723fe9a59fd0385ad"
     },
@@ -43,7 +51,7 @@
     },
     {
       "file": ".karajan/hooks/post-merge",
-      "sha256": "b4010bdf0375d6170dadb7aa0d95804e1b6152ff920a2ebfd042ba2b36f04045"
+      "sha256": "fe01565c613e6ef410ae8efb97628da7c22ac1fd72be2e2dae2a2531f2bd7c88"
     },
     {
       "file": ".karajan/hooks/pre-commit",
@@ -107,15 +115,15 @@
     }
   ],
   "signature": {
-    "cid": "23ac9413df0da6e0b4ddfa226e023b15",
-    "nonce": "04ea6555f0141efb8d28994cb4d63856",
+    "cid": "09fe39a0c60cde62ad7a6ef218d2eb19",
+    "nonce": "6395794a0a9f20da7ae568e291807de5",
     "project": "manufosela/presentation-camera",
-    "filesHash": "a70c35e3e5538a82bd01277e5393d2547d8f9843a53bafe745386c536964fa19",
+    "filesHash": "99201ed0f7b68bbcbc29ac4a20a2b0922ec1db7a2b25fcf633f23f2655fe93da",
     "v": 2,
-    "kjVersion": "5.17.0",
-    "issuedMs": 1794432602693,
-    "expiresMs": 1794432752693,
+    "kjVersion": "5.22.0",
+    "issuedMs": 1794606393397,
+    "expiresMs": 1794606543397,
     "signer": "EgMc2b95g5nUh8e6LDCeLjv7G69cQaszUCIy+3aLpPQ=",
-    "signature": "hqY1xCeeI0fTNGU2obuHaGqKOI7An64mIqXmqX8M8vuAnDwWG/+mHvbvN/sir/NEEIsGpx34O8RCJXXy0tdvBw=="
+    "signature": "xRJZ0OD92XSANLi3ctxlaNldpWhIL8qShAgDHDq/sEIDG9NLJGCQezHv2h0porgc8D8S0KLlaQw558tg+xM9DQ=="
   }
 }
