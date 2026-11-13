@@ -713,8 +713,10 @@ function renderIframeStack(list, activeIndex) {
     if (!targetIds.has(id)) node.remove();
   }
 
-  // Crear iframes nuevos y marcar el activo
+  // Crear iframes nuevos y marcar el activo. Una pantalla compartida no va en
+  // iframe (su vídeo lo pinta CAM-TSK-0193).
   list.forEach((source, index) => {
+    if (source.type === 'display') return;
     let frame = existing.get(source.id);
     if (!frame) {
       frame = document.createElement('iframe');

@@ -11,6 +11,7 @@ export function sourceLabel(source) {
   if (source.type === 'html') {
     return { title: source.title || t('saved.untitled'), kind: t(source.bundle ? 'saved.kindFolder' : 'saved.kindHtml') };
   }
+  if (source.type === 'display') return { title: source.title || t('saved.display'), kind: t('saved.kindDisplay') };
   const host = hostnameOf(source.url);
   return { title: source.title || host, kind: host };
 }

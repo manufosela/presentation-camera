@@ -204,6 +204,8 @@ export const MESSAGES = {
   'saved.remove': { es: 'Quitar {title}', en: 'Remove {title}' },
   'saved.untitled': { es: 'Presentación sin título', en: 'Untitled presentation' },
   'saved.kindHtml': { es: 'HTML local', en: 'Local HTML' },
+  'saved.display': { es: 'Pantalla compartida', en: 'Shared screen' },
+  'saved.kindDisplay': { es: 'Pantalla', en: 'Screen' },
   'saved.kindFolder': { es: 'Carpeta', en: 'Folder' },
   'bg.none': { es: 'Ninguno', en: 'None' },
   'bg.noneLabel': { es: 'Sin fondo', en: 'No background' },

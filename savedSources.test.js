@@ -16,6 +16,12 @@ describe('sourceLabel — cómo se ve cada presentación guardada', () => {
     expect(sourceLabel({ type: 'html', title: 'charla', localRef: 'a' })).toEqual({ title: 'charla', kind: 'HTML local' });
   });
 
+  it('pantalla compartida: sin URL, con nombre y tipo propios', () => {
+    expect(sourceLabel({ type: 'display', title: null })).toEqual({ title: 'Pantalla compartida', kind: 'Pantalla' });
+    setLang('en', null);
+    expect(sourceLabel({ type: 'display', title: 'Demo' })).toEqual({ title: 'Demo', kind: 'Screen' });
+  });
+
   it('carpeta local', () => {
     expect(sourceLabel({ type: 'html', bundle: true, title: 'mi-deck', localRef: 'b' })).toEqual({ title: 'mi-deck', kind: 'Carpeta' });
   });

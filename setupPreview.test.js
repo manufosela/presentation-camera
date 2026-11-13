@@ -67,6 +67,14 @@ describe('createSetupPreview — la diapositiva real en la vista previa', () => 
     expect(frames()).toEqual([]);
   });
 
+  it('una pantalla compartida no crea iframe ni pide su src', async () => {
+    let asked = false;
+    const p = preview(async source => { asked = true; return source.url; });
+    await p.show({ id: 'd1', type: 'display', title: null });
+    expect(frames()).toEqual([]);
+    expect(asked).toBe(false);
+  });
+
   it('clear() la libera (al empezar a presentar)', async () => {
     const p = preview();
     await p.show(remote);

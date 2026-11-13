@@ -56,6 +56,8 @@ function generateId() {
  *
  *   - type 'url'  → presentación remota embebible (campo `url`).
  *   - type 'html' → presentación HTML local servida desde OPFS (campo `localRef`).
+ *   - type 'display' → pantalla, ventana o pestaña compartida. No guarda
+ *     recurso: el stream se pide al navegador cada vez que se muestra.
  *
  * Retrocompatibilidad: los items antiguos no tienen `type`; si traen `url` se
  * interpretan como 'url'. Devuelve null si el item no es válido (sin fallback
@@ -65,6 +67,7 @@ function normalizeItem(item) {
   if (!item || typeof item !== 'object') return null;
   const id = typeof item.id === 'string' ? item.id : generateId();
   const title = typeof item.title === 'string' ? item.title : null;
+  if (item.type === 'display') return { id, type: 'display', title };
   const type = item.type === 'html' ? 'html' : 'url';
   if (type === 'html') {
     if (typeof item.localRef !== 'string' || !item.localRef) return null;
@@ -166,6 +169,19 @@ export function createSourcesStore() {
       commit({ list, activeIndex: list.length - 1 });
       return item;
     },
+    /** Añade la fuente de pantalla compartida; si ya existe, la activa. */
+    addDisplay() {
+      const existing = state.list.findIndex(s => s.type === 'display');
+      if (existing >= 0) {
+        commit({ list: state.list, activeIndex: existing });
+        return state.list[existing];
+      }
+      if (state.list.length >= MAX_SOURCES) return null;
+      const item = { id: generateId(), type: 'display', title: null };
+      const list = [...state.list, item];
+      commit({ list, activeIndex: list.length - 1 });
+      return item;
+    },
     remove(id) {
       const idx = state.list.findIndex(s => s.id === id);
       if (idx < 0) return false;
@@ -232,6 +248,11 @@ export function createSourcesStore() {
 }
 
 export const SOURCES_STORAGE_KEY = STORAGE_KEY;
+
+/** true si el navegador puede compartir pantalla (en móvil no hay getDisplayMedia). */
+export function isDisplayCaptureSupported(nav = globalThis.navigator) {
+  return typeof nav?.mediaDevices?.getDisplayMedia === 'function';
+}
 
 /**
  * Conecta un store a un BroadcastChannel para sincronizar el estado entre
