@@ -1,0 +1,51 @@
+{
+  "signers": [
+    {
+      "type": "webauthn",
+      "credentialId": "4oFa2VJMGAj_c_grH4hNXA",
+      "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAElm6mtvIM4EgrL4KjSyxo9TjPnNlJtPFOlGkPfqI0tXCtKJ+NV3SfsGaiHGqn8WZLIzpl3cAIrs1hFRh2rtOmkg==",
+      "alg": -7,
+      "label": "movil",
+      "enrolledAt": "2026-11-14T10:41:25.556Z",
+      "admission": {
+        "cid": "09b1767fb26e0a7bff0ce79a49d4a7dc",
+        "nonce": "a1d4fb0e9abf18211dd122d5f73a5fe6",
+        "project": "manufosela/presentation-camera",
+        "filesHash": "5314f23f78ffde8623606ed261e525f5d80c8ea3ee5e3b2a1480d55764543a03",
+        "v": 2,
+        "kjVersion": "5.23.0",
+        "issuedMs": 1794652875669,
+        "expiresMs": 1794653475669,
+        "signer": "EgMc2b95g5nUh8e6LDCeLjv7G69cQaszUCIy+3aLpPQ=",
+        "signature": "658o0eK/Ld+onpiKNc/MG3eUkmKyS2JrtPq5HlBZQINKAqM7rN+0UFid8bvooKl1cNjpai3SnVNSkPlvEV4eBg=="
+      }
+    },
+    {
+      "type": "webauthn",
+      "credentialId": "J-628etWREqU10UNhqcr9A",
+      "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGwOWLAzmj5YgUUaelrj3AF23DSpoCoRjIgVruklcXzJJPGDChnHDCFMlkni9H2Kk20C2SG7T/FXcg4Eq3aDIhg==",
+      "alg": -7,
+      "label": "movil",
+      "enrolledAt": "2026-11-14T21:55:47.106Z",
+      "admission": {
+        "cid": "fae81a0e8e6b10cdaf1d26a3245e1353",
+        "nonce": "f139c1532a32ff10030d6bd09538ec36",
+        "project": "manufosela/presentation-camera",
+        "filesHash": "20289589672865029524f91a93676fcefc8d5a3314fd0ac9632caa8c731a3fa9",
+        "v": 2,
+        "kjVersion": "5.23.0",
+        "issuedMs": 1794693328362,
+        "expiresMs": 1794693928362,
+        "type": "webauthn",
+        "credentialId": "4oFa2VJMGAj_c_grH4hNXA",
+        "authenticatorData": "rXNnteqvZsxVFoAzmjFmd-OrJ0TSokRWHcqrVw7x-rQdAAAAAA",
+        "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiVGNHcmZfWW8tSjdONVJGR0F6S2hHYTB1RWdqNl93SHJ1MWw3aHI2WGRMayIsIm9yaWdpbiI6Imh0dHBzOi8va2FyYWphbmNvZGUuY29tIiwiY3Jvc3NPcmlnaW4iOmZhbHNlfQ",
+        "signature": "MEUCIQDeX9uL9HFAsPy_sxubBANNb7qrypRiigLFjuV_O10zxQIgcE7AH26NEyxGjVEsqvVj706GmfNOF1lDKyhspqkX0g8"
+      }
+    }
+  ],
+  "recovery": {
+    "fingerprint": "c0c0c4fcee3c6e2b6288d4a5e3a9bf2b22e7dea08a0da666bc1c40f76469fa39",
+    "issuedAt": "2026-11-14T10:41:25.556Z"
+  }
+}
