@@ -57,6 +57,7 @@ const SHELL = [
   'pdfImport.js',
   'imageImport.js',
   'setupPreview.js',
+  'displayStage.js',
   'fileKind.js',
   'emptyState.js',
   'dropImport.js',

@@ -130,6 +130,14 @@ describe('setup en una pantalla', () => {
     expect(footer.querySelector('a[href="terms.html"][data-i18n="footer.terms"]')).not.toBeNull();
   });
 
+  it('compartir pantalla: botón en las fuentes, oculto hasta saber si hay getDisplayMedia (CAM-TSK-0193)', () => {
+    const button = setup.querySelector('section[aria-labelledby="panel-source"] #shareScreenBtn');
+    expect(button.hidden).toBe(true);
+    expect(button.getAttribute('data-i18n')).toBe('sources.shareScreen');
+    const stage = doc.querySelector('#presentationSection > #displayStage');
+    expect(stage.hidden).toBe(true);
+  });
+
   it.each(['.hero', '.status-pill', '.legend', '.footnote'])('sin ruido: no hay %s', selector => {
     expect(setup.querySelector(selector)).toBeNull();
   });

@@ -24,6 +24,8 @@
          conservar estado entre alternancias. -->
     <section id="presentationSection" hidden>
       <div class="iframe-stack" id="iframeStack"></div>
+      <!-- Pantalla compartida (CAM-TSK-0193, ADR 3): botón y vídeo de displayStage.js -->
+      <div class="display-stage" id="displayStage" hidden></div>
     </section>
 
     <!-- Subtítulos (CAM-TSK-0118): fuera de chrome-hidden, salen en la grabación. -->
@@ -246,6 +248,7 @@
         </div>
         <input id="fileInput" type="file" accept=".html,.htm,.pdf,text/html,application/pdf,image/png,image/jpeg,image/webp" multiple hidden />
         <p class="panel-cta-help" data-i18n="sources.localHelp">It is stored in your browser: nothing is uploaded.</p>
+        <button id="shareScreenBtn" type="button" class="upload-btn" data-i18n="sources.shareScreen" hidden>Share a screen, window or tab</button>
 
         <div class="saved-sources">
           <p class="control-label" id="savedSourcesTitle"><span data-i18n="sources.recent">Recent</span> <span id="savedSourcesCount"></span></p>

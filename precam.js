@@ -1,5 +1,5 @@
 import './frameGuard.js'; // primero: aborta si la app está dentro de un iframe
-import { createSourcesStore, bindSourcesToChannel, MAX_SOURCES } from './sources.js';
+import { createSourcesStore, bindSourcesToChannel, isDisplayCaptureSupported, MAX_SOURCES } from './sources.js';
 import { saveHtml, saveBundle, readBundleFiles, readLocalHtml, removeHtml, removeBundle } from './localStore.js';
 import { buildBundleBlobs, missingResourcesMessage } from './bundleBlobs.js';
 import { pdfToDeckFile } from './pdfImport.js';
@@ -8,6 +8,7 @@ import { imagesToDeckFile } from './imageImport.js';
 import { bridgeRequestFromMessage, injectDeckBridge } from './deckBridge.js';
 import { recentKey, removedLocalFiles, sourceLabel } from './savedSources.js';
 import { createSetupPreview } from './setupPreview.js';
+import { createDisplayStage } from './displayStage.js';
 import { applyEmptyState } from './emptyState.js';
 import { droppedEntry } from './dropImport.js';
 import { bindUnloadGuard } from './unloadGuard.js';
@@ -92,6 +93,17 @@ window.addEventListener('beforeunload', () => {
 
 const presentationSection = document.getElementById('presentationSection');
 const iframeStack = document.getElementById('iframeStack');
+// La fuente de pantalla (CAM-TSK-0193): el selector se abre con el botón del escenario (ADR 3).
+const displayStage = createDisplayStage({
+  host: document.getElementById('displayStage'),
+  mediaDevices: navigator.mediaDevices,
+  labels: { get share() { return t('display.share'); }, get video() { return t('display.video'); } },
+  onEnded: () => showStatus(t('status.displayEnded')),
+  onError: error => {
+    console.error(error);
+    showStatus(t('status.displayFailed'), true);
+  },
+});
 const webcamSection = document.getElementById('webcamSection');
 const canvas = document.getElementById('outputCanvas');
 const video = document.getElementById('webcamVideo');
@@ -410,6 +422,12 @@ document.getElementById('openRemoteBtn').addEventListener('click', () => {
   remoteHost.open();
 });
 window.addEventListener('pagehide', () => remoteHost.close());
+// Sin getDisplayMedia (móviles) no se ofrece compartir pantalla.
+const shareScreenBtn = document.getElementById('shareScreenBtn');
+shareScreenBtn.hidden = !isDisplayCaptureSupported();
+shareScreenBtn.addEventListener('click', () => {
+  if (!sources.addDisplay()) showStatus(sourcesFullMessage(), true);
+});
 document.getElementById('pickFileBtn').addEventListener('click', () => {
   uploadMenu.hidePopover();
   fileInput.click();
@@ -522,7 +540,7 @@ sources.subscribe(({ list, activeIndex }) => {
     const active = list[activeIndex] ?? null;
     // Si la source activa es HTML local, vaciamos el input para que «Go live»
     // arranque la presentación local (la rama URL solo actúa si hay texto).
-    if (active?.type === 'html') urlInput.value = '';
+    if (active?.type === 'html' || active?.type === 'display') urlInput.value = '';
     else if (active?.url) urlInput.value = active.url;
   }
   // Mientras haya presentación activa, sincronizamos el stack; si no, la vista previa.
@@ -746,6 +764,9 @@ function renderIframeStack(list, activeIndex) {
     }
     frame.classList.toggle('is-active', index === activeIndex);
   });
+  const active = list[activeIndex];
+  if (active?.type === 'display') displayStage.show(active);
+  else displayStage.hide();
   syncDeckNotes().catch(error => console.warn('[notes] no se pudieron leer las notas', error));
 }
 
@@ -1274,8 +1295,9 @@ async function startPresentation(presetUrl) {
   const rawUrl = (presetUrl ?? urlInput.value).trim();
   const active = sources.getActive();
   const startingLocal = !rawUrl && active?.type === 'html';
+  const startingDisplay = !rawUrl && active?.type === 'display';
 
-  if (!rawUrl && !startingLocal) {
+  if (!rawUrl && !startingLocal && !startingDisplay) {
     showStatus(t('status.urlRequired'), true);
     urlInput.focus();
     return;
@@ -1296,7 +1318,8 @@ async function startPresentation(presetUrl) {
     }
   }
 
-  showStatus(t('status.loadingPresentation'));
+  // Una pantalla compartida no carga nada: su botón ya está a la vista.
+  if (!startingDisplay) showStatus(t('status.loadingPresentation'));
   presentationActive = true;
   stopMicTest(); // la grabación abre el micrófono por su cuenta
   setupPreview.clear(); // no tener la misma presentación cargada dos veces
@@ -1521,6 +1544,7 @@ function returnToSetup() {
   stopWebcam();
   stopLiveBadge();
   presentationActive = false;
+  displayStage.hide(); // para la captura de pantalla si la había
   if (iframeStack) iframeStack.replaceChildren();
   // Revocar blob URLs de sources HTML locales para no fugar memoria.
   for (const { urls } of localBlobUrls.values()) {
