@@ -1,6 +1,6 @@
 {
-  "kj_version": "5.17.0",
-  "generated_at": "2026-11-11T21:30:13.614Z",
+  "kj_version": "5.24.0",
+  "generated_at": "2026-11-15T22:48:35.848Z",
   "generation": {
     "profile": "standard",
     "cmds": {
@@ -16,13 +16,8 @@
   },
   "files": [
     {
-      "file": ".claude/settings.json",
-      "sha256": "78922a784ee78e9e50587e93628cd3b9d4dfbe49087adc4514e6781cea38cbb9",
-      "local": true
-    },
-    {
       "file": ".claude/settings.local.json",
-      "sha256": "f56b2a446c5a8fdb77bf8ff6ce52b1216dbaee24875a043e163063928c8f0a42",
+      "sha256": "eb77e2e27f47d1d1a12000e2d8fe3c676f8377411d69fc732d276dc413d1e19d",
       "local": true
     },
     {
@@ -34,6 +29,14 @@
       "sha256": "c5dc01751a3632828bb13e99fa1a7210f683003f8b44d49a44692498011d8d8f"
     },
     {
+      "file": ".github/workflows/kj-secrets.yml",
+      "sha256": "d05767945f533aff4cdcb4efc876f6b900fa398125534607e6b8b38e7ed9eccb"
+    },
+    {
+      "file": ".github/workflows/kj-verdicts.yml",
+      "sha256": "9cb30cf88f7eb2a0840bb3bf5e3a274b79db10e6f370443897b71e75272cfa65"
+    },
+    {
       "file": ".github/workflows/pages.yml",
       "sha256": "f88a4e4d7958034440581276f8e945c3ba4e49583067cb3723fe9a59fd0385ad"
     },
@@ -43,11 +46,11 @@
     },
     {
       "file": ".karajan/hooks/post-merge",
-      "sha256": "b4010bdf0375d6170dadb7aa0d95804e1b6152ff920a2ebfd042ba2b36f04045"
+      "sha256": "fe01565c613e6ef410ae8efb97628da7c22ac1fd72be2e2dae2a2531f2bd7c88"
     },
     {
       "file": ".karajan/hooks/pre-commit",
-      "sha256": "4167b35b2e58aef60e0291c0116adb73414a0b4bbb94f052a2da19824fcdeb15"
+      "sha256": "206041e5f65bd89afe624277dfacab667b12b4eb4e2d8c82e62b441c17415c67"
     },
     {
       "file": ".karajan/hooks/pre-push",
@@ -107,15 +110,18 @@
     }
   ],
   "signature": {
-    "cid": "23ac9413df0da6e0b4ddfa226e023b15",
-    "nonce": "04ea6555f0141efb8d28994cb4d63856",
+    "cid": "3e0d277c48366a1e9ba29e2ca8cd0eb4",
+    "nonce": "b2e45be7136ca87dba5235906e84aac3",
     "project": "manufosela/presentation-camera",
-    "filesHash": "a70c35e3e5538a82bd01277e5393d2547d8f9843a53bafe745386c536964fa19",
+    "filesHash": "193f15d62f7950a5998d6bb796181a17f11591473ee00a7140b5e05895ad4530",
     "v": 2,
-    "kjVersion": "5.17.0",
-    "issuedMs": 1794432602693,
-    "expiresMs": 1794432752693,
-    "signer": "EgMc2b95g5nUh8e6LDCeLjv7G69cQaszUCIy+3aLpPQ=",
-    "signature": "hqY1xCeeI0fTNGU2obuHaGqKOI7An64mIqXmqX8M8vuAnDwWG/+mHvbvN/sir/NEEIsGpx34O8RCJXXy0tdvBw=="
+    "kjVersion": "5.24.0",
+    "issuedMs": 1794782904249,
+    "expiresMs": 1794783054249,
+    "type": "webauthn",
+    "credentialId": "4oFa2VJMGAj_c_grH4hNXA",
+    "authenticatorData": "rXNnteqvZsxVFoAzmjFmd-OrJ0TSokRWHcqrVw7x-rQdAAAAAA",
+    "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiWHJwVm5fRWNhcWo2VXpUZ3lIWC0zOHFNR0hkcVRZUmRSS1RRdU5paFF0USIsIm9yaWdpbiI6Imh0dHBzOi8va2FyYWphbmNvZGUuY29tIiwiY3Jvc3NPcmlnaW4iOmZhbHNlLCJvdGhlcl9rZXlzX2Nhbl9iZV9hZGRlZF9oZXJlIjoiZG8gbm90IGNvbXBhcmUgY2xpZW50RGF0YUpTT04gYWdhaW5zdCBhIHRlbXBsYXRlLiBTZWUgaHR0cHM6Ly9nb28uZ2wveWFiUGV4In0",
+    "signature": "MEQCIF3WlQESXTO71ew3RjZK62UUVaXijdw-LaMUcZhfeMpcAiBl-Uue8Bh5LzuQpGYnNYop1Vj2TLKenqDrEHQNfg4rEQ"
   }
 }
