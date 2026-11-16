@@ -6,7 +6,9 @@
  * burbuja) termina la grabación y vuelve a onslide para recortar y descargar.
  */
 
-export function createScreenSession({ openBubble, requestCamera, createFlow, showStatus, focusApp, logger = console }) {
+export function createScreenSession({
+  openBubble, requestCamera, wantsCamera = () => true, createFlow, showStatus, focusApp, logger = console,
+}) {
   let bubble = null;
 
   const stateOf = flow => {
@@ -38,6 +40,7 @@ export function createScreenSession({ openBubble, requestCamera, createFlow, sho
       showStatus(error.message, true);
       return;
     }
+    if (!wantsCamera()) return; // «Sin cámara» (CAM-BUG-0031): solo los botones
     const opened = bubble;
     try {
       const camera = await requestCamera();

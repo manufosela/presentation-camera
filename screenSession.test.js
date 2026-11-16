@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createScreenSession } from './screenSession.js';
 
 // Burbuja y flujo falsos: la burbuja guarda sus acciones para «pulsar» sus botones.
-function setup({ openBubble, requestCamera } = {}) {
+function setup({ openBubble, requestCamera, wantsCamera } = {}) {
   let actions = null;
   const bubble = { setState: vi.fn(), showCamera: vi.fn(), close: vi.fn(() => actions.onClose()) };
   const flowState = { recording: false, paused: false };
@@ -19,6 +19,7 @@ function setup({ openBubble, requestCamera } = {}) {
   const deps = {
     openBubble: openBubble ?? vi.fn(async options => { actions = options; return bubble; }),
     requestCamera: requestCamera ?? vi.fn(async () => camera),
+    wantsCamera,
     createFlow: onChange => { notify = onChange; return flow; },
     showStatus: vi.fn(),
     focusApp: vi.fn(),
@@ -65,6 +66,14 @@ describe('createScreenSession — grabar la pantalla con la burbuja (CAM-TSK-016
     await session.open();
     expect(deps.showStatus).toHaveBeenCalledWith('sin burbuja', true);
     expect(deps.requestCamera).not.toHaveBeenCalled();
+  });
+
+  it('con «Sin cámara» elegido no pide la cámara (CAM-BUG-0031)', async () => {
+    const { session, deps, bubble } = setup({ wantsCamera: () => false });
+    await session.open();
+    expect(deps.openBubble).toHaveBeenCalledOnce();
+    expect(deps.requestCamera).not.toHaveBeenCalled();
+    expect(bubble.showCamera).not.toHaveBeenCalled();
   });
 
   it('sin cámara lo avisa y la burbuja sigue sirviendo para grabar la pantalla', async () => {

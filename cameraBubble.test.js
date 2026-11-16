@@ -3,11 +3,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { openCameraBubble } from './cameraBubble.js';
 import { setLang } from './i18n.js';
 
-// Ventana PiP falsa: un documento aparte y close() avisa con pagehide, como Chrome.
+// Ventana PiP falsa: un documento aparte, su propio rAF (se avanza a mano con
+// nextFrame) y close() avisa con pagehide, como Chrome.
 function fakePip() {
+  const frames = new Map();
+  let lastFrame = 0;
   const win = Object.assign(new EventTarget(), {
     document: document.implementation.createHTMLDocument(''),
     close: vi.fn(() => win.dispatchEvent(new Event('pagehide'))),
+    requestAnimationFrame: vi.fn(callback => { frames.set(++lastFrame, callback); return lastFrame; }),
+    cancelAnimationFrame: vi.fn(id => frames.delete(id)),
+    nextFrame: () => {
+      const pending = [...frames.values()];
+      frames.clear();
+      pending.forEach(callback => callback());
+    },
   });
   return { win, pip: { requestWindow: vi.fn(async () => win) } };
 }
@@ -27,6 +37,7 @@ function setup() {
 
 const CSS = 'data:text/css,'; // en línea: el entorno de test no descarga nada
 const button = (win, name) => win.document.querySelector(`[data-action="${name}"]`);
+const settle = () => new Promise(resolve => setTimeout(resolve, 0)); // el recorte se prepara en segundo plano
 
 beforeEach(() => setLang('es', null));
 
@@ -72,6 +83,55 @@ describe('openCameraBubble — burbuja de cámara flotante (CAM-TSK-0164)', () =
     expect(win.document.querySelector('video').srcObject).toBe(stream);
     bubble.close();
     expect(track.stop).toHaveBeenCalled();
+  });
+
+  it('el tamaño de la cámara (S/M/L) decide el de la ventana flotante (CAM-BUG-0031)', async () => {
+    const opened = [];
+    for (const size of ['s', 'm', 'l']) {
+      const { pip, actions } = setup();
+      await openCameraBubble({ pip, size, styleHref: CSS, ...actions });
+      opened.push(pip.requestWindow.mock.calls[0][0]);
+    }
+    expect(opened).toEqual([{ width: 180, height: 240 }, { width: 240, height: 300 }, { width: 320, height: 380 }]);
+  });
+
+  it('«Sin cámara»: solo los botones (CAM-BUG-0031)', async () => {
+    const { win, pip, actions } = setup();
+    await openCameraBubble({ pip, withCamera: false, styleHref: CSS, ...actions });
+    expect(win.document.querySelector('video, canvas')).toBeNull();
+    expect(button(win, 'record').hidden).toBe(false);
+  });
+
+  it('silueta: dibuja el recorte en un canvas con el rAF de la burbuja, no con el de onslide (CAM-BUG-0031)', async () => {
+    const { win, pip, stream, actions } = setup();
+    const renderer = { drawFrame: vi.fn() };
+    const createCutout = vi.fn(async () => renderer);
+    const bubble = await openCameraBubble({ pip, camera: stream, createCutout, styleHref: CSS, ...actions });
+    const video = win.document.querySelector('video');
+    const canvas = win.document.querySelector('canvas.bubble-camera');
+    expect(createCutout).toHaveBeenCalledWith(video, canvas);
+    expect(video.hidden).toBe(true);
+    await settle();
+    win.nextFrame(); // aún sin frames de cámara: no dibuja
+    expect(renderer.drawFrame).not.toHaveBeenCalled();
+    Object.defineProperties(video, { videoWidth: { value: 640 }, videoHeight: { value: 480 } });
+    win.nextFrame();
+    win.nextFrame();
+    expect(renderer.drawFrame).toHaveBeenCalledTimes(2);
+    bubble.close();
+    win.nextFrame();
+    expect(renderer.drawFrame).toHaveBeenCalledTimes(2);
+  });
+
+  it('si el recorte no carga, enseña la cámara tal cual y lo dice (CAM-BUG-0031)', async () => {
+    const { win, pip, stream, actions } = setup();
+    const onError = vi.fn();
+    const failure = new Error('sin modelo');
+    await openCameraBubble({ pip, camera: stream, createCutout: async () => { throw failure; }, onError, styleHref: CSS, ...actions });
+    await settle();
+    expect(win.document.querySelector('canvas')).toBeNull();
+    expect(win.document.querySelector('video').hidden).toBe(false);
+    expect(onError).toHaveBeenCalledWith(failure);
   });
 
   it('sin Document Picture-in-Picture falla con un mensaje claro', async () => {
