@@ -59,6 +59,14 @@ describe('setup en una pantalla', () => {
     expect(panel.querySelector('[data-i18n="sources.recent"]')).not.toBeNull();
   });
 
+  it('grabar la pantalla con la cámara va en «Tu presentación», bajo subir archivo (CAM-BUG-0030)', () => {
+    const section = setup.querySelector('section[aria-labelledby="panel-source"]');
+    const record = section.querySelector('#screenRecordButton[data-i18n="sources.screenRecord"]');
+    const upload = section.querySelector('#uploadBtn');
+    expect(upload.compareDocumentPosition(record) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(setup.querySelector('.setup-footer #screenRecordButton')).toBeNull();
+  });
+
   it('«Tu cámara»: cómo apareces, fondo y tamaño con nombres claros (CAM-TSK-0084)', () => {
     const section = setup.querySelector('section[aria-labelledby="panel-camera"]');
     const styles = [...section.querySelectorAll('input[name="webcam-style"]')];
