@@ -111,6 +111,9 @@ describe('openCameraBubble — burbuja de cámara flotante (CAM-TSK-0164)', () =
     const canvas = win.document.querySelector('canvas.bubble-camera');
     expect(createCutout).toHaveBeenCalledWith(video, canvas);
     expect(video.hidden).toBe(true);
+    const play = vi.spyOn(video, 'play').mockResolvedValue();
+    bubble.showCamera(stream); // oculto, Chrome no lo reproduce con autoplay: hay que pedirlo
+    expect(play).toHaveBeenCalledOnce();
     await settle();
     win.nextFrame(); // aún sin frames de cámara: no dibuja
     expect(renderer.drawFrame).not.toHaveBeenCalled();

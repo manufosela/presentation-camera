@@ -89,6 +89,9 @@ export async function openCameraBubble({
   const showCamera = stream => {
     current = stream;
     video.srcObject = stream;
+    // Con la silueta el vídeo va oculto y Chrome no reproduce solo un vídeo
+    // oculto: sin play() no habría frames que recortar.
+    video.play().catch(error => console.error(error));
   };
   if (camera) showCamera(camera);
   let closed = false;

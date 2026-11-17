@@ -1487,20 +1487,22 @@ async function segmentPerson(source) {
 }
 
 // Silueta en la burbuja de grabar pantalla (CAM-BUG-0031): el mismo recorte y
-// fondo que en la presentación. tfjs no reconoce un <video> de otra ventana
-// (comprueba instanceof), así que segmenta una copia del frame hecha aquí.
+// fondo que en la presentación. BodyPix no reconoce un <video> de otra ventana
+// (comprueba instanceof) ni un ImageBitmap, así que segmenta una copia del
+// frame en un canvas de esta ventana.
 async function createBubbleCutout(bubbleVideo, bubbleCanvas) {
   await loadBodyPix();
+  const frame = document.createElement('canvas');
   return createCutoutRenderer({
     video: bubbleVideo,
     canvas: bubbleCanvas,
-    segment: async source => {
-      const frame = await createImageBitmap(source);
-      try {
-        return await segmentPerson(frame);
-      } finally {
-        frame.close();
+    segment: source => {
+      if (frame.width !== source.videoWidth || frame.height !== source.videoHeight) {
+        frame.width = source.videoWidth;
+        frame.height = source.videoHeight;
       }
+      frame.getContext('2d').drawImage(source, 0, 0);
+      return segmentPerson(frame);
     },
     now: () => performance.now(),
     intervalMs: SEGMENTATION_INTERVAL_MS,
