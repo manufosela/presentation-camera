@@ -162,8 +162,20 @@ const recording = createRecordingFlow({
 });
 // Grabar la pantalla entera con la burbuja de cámara (CAM-TSK-0165), como Loom.
 const screenSession = createScreenSession({
-  openBubble: actions => openCameraBubble({ styleHref: new URL('cameraBubble.css', import.meta.url).href, ...actions }),
+  // La burbuja sigue el tamaño y el estilo de cámara elegidos en el setup (CAM-BUG-0031).
+  openBubble: actions => openCameraBubble({
+    styleHref: new URL('cameraBubble.css', import.meta.url).href,
+    size: currentSize,
+    withCamera: usesCamera(currentStyle),
+    createCutout: needsCanvasLoop(currentStyle) ? createBubbleCutout : null,
+    onError: error => {
+      console.error(error);
+      showStatus(t('status.cutoutFailed'), true);
+    },
+    ...actions,
+  }),
   requestCamera: () => requestVideoStream(),
+  wantsCamera: () => usesCamera(currentStyle),
   createFlow: onChange => createRecordingFlow({
     ...recordingCommon,
     startRecording: options => startScreenRecording({ ...options, surface: 'screen' }),
@@ -1472,6 +1484,31 @@ async function segmentPerson(source) {
     { r: 0, g: 0, b: 0, a: 0 }    // fondo transparente
   );
   return { data: segmentation.data, mask };
+}
+
+// Silueta en la burbuja de grabar pantalla (CAM-BUG-0031): el mismo recorte y
+// fondo que en la presentación. BodyPix no reconoce un <video> de otra ventana
+// (comprueba instanceof) ni un ImageBitmap, así que segmenta una copia del
+// frame en un canvas de esta ventana.
+async function createBubbleCutout(bubbleVideo, bubbleCanvas) {
+  await loadBodyPix();
+  const frame = document.createElement('canvas');
+  return createCutoutRenderer({
+    video: bubbleVideo,
+    canvas: bubbleCanvas,
+    segment: source => {
+      if (frame.width !== source.videoWidth || frame.height !== source.videoHeight) {
+        frame.width = source.videoWidth;
+        frame.height = source.videoHeight;
+      }
+      frame.getContext('2d').drawImage(source, 0, 0);
+      return segmentPerson(frame);
+    },
+    now: () => performance.now(),
+    intervalMs: SEGMENTATION_INTERVAL_MS,
+    getBackground: () => (backgroundBlur ? BLUR_BACKGROUND_ID : backgroundImage),
+    isMirrored: () => true, // la burbuja siempre va en espejo
+  });
 }
 
 // Aviso persistente (estilo error, para que el primer frame no lo limpie) mientras
