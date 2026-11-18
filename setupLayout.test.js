@@ -59,12 +59,11 @@ describe('setup en una pantalla', () => {
     expect(panel.querySelector('[data-i18n="sources.recent"]')).not.toBeNull();
   });
 
-  it('grabar la pantalla con la cámara va en «Tu presentación», bajo subir archivo (CAM-BUG-0030)', () => {
-    const section = setup.querySelector('section[aria-labelledby="panel-source"]');
-    const record = section.querySelector('#screenRecordButton[data-i18n="sources.screenRecord"]');
-    const upload = section.querySelector('#uploadBtn');
-    expect(upload.compareDocumentPosition(record) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(setup.querySelector('.setup-footer #screenRecordButton')).toBeNull();
+  it('grabar la pantalla con la cámara va junto a «Elegir archivo» y «Probar con una demo» (CAM-BUG-0030)', () => {
+    const actions = setup.querySelector('.stage-empty-actions');
+    expect([...actions.children].map(el => el.id)).toEqual(['chooseFileBtn', 'exampleButton', 'screenRecordButton']);
+    expect(actions.querySelector('#screenRecordButton').matches('.row-btn[data-i18n="empty.screenRecord"]')).toBe(true);
+    expect(setup.querySelectorAll('#screenRecordButton')).toHaveLength(1);
   });
 
   it('«Tu cámara»: cómo apareces, fondo y tamaño con nombres claros (CAM-TSK-0084)', () => {

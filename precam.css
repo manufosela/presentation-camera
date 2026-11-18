@@ -413,7 +413,7 @@ kbd {
   box-shadow: var(--shadow-mid);
 }
 .upload-menu:popover-open { display: grid; }
-#uploadBtn { anchor-name: --upload; } /* solo el de subir: su menú se ancla a él */
+.upload-btn { anchor-name: --upload; }
 
 .ghost-button {
   display: inline-flex;
