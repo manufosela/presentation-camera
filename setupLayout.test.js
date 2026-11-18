@@ -59,6 +59,13 @@ describe('setup en una pantalla', () => {
     expect(panel.querySelector('[data-i18n="sources.recent"]')).not.toBeNull();
   });
 
+  it('grabar la pantalla con la cámara va junto a «Elegir archivo» y «Probar con una demo» (CAM-BUG-0030)', () => {
+    const actions = setup.querySelector('.stage-empty-actions');
+    expect([...actions.children].map(el => el.id)).toEqual(['chooseFileBtn', 'exampleButton', 'screenRecordButton']);
+    expect(actions.querySelector('#screenRecordButton').matches('.row-btn[data-i18n="empty.screenRecord"]')).toBe(true);
+    expect(setup.querySelectorAll('#screenRecordButton')).toHaveLength(1);
+  });
+
   it('«Tu cámara»: cómo apareces, fondo y tamaño con nombres claros (CAM-TSK-0084)', () => {
     const section = setup.querySelector('section[aria-labelledby="panel-camera"]');
     const styles = [...section.querySelectorAll('input[name="webcam-style"]')];
