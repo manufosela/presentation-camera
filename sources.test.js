@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createSourcesStore, MAX_SOURCES, SOURCES_STORAGE_KEY } from './sources.js';
+import {
+  createSourcesStore, isDisplayCaptureSupported, MAX_SOURCES, SOURCES_STORAGE_KEY,
+} from './sources.js';
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -149,5 +151,51 @@ describe('isFull — límite de sources (MAX_SOURCES)', () => {
     for (let i = 0; i < MAX_SOURCES; i++) store.add(`https://s${i}.test`);
     expect(store.add('https://s3.test')).toMatchObject({ url: 'https://s3.test' });
     expect(store.getActiveIndex()).toBe(3);
+  });
+});
+
+describe('addDisplay — fuente de pantalla compartida (CAM-TSK-0192)', () => {
+  it('crea una source type "display" activa, sin url ni localRef', () => {
+    const store = createSourcesStore();
+    store.add('https://a.test');
+    const item = store.addDisplay();
+    expect(item).toMatchObject({ type: 'display', title: null });
+    expect(item.url).toBeUndefined();
+    expect(item.localRef).toBeUndefined();
+    expect(store.getActive()).toEqual(item);
+  });
+
+  it('una segunda llamada no la duplica: activa la existente', () => {
+    const store = createSourcesStore();
+    const first = store.addDisplay();
+    store.add('https://a.test');
+    const second = store.addDisplay();
+    expect(second.id).toBe(first.id);
+    expect(store.list().filter(s => s.type === 'display')).toHaveLength(1);
+    expect(store.getActive().id).toBe(first.id);
+  });
+
+  it('con la lista llena devuelve null', () => {
+    const store = createSourcesStore();
+    for (let i = 0; i < MAX_SOURCES; i++) store.add(`https://s${i}.test`);
+    expect(store.addDisplay()).toBeNull();
+  });
+
+  it('se rehidrata desde localStorage y desde un snapshot remoto con su tipo', () => {
+    const store = createSourcesStore();
+    const item = store.addDisplay();
+    expect(createSourcesStore().list()).toEqual([item]);
+
+    const other = createSourcesStore();
+    other.hydrate({ list: [{ id: 'd1', type: 'display', title: null }], activeIndex: 0, revision: 99 });
+    expect(other.getActive()).toEqual({ id: 'd1', type: 'display', title: null });
+  });
+});
+
+describe('isDisplayCaptureSupported', () => {
+  it('true solo si el navegador tiene getDisplayMedia', () => {
+    expect(isDisplayCaptureSupported({ mediaDevices: { getDisplayMedia() {} } })).toBe(true);
+    expect(isDisplayCaptureSupported({ mediaDevices: {} })).toBe(false);
+    expect(isDisplayCaptureSupported({})).toBe(false);
   });
 });
